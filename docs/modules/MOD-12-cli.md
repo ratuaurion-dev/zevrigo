@@ -18,3 +18,6 @@ Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan 
 ## Bukan Tanggung Jawab
 
 - Validasi konsensus lokal (`MOD-04`) maupun pengelolaan kunci dompet pengguna (`MOD-09`/`MOD-15`).
+
+## Task terkait
+- [TSK-M19](../tasks/README.md)

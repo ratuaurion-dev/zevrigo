@@ -98,10 +98,21 @@ graph LR
     MOD17 --> MOD10
 ```
 
-## Matriks Fitur × Modul
+## Matriks fitur × modul
 
-*Diisi di R2.*
+Keterangan: ● = memakai atau mengubah modul · ○ = hanya membaca
 
-| Fitur | MOD-01 | MOD-02 | MOD-03 | MOD-04 | MOD-05 | MOD-06 | MOD-07 | MOD-08 | MOD-09 | MOD-10 | MOD-11 | MOD-12 | MOD-13 | MOD-14 | MOD-15 | MOD-16 | MOD-17 |
+| Fitur ↓ / Modul → | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| *(diisi di R2)* | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| FTR-01 Node regtest | ● | ● | ● | ● | ● | | | ● | | | ● | | | | | | ● |
+| FTR-02 Menambang | ● | | ● | ● | ○ | | | ● | | | ● | | ● | | | | ● |
+| FTR-03 Kirim dan terima | ● | ● | | ● | ○ | | ● | ● | ● | | ● | ● | | | | | ● |
+| FTR-04 Multi-node | ○ | | | ● | ● | ● | ○ | | | | ● | | | | | | ● |
+| FTR-05 Explorer | ○ | | | ○ | ● | | | ● | | | | | | ● | | | |
+| FTR-06 Testnet publik | ● | ● | ● | ● | ● | ● | ● | ● | ● | | ● | ● | ● | ● | | | ● |
+| FTR-07 Wallet desktop | ○ | | | | | | | ● | ● | | | | | | ● | | |
+| FTR-08 Wallet mobile | ○ | | | | | | | ● | ● | | | | | | ● | | |
+| FTR-09 Pelaku usaha | ○ | | | | | | | ● | ● | ● | | | | | | ● | |
+| FTR-10 Rilis | | | | | | | | | | | ● | ● | ● | ● | ● | ● | |
+
+**Analisis dampak:** MOD-04 (consensus) dipakai oleh FTR-01 sampai FTR-06; setiap perubahannya wajib diuji ulang lewat MOD-17.

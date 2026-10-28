@@ -19,3 +19,6 @@ Mengelola antrean transaksi belum terkonfirmasi di memori sebelum dimasukkan ke 
 
 - Mendefinisikan ulang aturan konsensus di luar `MOD-04`.
 - Penyimpanan blok permanen di disk (`MOD-05`).
+
+## Task terkait
+- [TSK-M13](../tasks/README.md)

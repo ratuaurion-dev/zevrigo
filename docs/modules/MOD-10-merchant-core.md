@@ -19,3 +19,6 @@ Menyediakan logika inti pembuatan tagihan *watch-only* dan pelacakan status konf
 
 - Menyimpan kunci privat pengeluaran dana (khusus dompet penuh `MOD-09`/`MOD-15`).
 - Antarmuka kasir berbasis Tauri (`MOD-16`).
+
+## Task terkait
+- [TSK-M17](../tasks/README.md)

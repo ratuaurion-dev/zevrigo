@@ -19,3 +19,7 @@ Menyediakan perhitungan dan verifikasi Proof of Work bagi konsensus dan penamban
 
 - Perhitungan target kesulitan ASERT dan aturan pemilihan rantai (`MOD-04`).
 - Loop penambangan multi-utas dan komunikasi ke daemon node (`MOD-13`).
+
+## Task terkait
+- [TSK-M05](../tasks/README.md)
+- [TSK-M06](../tasks/README.md)

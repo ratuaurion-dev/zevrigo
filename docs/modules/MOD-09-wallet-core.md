@@ -19,3 +19,7 @@ Menyediakan pustaka inti pengelolaan kunci, pemilihan UTXO, penyusunan, dan pena
 ## Bukan Tanggung Jawab
 
 - Antarmuka grafis pengguna (`MOD-15`) maupun komunikasi jaringan langsung ke node tanpa melalui lapisan aplikasi/RPC (`MOD-08`).
+
+## Task terkait
+- [TSK-M15](../tasks/README.md)
+- [TSK-M16](../tasks/README.md)

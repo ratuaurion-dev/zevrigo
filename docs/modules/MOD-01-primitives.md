@@ -21,3 +21,7 @@ Menyediakan tipe data dasar yang deterministik dan bebas luapan diam-diam bagi s
 
 - Aturan validasi konsensus, perhitungan jadwal pasokan, dan penyesuaian kesulitan ASERT (`MOD-04`).
 - Operasi hash kriptografis BLAKE3 dan tanda tangan Schnorr/MuSig2 (`MOD-02`).
+
+## Task terkait
+- [TSK-M01](../tasks/README.md)
+- [TSK-M03](../tasks/README.md)

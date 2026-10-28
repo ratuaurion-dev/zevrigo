@@ -18,3 +18,6 @@ Menyediakan definisi tipe pesan serta klien dan server JSON-RPC antara daemon no
 ## Bukan Tanggung Jawab
 
 - Logika konsensus (`MOD-04`), penyimpanan kunci dompet (`MOD-09`), maupun tampilan antarmuka pengguna (`MOD-12`..`MOD-16`).
+
+## Task terkait
+- [TSK-M12](../tasks/README.md)

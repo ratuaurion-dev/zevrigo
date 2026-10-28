@@ -18,3 +18,7 @@ Menyediakan aplikasi dompet lintas platform (desktop dan mobile) bagi pengguna a
 ## Bukan Tanggung Jawab
 
 - Implementasi kriptografi mentah di luar `MOD-02`/`MOD-09` atau menjalankan layanan kasir *watch-only* khusus merchant (`MOD-16`).
+
+## Task terkait
+- [TSK-F07](../tasks/README.md)
+- [TSK-F08](../tasks/README.md)

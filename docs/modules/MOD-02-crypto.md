@@ -21,3 +21,7 @@ Menyediakan primitif kriptografi deterministik yang dipakai oleh protokol dan do
 
 - Aturan validasi skrip/transaksi tingkat protokol (`MOD-04`).
 - Manajemen penyimpanan kunci privat pengguna dan penyusunan UTXO dompet (`MOD-09`).
+
+## Task terkait
+- [TSK-M02](../tasks/README.md)
+- [TSK-M04](../tasks/README.md)

@@ -18,3 +18,6 @@ Menyediakan aplikasi kasir lintas platform (desktop dan mobile) berbasis *watch-
 ## Bukan Tanggung Jawab
 
 - Menyimpan kunci privat atau menandatangani pengeluaran dana (`MOD-09`/`MOD-15`).
+
+## Task terkait
+- [TSK-F09](../tasks/README.md)

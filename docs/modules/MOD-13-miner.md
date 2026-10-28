@@ -18,3 +18,6 @@ Menyediakan aplikasi penambang CPU mandiri yang mengambil templat blok dari node
 ## Bukan Tanggung Jawab
 
 - Validasi penuh rantai atau penyimpanan UTXO (`MOD-04`, `MOD-05`).
+
+## Task terkait
+- [TSK-M20](../tasks/README.md)

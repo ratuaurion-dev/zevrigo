@@ -18,3 +18,6 @@ Menjalankan pengujian integrasi lintas crate inti serta memverifikasi kecocokan 
 ## Bukan Tanggung Jawab
 
 - Unit test internal masing-masing modul (yang diletakkan di `src/<modul>/tests.rs` pada tiap crate).
+
+## Task terkait
+- [TSK-F04](../tasks/README.md)

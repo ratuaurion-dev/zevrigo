@@ -21,3 +21,8 @@ Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeosta
 
 - Penyimpanan persisten blok dan basis data disk (`MOD-05`).
 - Komunikasi jaringan P2P (`MOD-06`) maupun antarmuka JSON-RPC (`MOD-08`).
+
+## Task terkait
+- [TSK-M07](../tasks/README.md)
+- [TSK-M08](../tasks/README.md)
+- [TSK-M09](../tasks/README.md)

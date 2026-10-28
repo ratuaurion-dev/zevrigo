@@ -20,3 +20,7 @@ Menyediakan penyimpanan persisten yang deterministik dan atomik untuk blok, inde
 
 - Penentuan keabsahan blok atau aturan konsensus (`MOD-04`).
 - Orkestrasi jaringan dan layanan RPC daemon (`MOD-11`).
+
+## Task terkait
+- [TSK-M10](../tasks/README.md)
+- [TSK-M11](../tasks/README.md)

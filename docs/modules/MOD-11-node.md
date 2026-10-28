@@ -19,3 +19,6 @@ Menjalankan daemon node penuh Homeostasis Coin (baik mode arsip maupun *pruned*)
 
 - Menulis aturan validasi konsensus sendiri di luar `MOD-04`.
 - Melakukan perhitungan hash Proof of Work penambangan (`MOD-13`) atau menyimpan kunci privat dompet pengguna (`MOD-15`).
+
+## Task terkait
+- [TSK-M18](../tasks/README.md)

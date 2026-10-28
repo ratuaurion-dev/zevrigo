@@ -18,3 +18,6 @@ Menyediakan layanan pengindeks rantai (*indexer*) dan API HTTP/JSON bagi penjela
 ## Bukan Tanggung Jawab
 
 - Validasi konsensus (`MOD-04`) maupun penyimpanan kunci pengguna (`MOD-09`).
+
+## Task terkait
+- [TSK-F05](../tasks/README.md)
