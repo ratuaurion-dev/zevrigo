@@ -11,5 +11,5 @@ trigger: always_on
   Aritmetika selalu checked. Tanpa unwrap/expect/panic di kode produksi.
 - Jangan menonaktifkan, melewati, atau melemahkan test supaya lolos.
 - Jangan menambah dependensi, memakai sudo, git push, atau perintah destruktif tanpa izin.
+- Jangan memakai GitHub CLI, akun online atau plugin pengguna, mengubah remote, atau mengubah git config tanpa izin tertulis di prompt tugas.
 - Kerjakan satu tugas saja per percakapan. Akhiri dengan laporan sesuai format di AGENTS.md.
-
