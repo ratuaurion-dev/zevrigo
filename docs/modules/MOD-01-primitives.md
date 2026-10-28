@@ -3,7 +3,7 @@
 - **ID:** `MOD-01`
 - **Path:** `crates/primitives`
 - **Paket:** `homeostasis-primitives`
-- **Status:** ⚪ belum dimulai (kerangka R0)
+- **Status:** 🟡 sedang berjalan (`TSK-M01` selesai; menunggu `TSK-M03`)
 - **Bergantung pada:** —
 - **Dipakai oleh:** `MOD-02`, `MOD-03`, `MOD-04`, `MOD-05`, `MOD-06`, `MOD-07`, `MOD-08`, `MOD-09`, `MOD-10`, `MOD-12`, `MOD-13`, `MOD-14`, `MOD-17`
 
@@ -23,5 +23,5 @@ Menyediakan tipe data dasar yang deterministik dan bebas luapan diam-diam bagi s
 - Operasi hash kriptografis BLAKE3 dan tanda tangan Schnorr/MuSig2 (`MOD-02`).
 
 ## Task terkait
-- [TSK-M01](../tasks/README.md)
-- [TSK-M03](../tasks/README.md)
+- [TSK-M01](../tasks/TSK-M01-primitives-tipe-dasar.md) — 🟢 selesai (tipe dasar: `Amount`, `BlockHeight`, `Hash32`, parameter chain)
+- [TSK-M03](../tasks/README.md) — ⚪ belum dimulai
