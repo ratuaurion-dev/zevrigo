@@ -248,6 +248,16 @@ fn body_mutation_changes_both_txid_and_wtxid() {
 }
 
 #[test]
+fn network_id_equals_block_id_of_same_header() {
+    let header_v4 = build_v4();
+    assert_eq!(
+        network_id(&header_v4),
+        block_id(&header_v4),
+        "network_id wajib sama persis dengan block_id dari header yang sama"
+    );
+}
+
+#[test]
 fn merkle_root_changes_when_transactions_are_reordered() {
     let v1 = build_v1();
     let v2 = build_v2();
@@ -290,5 +300,59 @@ proptest! {
         if sig1 != sig2 {
             prop_assert_ne!(wtxid(&tx_with_sig1), wtxid(&tx_with_sig2));
         }
+    }
+
+    #[test]
+    fn proptest_block_merkle_root_is_some_and_deterministic(
+        height in 1_u64..1_000_000,
+        quanta_cb in 1_u128..=10_000_000_000,
+        miner_payload in any::<[u8; 32]>(),
+        quanta_tx in 1_u128..=10_000_000_000,
+        prev_hash in any::<[u8; 32]>(),
+        prev_idx in any::<u32>(),
+        tx_payload in any::<[u8; 32]>(),
+        sig in any::<[u8; 64]>(),
+    ) {
+        let cb_out = Output::new(
+            Amount::from_quanta(quanta_cb),
+            OutputKind::SingleKey,
+            miner_payload,
+        ).expect("cb out");
+        let cb = Transaction::coinbase(
+            homeostasis_primitives::height::BlockHeight::new(height),
+            vec![],
+            vec![cb_out],
+        ).expect("coinbase");
+
+        let tx_in = Input::new(Hash32::from_bytes(prev_hash), prev_idx);
+        let tx_out = Output::new(
+            Amount::from_quanta(quanta_tx),
+            OutputKind::SingleKey,
+            tx_payload,
+        ).expect("tx out");
+        let reg_tx = Transaction::regular(
+            vec![tx_in],
+            vec![tx_out],
+            vec![Witness::single_key(sig)],
+        ).expect("reg tx");
+
+        let header = Header::new(
+            homeostasis_primitives::height::BlockHeight::new(height),
+            Hash32::ZERO,
+            Hash32::ZERO,
+            1_800_000_000,
+            0x1d00_ffff,
+            0,
+        );
+
+        let block1 = Block::new(header, vec![cb.clone(), reg_tx.clone()]).expect("block1");
+        let block2 = Block::new(header, vec![cb.clone(), reg_tx.clone()]).expect("block2");
+
+        let root1 = block_merkle_root(&block1);
+        let root2 = block_merkle_root(&block2);
+
+        prop_assert!(root1.is_some());
+        prop_assert_eq!(root1, root2);
+        prop_assert_eq!(root1, crate::merkle::merkle_root(&[wtxid(&cb), wtxid(&reg_tx)]));
     }
 }

@@ -3,7 +3,7 @@
 - **ID:** `MOD-02`
 - **Path:** `crates/crypto`
 - **Paket:** `homeostasis-crypto`
-- **Status:** 🟢 selesai (TSK-M02, TSK-M04, dan TSK-M21 selesai)
+- **Status:** 🟡 sedang berjalan (TSK-M02, TSK-M04, TSK-M21 selesai; sisa: MuSig2, sighash menunggu DEC-13)
 - **Bergantung pada:** `MOD-01`
 - **Dipakai oleh:** `MOD-04`, `MOD-09`, `MOD-17`
 
