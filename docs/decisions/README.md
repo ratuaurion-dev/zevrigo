@@ -21,3 +21,4 @@ Legenda: 🟢 selesai/diputuskan · 🟡 berjalan · 🔴 terblokir · ⚪ belum
 | DEC-11 | **Disetujui:** alamat bech32m dengan HRP per jaringan (hsis, thsis, rhsis); dua jenis output: 0 = kunci tunggal atau MuSig2 n-dari-n, 1 = kondisi m-dari-n dengan kunci waktu. Rincian: reference/spesifikasi-format-v0.1.md Bagian 4 dan 8 | TSK-M03 | 🟢 diputuskan 28 Oktober 2026 |
 | DEC-12 | **Disetujui:** encoding biner tulis sendiri dan kanonis; varint LEB128 minimal; setiap byte wajib terbaca habis. Rincian: Bagian 2 | TSK-M03 | 🟢 diputuskan 28 Oktober 2026 |
 | DEC-13 | Cakupan tanda tangan (sighash): satu mode (usulan di Bagian 9) atau beberapa mode | TSK-M09, TSK-M16 | ❓ |
+| DEC-14 | Arah dependensi baru MOD-03 pow → MOD-02 crypto, supaya PoW dev regtest (DEC-09) memakai fungsi hash BLAKE3 yang sama dengan domain RegtestPow. Alternatif: MOD-03 memakai crate blake3 langsung | TSK-M05 | ❓ |

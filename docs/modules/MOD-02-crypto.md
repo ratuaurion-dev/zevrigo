@@ -25,3 +25,4 @@ Menyediakan primitif kriptografi deterministik yang dipakai oleh protokol dan do
 ## Task terkait
 - [TSK-M02](../tasks/README.md)
 - [TSK-M04](../tasks/README.md)
+- [TSK-M21](../tasks/README.md)

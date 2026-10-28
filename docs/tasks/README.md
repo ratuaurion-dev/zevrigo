@@ -5,7 +5,7 @@
 | Status | Ringkasan |
 |---|---|
 | 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M07 (rumus pasokan) |
-| 🟡 Siap dikerjakan | Menunggu kartu TSK-M02 dan TSK-M04 |
+| 🟡 Siap dikerjakan | TSK-M02 (BLAKE3), TSK-M04 (Schnorr); TSK-M07 jika belum 🟢 |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | DEC-10 bagian 2 (async, P2P, RPC, logging) membuka TSK-M12, M14, M18 |
 | ➡️ Langkah berikutnya | TSK-M02 dan TSK-M04 (agent) · TSK-S01 (pencipta + Quick) |
@@ -35,14 +35,14 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | ID | Modul | Judul | Bergantung pada | Status |
 |---|---|---|---|---|
 | TSK-M01 | MOD-01 | Tipe dasar: Amount, BlockHeight, Hash32, parameter chain | — | 🟢 selesai ([kartu](TSK-M01-primitives-tipe-dasar.md)) |
-| TSK-M02 | MOD-02 | Hash BLAKE3 dengan pemisah domain (crate `blake3`) | TSK-M01 | ⚪ kartu ditulis setelah TSK-M01 |
-| TSK-M03 | MOD-01 | Struktur transaksi dan blok, encoding kanonis | TSK-M01, TSK-M02, TSK-S01 | ⚪ |
-| TSK-M04 | MOD-02 | Schnorr BIP340 (crate `k256`): kunci, tanda tangan, verifikasi, vektor uji resmi | TSK-M01 | ⚪ kartu ditulis setelah TSK-M01 |
-| TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02 | ⚪ |
+| TSK-M02 | MOD-02 | Hash BLAKE3 dengan pemisah domain dan Merkle root (crate blake3) | TSK-M01 | 🟡 siap ([kartu](TSK-M02-crypto-blake3.md)) |
+| TSK-M03 | MOD-01 | Struktur transaksi dan blok, encoding kanonis (tanpa hashing) | TSK-M01, TSK-S01 | ⚪ |
+| TSK-M04 | MOD-02 | Schnorr BIP340 (crate k256): kunci, tanda tangan, verifikasi, vektor uji resmi | TSK-M01 | 🟡 siap ([kartu](TSK-M04-crypto-schnorr.md)) |
+| TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02, DEC-14 | ❓ |
 | TSK-M06 | MOD-03 | PoW mainnet | DEC-01 | 🔴 |
 | TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟢 selesai ([kartu](TSK-M07-consensus-pasokan.md)) |
 | TSK-M08 | MOD-04 | ASERT, median waktu, chainwork | TSK-M01, TSK-S02 | ⚪ |
-| TSK-M09 | MOD-04 | Validasi transaksi dan blok | TSK-M03, M04, M05, M07, M08, TSK-S02, DEC-13 | ⚪ |
+| TSK-M09 | MOD-04 | Validasi transaksi dan blok | TSK-M03, M04, M05, M07, M08, M21, TSK-S02, DEC-13 | ⚪ |
 | TSK-M10 | MOD-05 | Penyimpanan in-memory: trait dan set UTXO | TSK-M03 | ⚪ |
 | TSK-M11 | MOD-05 | Penyimpanan persisten dan pruning | TSK-M10, DEC-03 | ❓ |
 | TSK-M12 | MOD-08 | Tipe dan server/klien JSON-RPC | TSK-M03, TSK-S04, DEC-10 | ⚪ |
@@ -54,6 +54,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M18 | MOD-11 | Node: konfigurasi, folder data, logging, shutdown | DEC-10 | ⚪ |
 | TSK-M19 | MOD-12 | CLI: perintah dan klien RPC | TSK-M12 | ⚪ |
 | TSK-M20 | MOD-13 | Miner: loop penambangan dengan PoW dev | TSK-M05, TSK-M12 | ⚪ |
+| TSK-M21 | MOD-02 | ID transaksi dan blok: txid, wtxid, block_id, hash kondisi | TSK-M02, TSK-M03 | ⚪ |
 
 ## Backlog: task fitur (TSK-F)
 
@@ -77,8 +78,9 @@ graph LR
   TSKM01[TSK-M01 Tipe dasar] --> TSKM02[TSK-M02 BLAKE3]
   TSKM01 --> TSKM07[TSK-M07 Pasokan]
   TSKS01[TSK-S01 Spesifikasi format] --> TSKM03[TSK-M03 Transaksi dan blok]
-  TSKM02 --> TSKM03
-  TSKM03 --> TSKM09[TSK-M09 Validasi]
+  TSKM02 --> TSKM21[TSK-M21 ID transaksi dan blok]
+  TSKM03 --> TSKM21
+  TSKM21 --> TSKM09[TSK-M09 Validasi]
   TSKS02[TSK-S02 Spesifikasi validasi] --> TSKM09
   TSKM07 --> TSKM09
   TSKM09 --> TSKF01[TSK-F01 Node regtest]
