@@ -8,10 +8,12 @@
 )]
 
 pub mod hash;
+pub mod ids;
 pub mod merkle;
 pub mod schnorr;
 
 pub use hash::{Domain, DomainHasher, hash};
+pub use ids::{block_id, block_merkle_root, condition_hash, network_id, txid, wtxid};
 pub use merkle::merkle_root;
 pub use schnorr::{PublicKey, SchnorrError, SecretKey, Signature, sign, verify};
 

@@ -1,8 +1,12 @@
-use homeostasis_primitives::Hash32;
+use homeostasis_primitives::amount::Amount;
+use homeostasis_primitives::block::{Block, Header};
+use homeostasis_primitives::hash::Hash32;
+use homeostasis_primitives::height::BlockHeight;
+use homeostasis_primitives::tx::{Condition, Output, OutputKind, Transaction};
 
 use crate::{
-    Domain, DomainHasher, MODULE_ID, PublicKey, SchnorrError, SecretKey, Signature, hash,
-    merkle_root, sign, verify,
+    Domain, DomainHasher, MODULE_ID, PublicKey, SchnorrError, SecretKey, Signature, block_id,
+    block_merkle_root, condition_hash, hash, merkle_root, network_id, sign, txid, verify, wtxid,
 };
 
 #[test]
@@ -34,4 +38,27 @@ fn crate_root_reexports_are_accessible() {
         SecretKey::from_bytes(&[0_u8; 32]).unwrap_err(),
         SchnorrError::InvalidSecretKey
     );
+
+    // Smoke test re-export identitas data
+    let out = Output::new(Amount::from_quanta(1), OutputKind::SingleKey, [0x11; 32]).unwrap();
+    let tx = Transaction::coinbase(BlockHeight::new(1), vec![], vec![out]).unwrap();
+    assert_ne!(txid(&tx), Hash32::ZERO);
+    assert_ne!(wtxid(&tx), Hash32::ZERO);
+
+    let header = Header::new(
+        BlockHeight::new(1),
+        Hash32::ZERO,
+        Hash32::ZERO,
+        1_800_000_000,
+        0x1d00_ffff,
+        0,
+    );
+    assert_ne!(block_id(&header), Hash32::ZERO);
+    assert_eq!(network_id(&header), block_id(&header));
+
+    let cond = Condition::new(1, vec![[0x01; 32]], BlockHeight::GENESIS).unwrap();
+    assert_ne!(condition_hash(&cond), Hash32::ZERO);
+
+    let block = Block::new(header, vec![tx]).unwrap();
+    assert!(block_merkle_root(&block).is_some());
 }
