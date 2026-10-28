@@ -4,11 +4,11 @@
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-M01 (tipe dasar) |
-| 🟡 Siap dikerjakan | TSK-M07 (rumus pasokan) |
+| 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M07 (rumus pasokan) |
+| 🟡 Siap dikerjakan | Menunggu kartu TSK-M02 dan TSK-M04 |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | DEC-10 bagian 2 (async, P2P, RPC, logging) membuka TSK-M12, M14, M18 |
-| ➡️ Langkah berikutnya | TSK-M07 (agent) · TSK-S01 (pencipta + Quick) |
+| ➡️ Langkah berikutnya | TSK-M02 dan TSK-M04 (agent) · TSK-S01 (pencipta + Quick) |
 
 ## Tiga jenis task
 
@@ -40,7 +40,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M04 | MOD-02 | Schnorr BIP340 (crate `k256`): kunci, tanda tangan, verifikasi, vektor uji resmi | TSK-M01 | ⚪ kartu ditulis setelah TSK-M01 |
 | TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02 | ⚪ |
 | TSK-M06 | MOD-03 | PoW mainnet | DEC-01 | 🔴 |
-| TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟡 siap ([kartu](TSK-M07-consensus-pasokan.md)) |
+| TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟢 selesai ([kartu](TSK-M07-consensus-pasokan.md)) |
 | TSK-M08 | MOD-04 | ASERT, median waktu, chainwork | TSK-M01, TSK-S02 | ⚪ |
 | TSK-M09 | MOD-04 | Validasi transaksi dan blok | TSK-M03, M04, M05, M07, M08, TSK-S02, DEC-13 | ⚪ |
 | TSK-M10 | MOD-05 | Penyimpanan in-memory: trait dan set UTXO | TSK-M03 | ⚪ |

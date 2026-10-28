@@ -3,7 +3,7 @@
 - **ID:** `MOD-04`
 - **Path:** `crates/consensus`
 - **Paket:** `homeostasis-consensus`
-- **Status:** ⚪ belum dimulai (kerangka R0)
+- **Status:** 🟡 sedang berjalan (`TSK-M07` selesai; menunggu `TSK-M08` dan `TSK-M09`)
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-03`
 - **Dipakai oleh:** `MOD-07`, `MOD-11`, `MOD-17`
 
@@ -23,6 +23,6 @@ Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeosta
 - Komunikasi jaringan P2P (`MOD-06`) maupun antarmuka JSON-RPC (`MOD-08`).
 
 ## Task terkait
-- [TSK-M07](../tasks/README.md)
-- [TSK-M08](../tasks/README.md)
-- [TSK-M09](../tasks/README.md)
+- [TSK-M07](../tasks/TSK-M07-consensus-pasokan.md) — 🟢 selesai (rumus pasokan dan vektor uji)
+- [TSK-M08](../tasks/README.md) — ⚪ belum dimulai
+- [TSK-M09](../tasks/README.md) — ⚪ belum dimulai

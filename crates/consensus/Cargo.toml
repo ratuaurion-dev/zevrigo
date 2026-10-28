@@ -9,6 +9,10 @@ publish.workspace = true
 homeostasis-crypto.workspace = true
 homeostasis-pow.workspace = true
 homeostasis-primitives.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
 
 [lints]
 workspace = true
