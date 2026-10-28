@@ -24,7 +24,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 
 | ID | Judul | Memblokir | Status |
 |---|---|---|---|
-| TSK-S01 | Format transaksi UTXO dan blok, encoding kanonis, format alamat, sighash | TSK-M03 | 🟡 berikutnya |
+| TSK-S01 | Format transaksi UTXO dan blok, encoding kanonis, format alamat, sighash | TSK-M03 | 🟡 draf v0.1 di [reference/spesifikasi-format-v0.1.md](../reference/spesifikasi-format-v0.1.md); sighash menunggu DEC-13 |
 | TSK-S02 | Aturan validasi: coinbase, kematangan, biaya, ukuran, chainwork, rumus ASERT bilangan bulat, cap waktu | TSK-M08, TSK-M09 | ⚪ |
 | TSK-S03 | Wallet: BIP39, jalur turunan kunci, alamat watch-only, filter blok | TSK-M15 | ⚪ |
 | TSK-S04 | Pesan P2P dan daftar metode RPC final | TSK-M12, TSK-M14 | ⚪ |
@@ -41,14 +41,14 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M06 | MOD-03 | PoW mainnet | DEC-01 | 🔴 |
 | TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟡 siap ([kartu](TSK-M07-consensus-pasokan.md)) |
 | TSK-M08 | MOD-04 | ASERT, median waktu, chainwork | TSK-M01, TSK-S02 | ⚪ |
-| TSK-M09 | MOD-04 | Validasi transaksi dan blok | TSK-M03, M04, M05, M07, M08, TSK-S02 | ⚪ |
+| TSK-M09 | MOD-04 | Validasi transaksi dan blok | TSK-M03, M04, M05, M07, M08, TSK-S02, DEC-13 | ⚪ |
 | TSK-M10 | MOD-05 | Penyimpanan in-memory: trait dan set UTXO | TSK-M03 | ⚪ |
 | TSK-M11 | MOD-05 | Penyimpanan persisten dan pruning | TSK-M10, DEC-03 | ❓ |
 | TSK-M12 | MOD-08 | Tipe dan server/klien JSON-RPC | TSK-M03, TSK-S04, DEC-10 | ⚪ |
 | TSK-M13 | MOD-07 | Mempool | TSK-M09 | ⚪ |
 | TSK-M14 | MOD-06 | P2P dasar (rust-libp2p) | TSK-M03, TSK-S04, DEC-10 | ⚪ |
 | TSK-M15 | MOD-09 | BIP39 dan turunan kunci | TSK-M04, TSK-S03 | ⚪ |
-| TSK-M16 | MOD-09 | Penyusunan dan penandatanganan transaksi, pemilihan koin | TSK-M03, TSK-M15 | ⚪ |
+| TSK-M16 | MOD-09 | Penyusunan dan penandatanganan transaksi, pemilihan koin | TSK-M03, TSK-M15, DEC-13 | ⚪ |
 | TSK-M17 | MOD-10 | Tagihan watch-only dan status pembayaran | TSK-M16 | ⚪ |
 | TSK-M18 | MOD-11 | Node: konfigurasi, folder data, logging, shutdown | DEC-10 | ⚪ |
 | TSK-M19 | MOD-12 | CLI: perintah dan klien RPC | TSK-M12 | ⚪ |
@@ -93,7 +93,7 @@ graph LR
 **Bisa dikerjakan paralel:** TSK-M07 bersamaan dengan TSK-S01; TSK-M02 dan TSK-M04 setelah TSK-M01; TSK-M10, M12, M14 setelah TSK-M03.
 
 ## Titik rawan
-- 🔴 **TSK-S01** memblokir hampir semua task setelah TSK-M01 dan TSK-M07. Ini prioritas kerja pencipta.
+- 🟡 **TSK-S01** sudah ada drafnya. Sisa satu keputusan (DEC-13) sebelum TSK-M09 dan TSK-M16.
 - 🔴 **DEC-01** satu-satunya yang menahan testnet publik. Jalur regtest tetap berjalan lewat PoW dev (DEC-09, disetujui).
 - 🟡 **MOD-04 consensus** dipakai node, mempool, miner, dan semua fitur. Setiap perubahannya berdampak luas.
 
