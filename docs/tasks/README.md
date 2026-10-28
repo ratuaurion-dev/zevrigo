@@ -4,11 +4,11 @@
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M07 (rumus pasokan) |
-| 🟡 Siap dikerjakan | TSK-M02 (BLAKE3), TSK-M04 (Schnorr); TSK-M07 jika belum 🟢 |
+| 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M07 (rumus pasokan) |
+| 🟡 Siap dikerjakan | TSK-M04 (Schnorr) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | DEC-10 bagian 2 (async, P2P, RPC, logging) membuka TSK-M12, M14, M18 |
-| ➡️ Langkah berikutnya | TSK-M02 dan TSK-M04 (agent) · TSK-S01 (pencipta + Quick) |
+| ➡️ Langkah berikutnya | TSK-M04 (agent) · TSK-S01 (pencipta + Quick) |
 
 ## Tiga jenis task
 
@@ -35,7 +35,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | ID | Modul | Judul | Bergantung pada | Status |
 |---|---|---|---|---|
 | TSK-M01 | MOD-01 | Tipe dasar: Amount, BlockHeight, Hash32, parameter chain | — | 🟢 selesai ([kartu](TSK-M01-primitives-tipe-dasar.md)) |
-| TSK-M02 | MOD-02 | Hash BLAKE3 dengan pemisah domain dan Merkle root (crate blake3) | TSK-M01 | 🟡 siap ([kartu](TSK-M02-crypto-blake3.md)) |
+| TSK-M02 | MOD-02 | Hash BLAKE3 dengan pemisah domain dan Merkle root (crate blake3) | TSK-M01 | 🟢 selesai ([kartu](TSK-M02-crypto-blake3.md)) |
 | TSK-M03 | MOD-01 | Struktur transaksi dan blok, encoding kanonis (tanpa hashing) | TSK-M01, TSK-S01 | ⚪ |
 | TSK-M04 | MOD-02 | Schnorr BIP340 (crate k256): kunci, tanda tangan, verifikasi, vektor uji resmi | TSK-M01 | 🟡 siap ([kartu](TSK-M04-crypto-schnorr.md)) |
 | TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02, DEC-14 | ❓ |

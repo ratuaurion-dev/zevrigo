@@ -1,6 +1,4 @@
-//! MOD-02: BLAKE3, Schnorr BIP340, MuSig2.
-//!
-//! Belum diimplementasikan (kerangka R0).
+//! MOD-02: Primitif kriptografi Homeostasis Coin (`HSIS`): hash BLAKE3 berpemisah domain, Merkle root, Schnorr BIP340, dan MuSig2.
 
 #![forbid(unsafe_code)]
 #![deny(
@@ -8,6 +6,12 @@
     clippy::float_arithmetic,
     clippy::indexing_slicing
 )]
+
+pub mod hash;
+pub mod merkle;
+
+pub use hash::{Domain, DomainHasher, hash};
+pub use merkle::merkle_root;
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-02";
