@@ -1,0 +1,21 @@
+[package]
+name = "homeostasis-integration-tests"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+homeostasis-consensus.workspace = true
+homeostasis-crypto.workspace = true
+homeostasis-mempool.workspace = true
+homeostasis-merchant-core.workspace = true
+homeostasis-network.workspace = true
+homeostasis-pow.workspace = true
+homeostasis-primitives.workspace = true
+homeostasis-rpc.workspace = true
+homeostasis-storage.workspace = true
+homeostasis-wallet-core.workspace = true
+
+[lints]
+workspace = true

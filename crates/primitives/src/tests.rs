@@ -1,6 +1,4 @@
 #[test]
-fn workspace_smoke_test() {
-    let parsed = "1".parse::<u8>().unwrap();
-    let expected = "1".parse::<u8>().expect("valid u8");
-    assert_eq!(parsed, expected);
+fn module_id_matches() {
+    assert_eq!(super::MODULE_ID, "MOD-01");
 }

@@ -3,5 +3,126 @@
 version = 4
 
 [[package]]
+name = "homeostasis-cli"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+ "homeostasis-rpc",
+]
+
+[[package]]
+name = "homeostasis-consensus"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-crypto",
+ "homeostasis-pow",
+ "homeostasis-primitives",
+]
+
+[[package]]
+name = "homeostasis-crypto"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+]
+
+[[package]]
+name = "homeostasis-explorer"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+ "homeostasis-rpc",
+ "homeostasis-storage",
+]
+
+[[package]]
+name = "homeostasis-integration-tests"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-consensus",
+ "homeostasis-crypto",
+ "homeostasis-mempool",
+ "homeostasis-merchant-core",
+ "homeostasis-network",
+ "homeostasis-pow",
+ "homeostasis-primitives",
+ "homeostasis-rpc",
+ "homeostasis-storage",
+ "homeostasis-wallet-core",
+]
+
+[[package]]
+name = "homeostasis-mempool"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-consensus",
+ "homeostasis-primitives",
+]
+
+[[package]]
+name = "homeostasis-merchant-core"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+ "homeostasis-wallet-core",
+]
+
+[[package]]
+name = "homeostasis-miner"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-pow",
+ "homeostasis-primitives",
+ "homeostasis-rpc",
+]
+
+[[package]]
+name = "homeostasis-network"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+]
+
+[[package]]
+name = "homeostasis-node"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-consensus",
+ "homeostasis-mempool",
+ "homeostasis-network",
+ "homeostasis-rpc",
+ "homeostasis-storage",
+]
+
+[[package]]
+name = "homeostasis-pow"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+]
+
+[[package]]
 name = "homeostasis-primitives"
 version = "0.1.0"
+
+[[package]]
+name = "homeostasis-rpc"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+]
+
+[[package]]
+name = "homeostasis-storage"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-primitives",
+]
+
+[[package]]
+name = "homeostasis-wallet-core"
+version = "0.1.0"
+dependencies = [
+ "homeostasis-crypto",
+ "homeostasis-primitives",
+]

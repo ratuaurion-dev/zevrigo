@@ -1,0 +1,17 @@
+[package]
+name = "homeostasis-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "homeostasis-cli"
+path = "src/main.rs"
+
+[dependencies]
+homeostasis-primitives.workspace = true
+homeostasis-rpc.workspace = true
+
+[lints]
+workspace = true

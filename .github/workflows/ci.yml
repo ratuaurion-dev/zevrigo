@@ -1,0 +1,33 @@
+# Asumsi platform CI: GitHub Actions.
+# Jika repositori dipindahkan ke platform Git lain (GitLab CI, Codeberg/Forgejo, dsb.),
+# sesuaikan berkas workflow ini dengan runner Ubuntu yang menjalankan `make check-all`.
+
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check (fmt, lint, forbidden, test)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+
+      - name: Cache Cargo registry and build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Verify locked workspace build
+        run: cargo build --workspace --locked
+
+      - name: Run full verification suite
+        run: make check-all

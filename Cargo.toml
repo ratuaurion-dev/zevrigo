@@ -1,15 +1,40 @@
 [workspace]
 resolver = "3"
-members = ["crates/*"]
+members = [
+    "crates/primitives",
+    "crates/crypto",
+    "crates/pow",
+    "crates/consensus",
+    "crates/storage",
+    "crates/network",
+    "crates/mempool",
+    "crates/rpc",
+    "crates/wallet-core",
+    "crates/merchant-core",
+    "apps/node",
+    "apps/cli",
+    "apps/miner",
+    "apps/explorer",
+    "tests/integration",
+]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.99.0"
-license = "MIT OR Apache-2.0"
 publish = false
 
 [workspace.dependencies]
+homeostasis-primitives = { path = "crates/primitives" }
+homeostasis-crypto = { path = "crates/crypto" }
+homeostasis-pow = { path = "crates/pow" }
+homeostasis-consensus = { path = "crates/consensus" }
+homeostasis-storage = { path = "crates/storage" }
+homeostasis-network = { path = "crates/network" }
+homeostasis-mempool = { path = "crates/mempool" }
+homeostasis-rpc = { path = "crates/rpc" }
+homeostasis-wallet-core = { path = "crates/wallet-core" }
+homeostasis-merchant-core = { path = "crates/merchant-core" }
 thiserror = "2.0.21"
 proptest = "1.12.0"
 
