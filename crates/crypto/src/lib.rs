@@ -9,9 +9,11 @@
 
 pub mod hash;
 pub mod merkle;
+pub mod schnorr;
 
 pub use hash::{Domain, DomainHasher, hash};
 pub use merkle::merkle_root;
+pub use schnorr::{PublicKey, SchnorrError, SecretKey, Signature, sign, verify};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-02";
