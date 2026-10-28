@@ -5,7 +5,7 @@
 | Status | Ringkasan |
 |---|---|
 | 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M03 (encoding transaksi dan blok), TSK-M04 (Schnorr), TSK-M07 (rumus pasokan) |
-| 🟡 Siap dikerjakan | Menunggu kartu berikutnya (kandidat: TSK-M21, TSK-M05 setelah DEC-14) |
+| 🟡 Siap dikerjakan | TSK-M21 (ID transaksi dan blok); TSK-M10 (penyimpanan in-memory) kartunya menyusul |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | DEC-14 (dependensi PoW dev), DEC-13 (sighash), DEC-10 bagian 2 (async, P2P, RPC, logging) |
 | ➡️ Langkah berikutnya | Kartu TSK-M03 / TSK-M05 (pencipta + Quick) |
@@ -54,7 +54,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M18 | MOD-11 | Node: konfigurasi, folder data, logging, shutdown | DEC-10 | ⚪ |
 | TSK-M19 | MOD-12 | CLI: perintah dan klien RPC | TSK-M12 | ⚪ |
 | TSK-M20 | MOD-13 | Miner: loop penambangan dengan PoW dev | TSK-M05, TSK-M12 | ⚪ |
-| TSK-M21 | MOD-02 | ID transaksi dan blok: txid, wtxid, block_id, hash kondisi | TSK-M02, TSK-M03 | ⚪ |
+| TSK-M21 | MOD-02 | ID transaksi dan blok: txid, wtxid, block_id, hash kondisi, Merkle root blok | TSK-M02, TSK-M03 | 🟡 siap ([kartu](TSK-M21-crypto-ids.md)) |
 
 ## Backlog: task fitur (TSK-F)
 
