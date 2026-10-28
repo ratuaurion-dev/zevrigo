@@ -1,0 +1,9 @@
+# Rust build artifacts (Cargo.lock sengaja TIDAK diabaikan untuk reproducible build)
+/target/
+
+# Konfigurasi editor lokal
+.vscode/
+.idea/
+*.swp
+*~
+
