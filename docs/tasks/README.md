@@ -1,14 +1,14 @@
-# Task kerja: TSK-M11 dan TSK-S02 berikutnya, jalur kritis lewat spesifikasi validasi (TSK-S02)
+# Task kerja: TSK-M11 siap dikerjakan, jalur kritis lewat spesifikasi validasi (TSK-S02)
 
 > Diperbarui: 29 Oktober 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
 | 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M03 (encoding transaksi dan blok), TSK-M04 (Schnorr), TSK-M07 (rumus pasokan), TSK-M21 (ID transaksi dan blok), TSK-M05 (PoW dev regtest), TSK-M22 (OutPoint dan UtxoEntry), TSK-M10 (penyimpanan in-memory) |
-| 🟡 Siap dikerjakan | TSK-M11 (penyimpanan redb) kartunya menyusul |
+| 🟡 Siap dikerjakan | TSK-M11 (penyimpanan redb, [kartu](TSK-M11-storage-redb.md)) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | DEC-13 (sighash), DEC-10 bagian 2 (async, P2P, RPC, logging) |
-| ➡️ Langkah berikutnya | Kartu TSK-M11 (pencipta + Quick); TSK-S02 (pencipta + Quick) |
+| ➡️ Langkah berikutnya | Kerjakan TSK-M11; TSK-S02 dan DEC-13 (pencipta + Quick) |
 
 ## Tiga jenis task
 
@@ -44,7 +44,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M08 | MOD-04 | Target compact ke `Target` 256-bit (DEC-15), ASERT, median waktu, chainwork | TSK-M01, TSK-M05, TSK-S02 | ⚪ |
 | TSK-M09 | MOD-04 | Validasi transaksi dan blok, termasuk penolakan PoW dev di testnet dan mainnet beserta test-nya (DEC-09) | TSK-M03, M04, M05, M07, M08, M21, TSK-S02, DEC-13 | ⚪ |
 | TSK-M10 | MOD-05 | Penyimpanan in-memory: trait ChainStore, MemoryStore, set UTXO, undo data | TSK-M03, TSK-M22 | 🟢 selesai ([kartu](TSK-M10-storage-memory.md)) |
-| TSK-M11 | MOD-05 | Penyimpanan persisten redb (DEC-03), uji diferensial terhadap MemoryStore, pruning badan blok | TSK-M10 | ⚪ |
+| TSK-M11 | MOD-05 | Penyimpanan persisten RedbStore (redb 4.4.0, DEC-03), uji diferensial terhadap MemoryStore | TSK-M10 | 🟡 siap ([kartu](TSK-M11-storage-redb.md)) |
 | TSK-M12 | MOD-08 | Tipe dan server/klien JSON-RPC | TSK-M03, TSK-S04, DEC-10 | ⚪ |
 | TSK-M13 | MOD-07 | Mempool | TSK-M09 | ⚪ |
 | TSK-M14 | MOD-06 | P2P dasar (rust-libp2p) | TSK-M03, TSK-S04, DEC-10 | ⚪ |
@@ -56,6 +56,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M20 | MOD-13 | Miner: loop penambangan dengan PoW dev | TSK-M05, TSK-M12 | ⚪ |
 | TSK-M21 | MOD-02 | ID transaksi dan blok: txid, wtxid, block_id, hash kondisi, Merkle root blok | TSK-M02, TSK-M03 | 🟢 selesai ([kartu](TSK-M21-crypto-ids.md)) |
 | TSK-M22 | MOD-01 | Tipe OutPoint dan UtxoEntry (dipakai bersama MOD-04, MOD-05, MOD-07, MOD-09) | TSK-M03 | 🟢 selesai ([kartu](TSK-M22-primitives-utxo.md)) |
+| TSK-M23 | MOD-05 | Pruning badan blok lama (undo data tetap disimpan), termasuk perilaku undo_tip untuk blok yang badannya sudah dibuang | TSK-M11 | ⚪ |
 
 ## Backlog: task fitur (TSK-F)
 

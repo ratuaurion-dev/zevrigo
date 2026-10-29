@@ -23,8 +23,9 @@ Menyimpan chain aktif secara deterministik dan atomik: blok, set UTXO, dan undo 
 - Aturan konsensus: tanda tangan, jumlah, biaya, kematangan coinbase, PoW, cap waktu (`MOD-04`).
 - Menghitung txid dan block_id. Nilainya diberikan pemanggil (dihitung dengan `MOD-02`), sehingga MOD-05 tetap hanya bergantung pada `MOD-01`.
 - Penyimpanan blok cabang samping dan pemilihan chain (`MOD-04`/`MOD-11`, TSK-F04).
-- Membuang undo data. Pruning (TSK-M11) hanya boleh membuang badan blok lama, karena reorg tidak dibatasi kedalamannya.
+- Membuang undo data. Pruning (TSK-M23) hanya boleh membuang badan blok lama, karena reorg tidak dibatasi kedalamannya.
 
 ## Task terkait
 - [TSK-M10](../tasks/TSK-M10-storage-memory.md) — 🟢 selesai (trait ChainStore dan MemoryStore)
-- [TSK-M11](../tasks/README.md) — ⚪ penyimpanan redb, kartu menyusul
+- [TSK-M11](../tasks/TSK-M11-storage-redb.md) — 🟡 siap (RedbStore, uji diferensial terhadap MemoryStore)
+- [TSK-M23](../tasks/README.md) — ⚪ pruning badan blok, kartu menyusul
