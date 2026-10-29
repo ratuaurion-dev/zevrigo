@@ -3,7 +3,7 @@
 - **ID:** `MOD-01`
 - **Path:** `crates/primitives`
 - **Paket:** `homeostasis-primitives`
-- **Status:** 🟢 selesai (TSK-M01 dan TSK-M03 selesai)
+- **Status:** 🟡 sedang berjalan (TSK-M01 dan TSK-M03 selesai; TSK-M22 siap dikerjakan)
 - **Bergantung pada:** —
 - **Dipakai oleh:** `MOD-02`, `MOD-03`, `MOD-04`, `MOD-05`, `MOD-06`, `MOD-07`, `MOD-08`, `MOD-09`, `MOD-10`, `MOD-12`, `MOD-13`, `MOD-14`, `MOD-17`
 
@@ -25,3 +25,4 @@ Menyediakan tipe data dasar yang deterministik dan bebas luapan diam-diam bagi s
 ## Task terkait
 - [TSK-M01](../tasks/TSK-M01-primitives-tipe-dasar.md) — 🟢 selesai (tipe dasar: `Amount`, `BlockHeight`, `Hash32`, parameter chain)
 - [TSK-M03](../tasks/TSK-M03-primitives-encoding.md) — 🟢 selesai (struktur transaksi, witness, kondisi, header, blok, dan encoding kanonis)
+- [TSK-M22](../tasks/TSK-M22-primitives-utxo.md) — 🟡 siap (tipe OutPoint dan UtxoEntry)
