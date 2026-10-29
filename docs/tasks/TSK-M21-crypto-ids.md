@@ -1,4 +1,4 @@
-# TSK-M21 · ID transaksi dan blok di MOD-02 · 🟡 · Prioritas: Tinggi
+# TSK-M21 · ID transaksi dan blok di MOD-02 · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-02 (crates/crypto) · **Untuk:** FTR-01 sampai FTR-05
 - **Bergantung pada:** TSK-M02, TSK-M03 · **Memblokir:** TSK-M09, TSK-M10, TSK-M12, TSK-M16
 - **Estimasi:** S

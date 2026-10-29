@@ -1,14 +1,14 @@
-# Task kerja: 2 task modul siap dikerjakan, jalur kritis lewat spesifikasi format (TSK-S01)
+# Task kerja: TSK-M05 siap dikerjakan, jalur kritis lewat spesifikasi validasi (TSK-S02)
 
-> Diperbarui: 28 Oktober 2026 · Status keseluruhan: 🟡
+> Diperbarui: 29 Oktober 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
 | 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M03 (encoding transaksi dan blok), TSK-M04 (Schnorr), TSK-M07 (rumus pasokan), TSK-M21 (ID transaksi dan blok) |
-| 🟡 Siap dikerjakan | Menunggu kartu berikutnya (kandidat: TSK-M05 setelah DEC-14, TSK-M10) |
+| 🟡 Siap dikerjakan | TSK-M05 (antarmuka PoW dan PoW dev regtest, [kartu](TSK-M05-pow-dev.md)); TSK-M10 (penyimpanan in-memory) kartunya menyusul |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
-| ❓ Keputusan dibutuhkan | DEC-14 (dependensi PoW dev), DEC-13 (sighash), DEC-10 bagian 2 (async, P2P, RPC, logging) |
-| ➡️ Langkah berikutnya | Kartu TSK-M03 / TSK-M05 (pencipta + Quick) |
+| ❓ Keputusan dibutuhkan | DEC-13 (sighash), DEC-10 bagian 2 (async, P2P, RPC, logging) |
+| ➡️ Langkah berikutnya | Kerjakan TSK-M05; kartu TSK-M10 (pencipta + Quick); TSK-S02 (pencipta + Quick) |
 
 ## Tiga jenis task
 
@@ -38,11 +38,11 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M02 | MOD-02 | Hash BLAKE3 dengan pemisah domain dan Merkle root (crate blake3) | TSK-M01 | 🟢 selesai ([kartu](TSK-M02-crypto-blake3.md)) |
 | TSK-M03 | MOD-01 | Struktur transaksi dan blok, encoding kanonis (tanpa hashing) | TSK-M01, TSK-S01 | 🟢 selesai ([kartu](TSK-M03-primitives-encoding.md)) |
 | TSK-M04 | MOD-02 | Schnorr BIP340 (crate k256): kunci, tanda tangan, verifikasi, vektor uji resmi | TSK-M01 | 🟢 selesai ([kartu](TSK-M04-crypto-schnorr.md)) |
-| TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02, DEC-14 | ❓ |
+| TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02, TSK-M03, DEC-14, DEC-15 | 🟡 siap ([kartu](TSK-M05-pow-dev.md)) |
 | TSK-M06 | MOD-03 | PoW mainnet | DEC-01 | 🔴 |
 | TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟢 selesai ([kartu](TSK-M07-consensus-pasokan.md)) |
-| TSK-M08 | MOD-04 | ASERT, median waktu, chainwork | TSK-M01, TSK-S02 | ⚪ |
-| TSK-M09 | MOD-04 | Validasi transaksi dan blok | TSK-M03, M04, M05, M07, M08, M21, TSK-S02, DEC-13 | ⚪ |
+| TSK-M08 | MOD-04 | Target compact ke `Target` 256-bit (DEC-15), ASERT, median waktu, chainwork | TSK-M01, TSK-M05, TSK-S02 | ⚪ |
+| TSK-M09 | MOD-04 | Validasi transaksi dan blok, termasuk penolakan PoW dev di testnet dan mainnet beserta test-nya (DEC-09) | TSK-M03, M04, M05, M07, M08, M21, TSK-S02, DEC-13 | ⚪ |
 | TSK-M10 | MOD-05 | Penyimpanan in-memory: trait dan set UTXO | TSK-M03 | ⚪ |
 | TSK-M11 | MOD-05 | Penyimpanan persisten dan pruning | TSK-M10, DEC-03 | ❓ |
 | TSK-M12 | MOD-08 | Tipe dan server/klien JSON-RPC | TSK-M03, TSK-S04, DEC-10 | ⚪ |
@@ -81,6 +81,7 @@ graph LR
   TSKM02 --> TSKM21[TSK-M21 ID transaksi dan blok]
   TSKM03 --> TSKM21
   TSKM21 --> TSKM09[TSK-M09 Validasi]
+  TSKM05[TSK-M05 PoW dev] --> TSKM09
   TSKS02[TSK-S02 Spesifikasi validasi] --> TSKM09
   TSKM07 --> TSKM09
   TSKM09 --> TSKF01[TSK-F01 Node regtest]

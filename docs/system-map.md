@@ -8,7 +8,7 @@ Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai ·
 |---|---|---|---|---|---|
 | MOD-01 | `crates/primitives` | `homeostasis-primitives` | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — | ⚪ |
 | MOD-02 | `crates/crypto` | `homeostasis-crypto` | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 | ⚪ |
-| MOD-03 | `crates/pow` | `homeostasis-pow` | Proof of Work (strategi menunggu DEC-01) | MOD-01 | ⚪ |
+| MOD-03 | `crates/pow` | `homeostasis-pow` | Proof of Work: antarmuka dan PoW dev regtest (DEC-09); PoW mainnet menunggu DEC-01 | MOD-01, 02 (DEC-14) | ⚪ |
 | MOD-04 | `crates/consensus` | `homeostasis-consensus` | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 | ⚪ |
 | MOD-05 | `crates/storage` | `homeostasis-storage` | Penyimpanan blok, set UTXO, pruning | MOD-01 | ⚪ |
 | MOD-06 | `crates/network` | `homeostasis-network` | P2P (rust-libp2p) | MOD-01 | ⚪ |
@@ -50,6 +50,7 @@ graph LR
 
     MOD02 --> MOD01
     MOD03 --> MOD01
+    MOD03 --> MOD02
     MOD04 --> MOD01
     MOD04 --> MOD02
     MOD04 --> MOD03
