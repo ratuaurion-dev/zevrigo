@@ -1,4 +1,4 @@
-# TSK-M22 · Tipe OutPoint dan UtxoEntry di MOD-01 · 🟡 · Prioritas: Tinggi
+# TSK-M22 · Tipe OutPoint dan UtxoEntry di MOD-01 · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-01 (crates/primitives) · **Untuk:** FTR-01 sampai FTR-03
 - **Bergantung pada:** TSK-M03 · **Memblokir:** TSK-M10, TSK-M09, TSK-M13, TSK-M16
 - **Estimasi:** XS

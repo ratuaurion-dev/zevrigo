@@ -1,14 +1,14 @@
-# Task kerja: TSK-M22 lalu TSK-M10 siap dikerjakan, jalur kritis lewat spesifikasi validasi (TSK-S02)
+# Task kerja: TSK-M10 siap dikerjakan, jalur kritis lewat spesifikasi validasi (TSK-S02)
 
 > Diperbarui: 29 Oktober 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M03 (encoding transaksi dan blok), TSK-M04 (Schnorr), TSK-M07 (rumus pasokan), TSK-M21 (ID transaksi dan blok), TSK-M05 (PoW dev regtest) |
-| 🟡 Siap dikerjakan | TSK-M22 (OutPoint dan UtxoEntry, [kartu](TSK-M22-primitives-utxo.md)), lalu TSK-M10 (penyimpanan in-memory, [kartu](TSK-M10-storage-memory.md)) |
+| 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M03 (encoding transaksi dan blok), TSK-M04 (Schnorr), TSK-M07 (rumus pasokan), TSK-M21 (ID transaksi dan blok), TSK-M05 (PoW dev regtest), TSK-M22 (OutPoint dan UtxoEntry) |
+| 🟡 Siap dikerjakan | TSK-M10 (penyimpanan in-memory, [kartu](TSK-M10-storage-memory.md)) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | DEC-13 (sighash), DEC-10 bagian 2 (async, P2P, RPC, logging) |
-| ➡️ Langkah berikutnya | Kerjakan TSK-M22, lalu TSK-M10; TSK-S02 (pencipta + Quick) |
+| ➡️ Langkah berikutnya | Kerjakan TSK-M10; TSK-S02 (pencipta + Quick) |
 
 ## Tiga jenis task
 
@@ -55,7 +55,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M19 | MOD-12 | CLI: perintah dan klien RPC | TSK-M12 | ⚪ |
 | TSK-M20 | MOD-13 | Miner: loop penambangan dengan PoW dev | TSK-M05, TSK-M12 | ⚪ |
 | TSK-M21 | MOD-02 | ID transaksi dan blok: txid, wtxid, block_id, hash kondisi, Merkle root blok | TSK-M02, TSK-M03 | 🟢 selesai ([kartu](TSK-M21-crypto-ids.md)) |
-| TSK-M22 | MOD-01 | Tipe OutPoint dan UtxoEntry (dipakai bersama MOD-04, MOD-05, MOD-07, MOD-09) | TSK-M03 | 🟡 siap ([kartu](TSK-M22-primitives-utxo.md)) |
+| TSK-M22 | MOD-01 | Tipe OutPoint dan UtxoEntry (dipakai bersama MOD-04, MOD-05, MOD-07, MOD-09) | TSK-M03 | 🟢 selesai ([kartu](TSK-M22-primitives-utxo.md)) |
 
 ## Backlog: task fitur (TSK-F)
 

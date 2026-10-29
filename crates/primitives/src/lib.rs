@@ -15,6 +15,7 @@ pub mod hash;
 pub mod height;
 pub mod params;
 pub mod tx;
+pub mod utxo;
 
 pub use amount::{Amount, AmountParseError, QUANTA_PER_HSIS};
 pub use block::{Block, GENESIS_EXTRA_LEN, HEADER_SIZE, HEADER_VERSION, Header};
@@ -25,6 +26,7 @@ pub use tx::{
     CoinbaseTxBody, Condition, ConditionWitness, Input, Output, OutputKind, RegularTxBody,
     SigEntry, Transaction, TxBody, Witness,
 };
+pub use utxo::{OutPoint, UtxoEntry};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-01";
