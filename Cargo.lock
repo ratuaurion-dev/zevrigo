@@ -451,6 +451,8 @@ name = "homeostasis-storage"
 version = "0.1.0"
 dependencies = [
  "homeostasis-primitives",
+ "proptest",
+ "thiserror",
 ]
 
 [[package]]

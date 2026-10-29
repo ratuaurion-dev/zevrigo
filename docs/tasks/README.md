@@ -1,14 +1,14 @@
-# Task kerja: TSK-M10 siap dikerjakan, jalur kritis lewat spesifikasi validasi (TSK-S02)
+# Task kerja: TSK-M11 dan TSK-S02 berikutnya, jalur kritis lewat spesifikasi validasi (TSK-S02)
 
 > Diperbarui: 29 Oktober 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M03 (encoding transaksi dan blok), TSK-M04 (Schnorr), TSK-M07 (rumus pasokan), TSK-M21 (ID transaksi dan blok), TSK-M05 (PoW dev regtest), TSK-M22 (OutPoint dan UtxoEntry) |
-| 🟡 Siap dikerjakan | TSK-M10 (penyimpanan in-memory, [kartu](TSK-M10-storage-memory.md)) |
+| 🟢 Selesai | TSK-M01 (tipe dasar), TSK-M02 (BLAKE3), TSK-M03 (encoding transaksi dan blok), TSK-M04 (Schnorr), TSK-M07 (rumus pasokan), TSK-M21 (ID transaksi dan blok), TSK-M05 (PoW dev regtest), TSK-M22 (OutPoint dan UtxoEntry), TSK-M10 (penyimpanan in-memory) |
+| 🟡 Siap dikerjakan | TSK-M11 (penyimpanan redb) kartunya menyusul |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | DEC-13 (sighash), DEC-10 bagian 2 (async, P2P, RPC, logging) |
-| ➡️ Langkah berikutnya | Kerjakan TSK-M10; TSK-S02 (pencipta + Quick) |
+| ➡️ Langkah berikutnya | Kartu TSK-M11 (pencipta + Quick); TSK-S02 (pencipta + Quick) |
 
 ## Tiga jenis task
 
@@ -43,7 +43,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟢 selesai ([kartu](TSK-M07-consensus-pasokan.md)) |
 | TSK-M08 | MOD-04 | Target compact ke `Target` 256-bit (DEC-15), ASERT, median waktu, chainwork | TSK-M01, TSK-M05, TSK-S02 | ⚪ |
 | TSK-M09 | MOD-04 | Validasi transaksi dan blok, termasuk penolakan PoW dev di testnet dan mainnet beserta test-nya (DEC-09) | TSK-M03, M04, M05, M07, M08, M21, TSK-S02, DEC-13 | ⚪ |
-| TSK-M10 | MOD-05 | Penyimpanan in-memory: trait ChainStore, MemoryStore, set UTXO, undo data | TSK-M03, TSK-M22 | 🟡 siap ([kartu](TSK-M10-storage-memory.md)) |
+| TSK-M10 | MOD-05 | Penyimpanan in-memory: trait ChainStore, MemoryStore, set UTXO, undo data | TSK-M03, TSK-M22 | 🟢 selesai ([kartu](TSK-M10-storage-memory.md)) |
 | TSK-M11 | MOD-05 | Penyimpanan persisten redb (DEC-03), uji diferensial terhadap MemoryStore, pruning badan blok | TSK-M10 | ⚪ |
 | TSK-M12 | MOD-08 | Tipe dan server/klien JSON-RPC | TSK-M03, TSK-S04, DEC-10 | ⚪ |
 | TSK-M13 | MOD-07 | Mempool | TSK-M09 | ⚪ |

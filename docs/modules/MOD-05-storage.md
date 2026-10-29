@@ -3,7 +3,7 @@
 - **ID:** `MOD-05`
 - **Path:** `crates/storage`
 - **Paket:** `homeostasis-storage`
-- **Status:** ⚪ belum dimulai (TSK-M10 menunggu TSK-M22; penyimpanan redb TSK-M11 menunggu TSK-M10)
+- **Status:** 🟡 sedang berjalan (TSK-M10 selesai; sisa: penyimpanan redb TSK-M11)
 - **Bergantung pada:** `MOD-01`
 - **Dipakai oleh:** `MOD-11`, `MOD-14`, `MOD-17`
 
@@ -26,5 +26,5 @@ Menyimpan chain aktif secara deterministik dan atomik: blok, set UTXO, dan undo 
 - Membuang undo data. Pruning (TSK-M11) hanya boleh membuang badan blok lama, karena reorg tidak dibatasi kedalamannya.
 
 ## Task terkait
-- [TSK-M10](../tasks/TSK-M10-storage-memory.md) — 🟡 siap (trait ChainStore dan MemoryStore)
+- [TSK-M10](../tasks/TSK-M10-storage-memory.md) — 🟢 selesai (trait ChainStore dan MemoryStore)
 - [TSK-M11](../tasks/README.md) — ⚪ penyimpanan redb, kartu menyusul

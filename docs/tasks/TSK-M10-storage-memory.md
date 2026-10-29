@@ -1,4 +1,4 @@
-# TSK-M10 · Penyimpanan in-memory: trait ChainStore dan MemoryStore di MOD-05 · 🟡 · Prioritas: Tinggi
+# TSK-M10 · Penyimpanan in-memory: trait ChainStore dan MemoryStore di MOD-05 · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-05 (crates/storage) · **Untuk:** FTR-01 sampai FTR-04
 - **Bergantung pada:** TSK-M03, TSK-M22, DEC-03 · **Memblokir:** TSK-M11, TSK-F01
 - **Estimasi:** M
