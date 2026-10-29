@@ -3,7 +3,7 @@
 - **ID:** `MOD-03`
 - **Path:** `crates/pow`
 - **Paket:** `homeostasis-pow`
-- **Status:** ⚪ belum dimulai (TSK-M05 siap dikerjakan; PoW mainnet TSK-M06 menunggu `DEC-01`)
+- **Status:** 🟡 sedang berjalan (TSK-M05 selesai; sisa: PoW mainnet TSK-M06, menunggu `DEC-01`)
 - **Bergantung pada:** `MOD-01`, `MOD-02` (`DEC-14`)
 - **Dipakai oleh:** `MOD-04`, `MOD-13`, `MOD-17`
 
@@ -24,5 +24,5 @@ Menyediakan perhitungan dan verifikasi Proof of Work bagi konsensus dan penamban
 - Loop penambangan multi-utas dan komunikasi ke daemon node (`MOD-13`).
 
 ## Task terkait
-- [TSK-M05](../tasks/TSK-M05-pow-dev.md) — 🟡 siap (antarmuka PoW dan PoW dev regtest)
+- [TSK-M05](../tasks/TSK-M05-pow-dev.md) — 🟢 selesai (antarmuka PoW dan PoW dev regtest)
 - [TSK-M06](../tasks/README.md) — 🔴 menunggu `DEC-01` (PoW mainnet)

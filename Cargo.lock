@@ -425,7 +425,10 @@ dependencies = [
 name = "homeostasis-pow"
 version = "0.1.0"
 dependencies = [
+ "homeostasis-crypto",
  "homeostasis-primitives",
+ "proptest",
+ "thiserror",
 ]
 
 [[package]]

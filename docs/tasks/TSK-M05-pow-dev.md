@@ -1,4 +1,4 @@
-# TSK-M05 · Antarmuka PoW dan PoW dev regtest di MOD-03 · 🟡 · Prioritas: Tinggi
+# TSK-M05 · Antarmuka PoW dan PoW dev regtest di MOD-03 · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-03 (crates/pow) · **Untuk:** FTR-01, FTR-02
 - **Bergantung pada:** TSK-M02, TSK-M03, DEC-09, DEC-14, DEC-15 · **Memblokir:** TSK-M08, TSK-M09, TSK-M20
 - **Estimasi:** S
