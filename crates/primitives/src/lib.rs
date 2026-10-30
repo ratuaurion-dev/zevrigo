@@ -22,6 +22,7 @@ pub use block::{Block, GENESIS_EXTRA_LEN, HEADER_SIZE, HEADER_VERSION, Header};
 pub use encoding::{Decode, DecodeError, Encode, Reader};
 pub use hash::{Hash32, HashParseError};
 pub use height::BlockHeight;
+pub use params::Network;
 pub use tx::{
     CoinbaseTxBody, Condition, ConditionWitness, Input, Output, OutputKind, RegularTxBody,
     SigEntry, Transaction, TxBody, Witness,

@@ -47,6 +47,34 @@ pub const MEDIAN_TIME_SPAN: usize = 11;
 /// Toleransi maksimum cap waktu blok di masa depan relatif terhadap waktu lokal node (`3_600` detik = 1 jam).
 pub const MAX_FUTURE_BLOCK_TIME_SECS: u64 = 3_600;
 
+/// Jaringan Homeostasis Coin (Spesifikasi Validasi Bagian 2).
+///
+/// Aturan konsensus sama di semua jaringan. Yang berbeda hanya fungsi PoW, `pow_limit`, dan genesis.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Network {
+    /// Jaringan utama.
+    Mainnet,
+    /// Jaringan uji publik.
+    Testnet,
+    /// Jaringan uji lokal dengan PoW dev (DEC-09).
+    Regtest,
+}
+
+impl Network {
+    /// Ketiga jaringan, berurutan.
+    pub const ALL: [Self; 3] = [Self::Mainnet, Self::Testnet, Self::Regtest];
+
+    /// Awalan alamat bech32m (HRP) jaringan ini (Spesifikasi Format Bagian 8).
+    #[must_use]
+    pub const fn hrp(self) -> &'static str {
+        match self {
+            Self::Mainnet => "hsis",
+            Self::Testnet => "thsis",
+            Self::Regtest => "rhsis",
+        }
+    }
+}
+
 // Pemeriksaan invarian parameter protokol pada saat kompilasi:
 // 1. Hadiah ekor tepat 0,6% dari S per tahun: T == S * 6 / 1000 / BLOCKS_PER_YEAR
 const _: () = assert!(

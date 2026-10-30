@@ -3,7 +3,7 @@
 - **ID:** `MOD-04`
 - **Path:** `crates/consensus`
 - **Paket:** `homeostasis-consensus`
-- **Status:** 🟡 sedang berjalan (`TSK-M07` selesai; menunggu `TSK-M08` dan `TSK-M09`)
+- **Status:** 🟡 sedang berjalan (`TSK-M07` dan `TSK-M08` selesai; menunggu `TSK-M09`)
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-03`
 - **Dipakai oleh:** `MOD-07`, `MOD-11`, `MOD-17`
 
@@ -24,5 +24,5 @@ Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeosta
 
 ## Task terkait
 - [TSK-M07](../tasks/TSK-M07-consensus-pasokan.md) — 🟢 selesai (rumus pasokan dan vektor uji)
-- [TSK-M08](../tasks/README.md) — 🟡 siap (target compact, ASERT, chainwork, cap waktu, parameter jaringan, genesis regtest)
-- [TSK-M09](../tasks/README.md) — ⚪ belum dimulai
+- [TSK-M08](../tasks/TSK-M08-consensus-target-asert.md) — 🟢 selesai (target compact, ASERT, chainwork, cap waktu, parameter jaringan, genesis regtest)
+- [TSK-M09](../tasks/README.md) — 🟡 siap (validasi transaksi dan blok)

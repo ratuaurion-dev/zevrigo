@@ -1,5 +1,6 @@
 use crate::amount::{Amount, QUANTA_PER_HSIS};
 
+use super::Network;
 use super::{
     ASERT_HALF_LIFE_BLOCKS, BLOCK_TIME_SECS, BLOCKS_PER_YEAR, COINBASE_MATURITY,
     GENESIS_ALLOCATION, HALF_LIFE_DIVISOR, MAIN_SUPPLY, MAX_BLOCK_SIZE, MAX_FUTURE_BLOCK_TIME_SECS,
@@ -47,4 +48,15 @@ fn supply_and_tail_reward_invariants_hold() {
         Some(GENESIS_ALLOCATION.as_quanta())
     );
     assert_eq!(TAIL_REWARD.as_quanta(), QUANTA_PER_HSIS);
+}
+
+#[test]
+fn network_variants_and_hrp_match_spec() {
+    assert_eq!(
+        Network::ALL,
+        [Network::Mainnet, Network::Testnet, Network::Regtest]
+    );
+    assert_eq!(Network::Mainnet.hrp(), "hsis");
+    assert_eq!(Network::Testnet.hrp(), "thsis");
+    assert_eq!(Network::Regtest.hrp(), "rhsis");
 }
