@@ -1,4 +1,4 @@
-//! MOD-02: Primitif kriptografi Homeostasis Coin (`HSIS`): hash BLAKE3 berpemisah domain, Merkle root, Schnorr BIP340, dan MuSig2.
+//! MOD-02: Primitif kriptografi Homeostasis Coin (`HSIS`): hash BLAKE3 berpemisah domain, Merkle root, Schnorr BIP340, ID data chain, dan sighash v1.
 
 #![forbid(unsafe_code)]
 #![deny(
@@ -11,11 +11,13 @@ pub mod hash;
 pub mod ids;
 pub mod merkle;
 pub mod schnorr;
+pub mod sighash;
 
 pub use hash::{Domain, DomainHasher, hash};
 pub use ids::{block_id, block_merkle_root, condition_hash, network_id, txid, wtxid};
 pub use merkle::merkle_root;
 pub use schnorr::{PublicKey, SchnorrError, SecretKey, Signature, sign, verify};
+pub use sighash::{SighashError, sighash_v1};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-02";

@@ -62,3 +62,13 @@ fn crate_root_reexports_are_accessible() {
     let block = Block::new(header, vec![tx]).unwrap();
     assert!(block_merkle_root(&block).is_some());
 }
+
+#[test]
+fn sighash_reexport_is_accessible() {
+    let out = Output::new(Amount::from_quanta(1), OutputKind::SingleKey, [0x11; 32]).unwrap();
+    let tx = Transaction::coinbase(BlockHeight::new(1), vec![], vec![out.clone()]).unwrap();
+    assert_eq!(
+        crate::sighash_v1(&Hash32::ZERO, &tx, 0, &[out]),
+        Err(crate::SighashError::Coinbase)
+    );
+}

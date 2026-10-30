@@ -1,4 +1,4 @@
-# Spesifikasi Format Homeostasis Coin (HSIS) v0.1: alamat, encoding, transaksi, dan blok terdefinisi; sighash masih terbuka
+# Spesifikasi Format Homeostasis Coin (HSIS) v0.1: alamat, encoding, transaksi, dan blok terdefinisi; sighash v1 dikunci (DEC-13)
 
 > Diperbarui: 28 Oktober 2026 · Pemilik: pencipta · Task: TSK-S01 · Status: 🟡 draf v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-format-v0.1.md`
@@ -6,7 +6,7 @@
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | Encoding biner kanonis (DEC-12), alamat bech32m dengan dua jenis output (DEC-11), struktur transaksi, header, blok, dan Merkle |
-| ❓ Keputusan dibutuhkan | DEC-13: cakupan tanda tangan (sighash). Usulan ada di Bagian 9. Tidak menghalangi TSK-M03, tetapi wajib diputuskan sebelum TSK-M09 dan TSK-M16 |
+| 🟢 Diputuskan | DEC-13 (30 Oktober 2026): sighash v1 satu mode, Bagian 9. Dihitung di MOD-02 (TSK-M24) |
 | ➡️ Diserahkan ke TSK-S02 | Aturan validasi: coinbase, kematangan, biaya, chainwork, rumus ASERT, dan format target |
 | ➡️ Langkah berikutnya | Kartu TSK-M03 ditulis setelah TSK-M01 dan TSK-M02 selesai |
 
@@ -292,23 +292,23 @@ Contoh jenis 1 (`…1p…`), payload sama: `hsis1plycg5qvjtrp3qjf5f7zl382j9x6nrj
 
 ---
 
-## 9. Sighash v1 ❓ (DEC-13, belum dikunci)
+## 9. Sighash v1 🟢 (DEC-13, diputuskan 30 Oktober 2026)
 
-**Usulan (pilihan A, satu mode):** tanda tangan setiap input menandatangani
+Satu mode. Tanda tangan untuk input ke-`input_index` adalah BIP340 atas pesan 32 byte berikut:
 ```
 msg = H(sighash v1,
         network_id            // block_id genesis, 32 byte
-      ‖ txid                  // 32 byte
+      ‖ txid                  // 32 byte (badan saja, tanpa witness)
       ‖ input_index           // u32le
-      ‖ untuk setiap input secara berurutan:
-          amount ‖ kind ‖ payload dari output yang dibelanjakan)
+      ‖ encode(Output) dari output yang dibelanjakan input 0, 1, …, n−1, berurutan)
 ```
-lalu ditandatangani dengan BIP340 atas `msg` 32 byte.
-
-- **Melindungi dari:** pemutaran ulang lintas jaringan (karena ada network_id), wallet yang dibohongi soal jumlah input atau biaya (karena ada amount semua input), dan tanda tangan yang dipindah ke input lain (karena ada input_index).
-- **Tidak mendukung:** mode parsial seperti SIGHASH_NONE, SINGLE, atau ANYONECANPAY. Bisa ditambahkan nanti lewat `version = 2`.
-- **Alternatif (pilihan B):** beberapa mode seperti Bitcoin. Lebih fleksibel, tetapi lebih banyak celah kesalahan.
-- **Kapan dibutuhkan:** sebelum TSK-M09 (validasi) dan TSK-M16 (penandatanganan wallet). TSK-M03 tidak bergantung pada keputusan ini.
+- `encode(Output)` adalah encoding kanonis Bagian 4: `amount ‖ kind ‖ payload`.
+- Coinbase tidak punya input, jadi tidak punya sighash.
+- Output jenis 1: setiap tanda tangan dari m kunci menandatangani `msg` yang sama untuk input itu.
+- Dihitung di MOD-02 (`sighash_v1`, TSK-M24), karena MOD-04 (validasi) dan MOD-09 (wallet) sama-sama memakainya.
+- **Melindungi dari:** pemutaran ulang lintas jaringan (network_id), wallet yang dibohongi soal jumlah input atau biaya (output semua input ikut ditandatangani), dan tanda tangan yang dipindah ke input lain (input_index).
+- **Tidak mendukung:** mode parsial seperti SIGHASH_NONE, SINGLE, atau ANYONECANPAY. Jika dibutuhkan, ditambahkan lewat transaksi `version = 2` dengan domain baru.
+- Vektor uji: S1–S3 di `crates/crypto/src/sighash/tests.rs`.
 
 ---
 
@@ -337,7 +337,7 @@ lalu ditandatangani dengan BIP340 atas `msg` 32 byte.
 - Jumlah input ≥ jumlah output (semua penjumlahan memakai checked), biaya = selisihnya.
 - Larangan membelanjakan output dua kali di blok yang sama.
 - Format compact `target`, rumus ASERT dalam bilangan bulat, chainwork, median waktu, dan batas waktu masa depan.
-- Pemeriksaan tanda tangan (setelah DEC-13).
+- Pemeriksaan tanda tangan atas sighash v1 (Bagian 9).
 
 ---
 
@@ -358,6 +358,6 @@ lalu ditandatangani dengan BIP340 atas `msg` 32 byte.
 |---|---|---|
 | DEC-11 | Alamat bech32m dengan HRP per jaringan; dua jenis output: 0 = kunci tunggal/MuSig2, 1 = kondisi m-dari-n dengan kunci waktu | 🟢 diputuskan 28 Oktober 2026 |
 | DEC-12 | Encoding biner tulis sendiri, kanonis, varint LEB128 minimal, setiap byte wajib terbaca habis | 🟢 diputuskan 28 Oktober 2026 |
-| DEC-13 | Cakupan tanda tangan (sighash): satu mode (usulan) atau beberapa mode | ❓ terbuka |
+| DEC-13 | Sighash v1 satu mode (Bagian 9) | 🟢 diputuskan 30 Oktober 2026 |
 
 **Koreksi atas Dokumen Aplikasi v0.1:** MuSig2 hanya untuk n-dari-n. Multi-tanda tangan m-dari-n memakai output jenis 1 (DEC-11).
