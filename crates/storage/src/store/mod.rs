@@ -127,6 +127,16 @@ pub trait ChainStore {
     /// Mengambil entri UTXO berdasarkan outpoint, atau `None` jika tidak ada di set UTXO.
     fn utxo(&self, outpoint: &OutPoint) -> Result<Option<UtxoEntry>, StoreError>;
 
+    /// Mengembalikan semua UTXO yang `payload` output-nya ada di `payloads`, urut naik [`OutPoint`]
+    /// (`txid`, lalu `index`). `payloads` kosong menghasilkan daftar kosong; payload ganda tidak menggandakan hasil.
+    /// Dipakai RPC `scan_utxos` (Spesifikasi RPC 3.8, TSK-M26). Batas 1 sampai 64 payload diperiksa MOD-08.
+    ///
+    /// Implementasi membaca seluruh set UTXO tanpa indeks payload, jadi biayanya sebanding dengan ukuran set UTXO.
+    fn utxos_by_payloads(
+        &self,
+        payloads: &[[u8; 32]],
+    ) -> Result<Vec<(OutPoint, UtxoEntry)>, StoreError>;
+
     /// Mengambil undo data untuk blok tertentu di chain aktif, atau `None` jika tidak ada.
     fn undo_data(&self, block_id: &Hash32) -> Result<Option<BlockUndo>, StoreError>;
 

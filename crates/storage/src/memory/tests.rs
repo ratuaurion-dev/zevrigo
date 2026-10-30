@@ -314,6 +314,57 @@ fn output_spent_in_same_block_is_not_in_undo_data() {
     assert_eq!(store, s0);
 }
 
+#[test]
+fn utxos_by_payloads_filters_sorts_and_follows_undo() {
+    let mut store = MemoryStore::default();
+    let (g, g_id, g_txids, e0, e1) = make_genesis();
+    store.apply_block(&g, g_id, &g_txids).expect("genesis");
+
+    let cb = make_coinbase(1, vec![make_output(30, 0x02)]);
+    let reg = make_regular(
+        vec![Input::new(h(0x01), 0)],
+        vec![make_output(4, 0x02), make_output(5, 0x04)],
+    );
+    let b1 = Block::new(make_header(1, h(0xb0)), vec![cb, reg]).expect("b1");
+    store
+        .apply_block(&b1, h(0xb1), &[h(0x02), h(0x03)])
+        .expect("b1");
+
+    let g1 = (OutPoint::new(h(0x01), 1), e1.clone());
+    let cb1 = (
+        OutPoint::new(h(0x02), 0),
+        UtxoEntry::new(make_output(30, 0x02), BlockHeight::new(1), true),
+    );
+    let reg0 = (
+        OutPoint::new(h(0x03), 0),
+        UtxoEntry::new(make_output(4, 0x02), BlockHeight::new(1), false),
+    );
+    let reg1 = (
+        OutPoint::new(h(0x03), 1),
+        UtxoEntry::new(make_output(5, 0x04), BlockHeight::new(1), false),
+    );
+
+    assert_eq!(
+        store.utxos_by_payloads(&[[0x02_u8; 32]]),
+        Ok(vec![g1.clone(), cb1.clone(), reg0.clone()])
+    );
+    assert_eq!(
+        store.utxos_by_payloads(&[[0x04_u8; 32], [0x02; 32], [0x04; 32]]),
+        Ok(vec![g1, cb1, reg0, reg1])
+    );
+    assert_eq!(store.utxos_by_payloads(&[[0x01_u8; 32]]), Ok(Vec::new()));
+    assert_eq!(store.utxos_by_payloads(&[]), Ok(Vec::new()));
+
+    assert_eq!(store.undo_tip(), Ok((h(0xb1), b1)));
+    assert_eq!(
+        store.utxos_by_payloads(&[[0x01_u8; 32], [0x02; 32], [0x04; 32]]),
+        Ok(vec![
+            (OutPoint::new(h(0x01), 0), e0),
+            (OutPoint::new(h(0x01), 1), e1)
+        ])
+    );
+}
+
 proptest! {
     #[test]
     fn prop_apply_chain_then_undo_all_restores_each_snapshot(

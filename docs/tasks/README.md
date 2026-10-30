@@ -1,14 +1,14 @@
-# Task kerja: DEC-10 bagian 2 dan TSK-S04 selesai, TSK-M12 dan TSK-M26 berikutnya menuju node regtest (TSK-F01)
+# Task kerja: TSK-M26 selesai, TSK-M12 berikutnya menuju node regtest (TSK-F01)
 
 > Diperbarui: 31 Oktober 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M21, M22, M24, M25 |
-| 🟡 Siap dikerjakan | TSK-M12 (RPC), TSK-M26 (iterasi UTXO), TSK-M13 (mempool), TSK-M23 (pruning) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M21, M22, M24, M25, M26 |
+| 🟡 Siap dikerjakan | TSK-M12 (RPC), TSK-M13 (mempool), TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | — (DEC-01 tetap terbuka untuk testnet) |
-| ➡️ Langkah berikutnya | TSK-M12 dan TSK-M26, lalu TSK-M18 dan TSK-F01 |
+| ➡️ Langkah berikutnya | TSK-M12, lalu TSK-M18 dan TSK-F01 |
 
 ## Tiga jenis task
 
@@ -59,7 +59,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M22 | MOD-01 | Tipe OutPoint dan UtxoEntry (dipakai bersama MOD-04, MOD-05, MOD-07, MOD-09) | TSK-M03 | 🟢 selesai ([kartu](TSK-M22-primitives-utxo.md)) |
 | TSK-M23 | MOD-05 | Pruning badan blok lama (undo data tetap disimpan), termasuk perilaku undo_tip untuk blok yang badannya sudah dibuang | TSK-M11 | ⚪ |
 | TSK-M24 | MOD-02 | Pesan tanda tangan sighash v1 (DEC-13) | TSK-M21 | 🟢 selesai ([kartu](TSK-M24-crypto-sighash.md)) |
-| TSK-M26 | MOD-05 | Iterasi set UTXO berdasarkan payload untuk `scan_utxos` (Spesifikasi RPC 3.8), di MemoryStore dan RedbStore | TSK-M11, TSK-S04 | 🟡 siap |
+| TSK-M26 | MOD-05 | Iterasi set UTXO berdasarkan payload untuk `scan_utxos` (Spesifikasi RPC 3.8), di MemoryStore dan RedbStore | TSK-M11, TSK-S04 | 🟢 selesai ([kartu](TSK-M26-storage-scan-utxo.md)) |
 | TSK-M25 | MOD-01 | `enum Network { Mainnet, Testnet, Regtest }` di `params` (Spesifikasi Validasi Bagian 11) | TSK-S02 | 🟢 selesai ([kartu](TSK-M25-primitives-network.md)) |
 
 ## Backlog: task fitur (TSK-F)

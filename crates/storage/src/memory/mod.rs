@@ -48,6 +48,20 @@ impl ChainStore for MemoryStore {
         Ok(self.utxos.get(outpoint).cloned())
     }
 
+    fn utxos_by_payloads(
+        &self,
+        payloads: &[[u8; 32]],
+    ) -> Result<Vec<(OutPoint, UtxoEntry)>, StoreError> {
+        let wanted: BTreeSet<[u8; 32]> = payloads.iter().copied().collect();
+        // BTreeMap sudah urut naik OutPoint, jadi hasil tidak perlu diurutkan ulang.
+        Ok(self
+            .utxos
+            .iter()
+            .filter(|(_, entry)| wanted.contains(entry.output().payload()))
+            .map(|(op, entry)| (*op, entry.clone()))
+            .collect())
+    }
+
     fn undo_data(&self, block_id: &Hash32) -> Result<Option<BlockUndo>, StoreError> {
         Ok(self.undo.get(block_id).cloned())
     }

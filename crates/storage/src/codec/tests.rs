@@ -6,7 +6,8 @@ use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
 use proptest::prelude::*;
 
 use super::{
-    decode_block_undo, decode_utxo_entry, encode_block_undo, encode_utxo_entry, outpoint_key,
+    decode_block_undo, decode_outpoint_key, decode_utxo_entry, encode_block_undo,
+    encode_utxo_entry, outpoint_key,
 };
 use crate::store::{BlockUndo, StoreError};
 
@@ -58,6 +59,14 @@ fn vectors_outpoint_key_utxo_entry_and_block_undo() {
     );
     assert_eq!(decode_utxo_entry(&from_hex(U1)), Ok(entry_e()));
     assert_eq!(decode_block_undo(&from_hex(B1)), Ok(undo_b1()));
+}
+
+#[test]
+fn decode_outpoint_key_inverts_outpoint_key() {
+    let op = OutPoint::new(h(0x11), 0x0102_0304);
+    assert_eq!(decode_outpoint_key(&outpoint_key(&op)), Ok(op));
+    let max = OutPoint::new(h(0xff), u32::MAX);
+    assert_eq!(decode_outpoint_key(&outpoint_key(&max)), Ok(max));
 }
 
 proptest! {

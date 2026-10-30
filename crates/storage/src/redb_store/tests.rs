@@ -79,10 +79,15 @@ fn scripted_block_1() -> (Block, Hash32, Vec<Hash32>) {
     (block, h(0xb1), vec![h(0x02), h(0x03), h(0x04)])
 }
 
-/// Membandingkan isi kedua store: tip, block_id_at 0..=max_height, utxo setiap outpoint, serta block dan
-/// undo_data untuk blk_hash(0) sampai blk_hash(25).
+/// Membandingkan isi kedua store: tip, block_id_at 0..=max_height, utxo setiap outpoint, block dan
+/// undo_data untuk blk_hash(0) sampai blk_hash(25), serta utxos_by_payloads untuk payload 0..=4 dan 0x99.
 fn assert_same_state(mem: &MemoryStore, rdb: &RedbStore, outpoints: &[OutPoint], max_height: u64) {
     assert_eq!(mem.tip(), rdb.tip());
+    let payloads: Vec<[u8; 32]> = (0_u8..=4).chain([0x99]).map(|p| [p; 32]).collect();
+    assert_eq!(
+        mem.utxos_by_payloads(&payloads),
+        rdb.utxos_by_payloads(&payloads)
+    );
     for height in 0..=max_height {
         assert_eq!(
             mem.block_id_at(BlockHeight::new(height)),
@@ -235,6 +240,44 @@ fn scripted_chain_matches_memory_store_step_by_step() {
     assert_eq!(mem.undo_tip(), Err(StoreError::EmptyChain));
     assert_eq!(rdb.undo_tip(), Err(StoreError::EmptyChain));
     assert_same_state(&mem, &rdb, &outpoints, 1);
+}
+
+#[test]
+fn utxos_by_payloads_matches_memory_store() {
+    let mut mem = MemoryStore::default();
+    let mut rdb = RedbStore::in_memory().expect("in_memory");
+    let (g, g_id, g_txids, e0, e1) = make_genesis();
+    let (b1, b1_id, b1_txids) = scripted_block_1();
+    assert_eq!(mem.apply_block(&g, g_id, &g_txids), Ok(()));
+    assert_eq!(rdb.apply_block(&g, g_id, &g_txids), Ok(()));
+    assert_eq!(mem.apply_block(&b1, b1_id, &b1_txids), Ok(()));
+    assert_eq!(rdb.apply_block(&b1, b1_id, &b1_txids), Ok(()));
+
+    let all = [[0x01_u8; 32], [0x02; 32], [0x03; 32], [0x04; 32]];
+    let expected = vec![
+        (OutPoint::new(h(0x01), 1), e1.clone()),
+        (
+            OutPoint::new(h(0x02), 0),
+            UtxoEntry::new(make_output(30, 0x02), BlockHeight::new(1), true),
+        ),
+        (
+            OutPoint::new(h(0x04), 0),
+            UtxoEntry::new(make_output(7, 0x04), BlockHeight::new(1), false),
+        ),
+    ];
+    assert_eq!(rdb.utxos_by_payloads(&all), Ok(expected.clone()));
+    assert_eq!(mem.utxos_by_payloads(&all), Ok(expected));
+    assert_eq!(rdb.utxos_by_payloads(&[[0x99_u8; 32]]), Ok(Vec::new()));
+    assert_eq!(rdb.utxos_by_payloads(&[]), Ok(Vec::new()));
+
+    assert_eq!(rdb.undo_tip(), Ok((b1_id, b1)));
+    assert_eq!(
+        rdb.utxos_by_payloads(&all),
+        Ok(vec![
+            (OutPoint::new(h(0x01), 0), e0),
+            (OutPoint::new(h(0x01), 1), e1)
+        ])
+    );
 }
 
 #[test]

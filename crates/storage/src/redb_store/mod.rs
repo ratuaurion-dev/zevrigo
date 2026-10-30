@@ -14,8 +14,8 @@ use redb::backends::InMemoryBackend;
 use redb::{Database, ReadableDatabase, ReadableTable, TableDefinition, WriteTransaction};
 
 use crate::codec::{
-    decode_block, decode_block_undo, decode_utxo_entry, encode_block_undo, encode_utxo_entry,
-    outpoint_key,
+    decode_block, decode_block_undo, decode_outpoint_key, decode_utxo_entry, encode_block_undo,
+    encode_utxo_entry, outpoint_key,
 };
 use crate::store::{BlockUndo, ChainStore, StoreError};
 
@@ -215,6 +215,30 @@ impl ChainStore for RedbStore {
             return Ok(None);
         };
         decode_utxo_entry(guard.value()).map(Some)
+    }
+
+    fn utxos_by_payloads(
+        &self,
+        payloads: &[[u8; 32]],
+    ) -> Result<Vec<(OutPoint, UtxoEntry)>, StoreError> {
+        let wanted: BTreeSet<[u8; 32]> = payloads.iter().copied().collect();
+        let mut found = Vec::new();
+        if wanted.is_empty() {
+            return Ok(found);
+        }
+        let read_txn = self.db.begin_read().map_err(redb_error)?;
+        let table = read_txn.open_table(UTXOS).map_err(redb_error)?;
+        for item in table.iter().map_err(redb_error)? {
+            let (key_guard, value_guard) = item.map_err(redb_error)?;
+            let entry = decode_utxo_entry(value_guard.value())?;
+            if wanted.contains(entry.output().payload()) {
+                found.push((decode_outpoint_key(key_guard.value())?, entry));
+            }
+        }
+        // Urutan key sudah sama dengan urutan OutPoint (lihat `outpoint_key`); pengurutan ini menjaga kontrak
+        // trait tanpa bergantung pada urutan internal backend.
+        found.sort_unstable_by_key(|(op, _)| *op);
+        Ok(found)
     }
 
     fn undo_data(&self, block_id: &Hash32) -> Result<Option<BlockUndo>, StoreError> {

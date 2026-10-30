@@ -90,6 +90,14 @@ fn read_outpoint(reader: &mut Reader<'_>) -> Result<OutPoint, StoreError> {
     ))
 }
 
+/// Kebalikan [`outpoint_key`], dipakai saat membaca key tabel UTXO. Gagal: `CorruptData`.
+pub(crate) fn decode_outpoint_key(key: &[u8; 36]) -> Result<OutPoint, StoreError> {
+    let mut reader = Reader::new(key);
+    let op = read_outpoint(&mut reader)?;
+    reader.finish().map_err(|_| StoreError::CorruptData)?;
+    Ok(op)
+}
+
 /// Membaca angka jumlah u32 little-endian dari [`Reader`].
 fn read_count(reader: &mut Reader<'_>) -> Result<u32, StoreError> {
     let bytes = reader
