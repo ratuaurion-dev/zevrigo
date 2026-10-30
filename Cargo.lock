@@ -452,6 +452,7 @@ version = "0.1.0"
 dependencies = [
  "homeostasis-primitives",
  "proptest",
+ "redb",
  "thiserror",
 ]
 
@@ -607,6 +608,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60aa6af80be32871323012e02e6e65f8a7cc7890931ae421d217ad8fe0df2ccf"
 dependencies = [
  "rand_core 0.10.1",
+]
+
+[[package]]
+name = "redb"
+version = "4.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39178e0a867f9e3eaa6292a4ab1dd3613f2519c5b564341e1e7b29b270736cc4"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-# TSK-M11 · Penyimpanan persisten RedbStore (redb 4.4.0) di MOD-05 · 🟡 · Prioritas: Tinggi
+# TSK-M11 · Penyimpanan persisten RedbStore (redb 4.4.0) di MOD-05 · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-05 (crates/storage) · **Untuk:** FTR-01 sampai FTR-05
 - **Bergantung pada:** TSK-M10, DEC-03, DEC-10 bagian 3 · **Memblokir:** TSK-F01, TSK-F05, TSK-M23
 - **Estimasi:** M

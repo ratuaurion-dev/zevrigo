@@ -93,6 +93,24 @@ pub enum StoreError {
     /// Undo data blok ujung rusak atau tidak ada.
     #[error("undo data blok ujung rusak atau tidak ada")]
     CorruptUndo,
+
+    /// Kesalahan dari backend redb; `message` berisi teks error aslinya.
+    #[error("kesalahan backend penyimpanan: {message}")]
+    Backend {
+        /// Teks error dari redb.
+        message: String,
+    },
+
+    /// Data penyimpanan rusak atau melebihi batas format.
+    #[error("data penyimpanan rusak atau melebihi batas format")]
+    CorruptData,
+
+    /// Versi skema penyimpanan tidak didukung.
+    #[error("versi skema penyimpanan {found} tidak didukung")]
+    UnsupportedSchema {
+        /// Versi skema yang tersimpan di tabel meta.
+        found: u64,
+    },
 }
 
 /// Antarmuka penyimpanan chain aktif, set UTXO, dan undo data.

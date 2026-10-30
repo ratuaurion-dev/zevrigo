@@ -15,3 +15,9 @@ fn crate_root_reexports_are_accessible() {
         "chain kosong, tidak ada blok untuk di-undo"
     );
 }
+
+#[test]
+fn redb_store_reexport_is_accessible() {
+    let store = crate::RedbStore::in_memory().expect("in_memory");
+    assert_eq!(crate::ChainStore::tip(&store), Ok(None));
+}

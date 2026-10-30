@@ -1,4 +1,4 @@
-//! MOD-05: Penyimpanan blok, set UTXO, dan undo data. Berisi trait ChainStore dan MemoryStore (TSK-M10); RedbStore menyusul (TSK-M11, DEC-03).
+//! MOD-05: Penyimpanan blok, set UTXO, dan undo data. Berisi trait ChainStore, MemoryStore (TSK-M10), dan RedbStore berbasis redb (TSK-M11, DEC-03).
 
 #![forbid(unsafe_code)]
 #![deny(
@@ -7,10 +7,13 @@
     clippy::indexing_slicing
 )]
 
+mod codec;
 pub mod memory;
+pub mod redb_store;
 pub mod store;
 
 pub use memory::MemoryStore;
+pub use redb_store::RedbStore;
 pub use store::{BlockUndo, ChainStore, StoreError};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
