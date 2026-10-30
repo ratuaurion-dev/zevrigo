@@ -13,11 +13,11 @@ Menyediakan definisi tipe pesan serta klien dan server JSON-RPC antara daemon no
 
 ## Tanggung Jawab
 
-- Skema request/response JSON-RPC yang aman terhadap presisi `u128` quanta serta implementasi transpor klien/server (*diisi lebih rinci di R2*).
+- Tipe request/response, encoding nilai (jumlah koin sebagai string desimal quanta), server dan klien JSON-RPC lewat HTTP (`jsonrpsee`, DEC-10 bagian 2). Aturan lengkap: [spesifikasi-rpc-v0.1.md](../reference/spesifikasi-rpc-v0.1.md).
 
 ## Bukan Tanggung Jawab
 
 - Logika konsensus (`MOD-04`), penyimpanan kunci dompet (`MOD-09`), maupun tampilan antarmuka pengguna (`MOD-12`..`MOD-16`).
 
 ## Task terkait
-- [TSK-M12](../tasks/README.md)
+- [TSK-M12](../tasks/README.md) — 🟡 siap
