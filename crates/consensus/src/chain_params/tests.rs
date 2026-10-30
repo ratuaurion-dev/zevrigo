@@ -5,7 +5,7 @@ use homeostasis_primitives::params::GENESIS_ALLOCATION;
 use homeostasis_primitives::{BlockHeight, Encode, Hash32, Network, OutputKind};
 
 use super::{
-    REGTEST_GENESIS_KEY, REGTEST_GENESIS_TARGET_COMPACT, REGTEST_GENESIS_TIMESTAMP,
+    ChainParams, REGTEST_GENESIS_KEY, REGTEST_GENESIS_TARGET_COMPACT, REGTEST_GENESIS_TIMESTAMP,
     REGTEST_POW_LIMIT_COMPACT, pow_limit, pow_limit_compact, regtest_genesis, regtest_network_id,
 };
 use crate::difficulty::{DifficultyError, decode_compact};
@@ -97,4 +97,22 @@ fn pow_limit_per_network() {
             Err(DifficultyError::InvalidCompact { compact })
         );
     }
+}
+
+#[test]
+fn regtest_chain_params_match_genesis() {
+    let params = ChainParams::regtest().unwrap();
+    assert_eq!(params.network(), Network::Regtest);
+    assert_eq!(Ok(params.pow_limit()), decode_compact(0x207f_ffff));
+    assert_eq!(Ok(params.genesis_target()), decode_compact(0x207f_ffff));
+    assert_eq!(params.genesis_timestamp(), 1_793_145_600);
+    assert_eq!(params.network_id().to_string(), REGTEST_NETWORK_ID);
+    let same = ChainParams::new(
+        Network::Regtest,
+        params.pow_limit(),
+        params.genesis_target(),
+        params.genesis_timestamp(),
+        params.network_id(),
+    );
+    assert_eq!(same, params);
 }

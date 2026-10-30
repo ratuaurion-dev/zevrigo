@@ -12,10 +12,12 @@ pub mod chain_params;
 pub mod difficulty;
 pub mod supply;
 pub mod uint;
+pub mod validation;
 
 pub use chain_params::{
-    REGTEST_GENESIS_KEY, REGTEST_GENESIS_TARGET_COMPACT, REGTEST_GENESIS_TIMESTAMP,
-    REGTEST_POW_LIMIT_COMPACT, pow_limit, pow_limit_compact, regtest_genesis, regtest_network_id,
+    ChainParams, ParamsError, REGTEST_GENESIS_KEY, REGTEST_GENESIS_TARGET_COMPACT,
+    REGTEST_GENESIS_TIMESTAMP, REGTEST_POW_LIMIT_COMPACT, pow_limit, pow_limit_compact,
+    regtest_genesis, regtest_network_id,
 };
 pub use difficulty::{
     ASERT_HALF_LIFE_SECS, DifficultyError, asert_target, block_work, chain_work, decode_compact,
@@ -25,6 +27,11 @@ pub use supply::{
     ScheduleEntry, SupplyError, SupplySchedule, base_reward, block_subsidy, total_supply_after,
 };
 pub use uint::U256;
+pub use validation::{
+    BlockError, BlockSummary, ParentContext, TxError, UtxoLookup, check_block_context_free,
+    check_block_transactions, check_future_timestamp, check_header_context, check_transaction,
+    decode_block,
+};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-04";

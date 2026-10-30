@@ -1,4 +1,4 @@
-//! Parameter per jaringan dan blok genesis regtest.
+//! Parameter per jaringan ([`ChainParams`]) dan blok genesis regtest.
 //!
 //! Sesuai `docs/reference/spesifikasi-validasi-v0.1.md` Bagian 2 dan 10. Nilai testnet dan mainnet baru
 //! ditetapkan bersama DEC-01 dan pengukuran testnet.
@@ -92,6 +92,100 @@ pub fn regtest_genesis() -> Result<Block, DecodeError> {
 /// Sama dengan [`regtest_genesis`].
 pub fn regtest_network_id() -> Result<Hash32, DecodeError> {
     Ok(network_id(regtest_genesis()?.header()))
+}
+
+/// Galat saat menyusun [`ChainParams`].
+#[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
+pub enum ParamsError {
+    /// Target compact parameter jaringan tidak sah.
+    #[error("target parameter jaringan tidak sah: {0}")]
+    Difficulty(#[from] DifficultyError),
+    /// Blok genesis tidak bisa dibentuk.
+    #[error("blok genesis tidak sah: {0}")]
+    Genesis(#[from] DecodeError),
+}
+
+/// Parameter konsensus satu jaringan (Spesifikasi Validasi Bagian 2).
+///
+/// Aturan sama di semua jaringan. Yang berbeda hanya fungsi PoW (dipilih dari [`Network`]), `pow_limit`,
+/// dan genesis (target, cap waktu, dan `network_id`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ChainParams {
+    network: Network,
+    pow_limit: Target,
+    genesis_target: Target,
+    genesis_timestamp: u64,
+    network_id: Hash32,
+}
+
+impl ChainParams {
+    /// Menyusun parameter dari nilai mentah.
+    ///
+    /// Dipakai test, dan nanti testnet serta mainnet setelah parameternya ditetapkan (`TODO(param)` di
+    /// [`pow_limit_compact`]).
+    #[must_use]
+    pub const fn new(
+        network: Network,
+        pow_limit: Target,
+        genesis_target: Target,
+        genesis_timestamp: u64,
+        network_id: Hash32,
+    ) -> Self {
+        Self {
+            network,
+            pow_limit,
+            genesis_target,
+            genesis_timestamp,
+            network_id,
+        }
+    }
+
+    /// Parameter regtest: `pow_limit` [`REGTEST_POW_LIMIT_COMPACT`] dan genesis [`regtest_genesis`].
+    ///
+    /// # Errors
+    ///
+    /// [`ParamsError`] jika konstanta regtest tidak sah. Tidak terjadi, dan dibuktikan oleh test.
+    pub fn regtest() -> Result<Self, ParamsError> {
+        let genesis = regtest_genesis()?;
+        let header = genesis.header();
+        Ok(Self::new(
+            Network::Regtest,
+            pow_limit(Network::Regtest)?,
+            decode_compact(header.target())?,
+            header.timestamp(),
+            network_id(header),
+        ))
+    }
+
+    /// Jaringan parameter ini.
+    #[must_use]
+    pub const fn network(&self) -> Network {
+        self.network
+    }
+
+    /// Target terbesar (kesulitan terendah) yang boleh dipakai.
+    #[must_use]
+    pub const fn pow_limit(&self) -> Target {
+        self.pow_limit
+    }
+
+    /// Target genesis, sekaligus target acuan ASERT.
+    #[must_use]
+    pub const fn genesis_target(&self) -> Target {
+        self.genesis_target
+    }
+
+    /// Cap waktu genesis, sekaligus cap waktu acuan ASERT.
+    #[must_use]
+    pub const fn genesis_timestamp(&self) -> u64 {
+        self.genesis_timestamp
+    }
+
+    /// ID jaringan: `block_id` genesis. Dipakai di sighash v1 (DEC-13).
+    #[must_use]
+    pub const fn network_id(&self) -> Hash32 {
+        self.network_id
+    }
 }
 
 #[cfg(test)]
