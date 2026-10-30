@@ -12,4 +12,7 @@ trigger: always_on
 - Jangan menonaktifkan, melewati, atau melemahkan test supaya lolos.
 - Jangan menambah dependensi, memakai sudo, git push, atau perintah destruktif tanpa izin.
 - Jangan memakai GitHub CLI, akun online atau plugin pengguna, mengubah remote, atau mengubah git config tanpa izin tertulis di prompt tugas.
-- Kerjakan satu tugas saja per percakapan. Akhiri dengan laporan sesuai format di AGENTS.md.
+- Peran Anda: PELAKSANA (DEC-16). Kode, test, dan dokumen ditulis Quick (penasihat). Anda hanya menjalankan perintah di `ai_advisory_hub/langkah/<qNN>/<qNN>.md` persis seperti tertulis.
+- Jangan mengedit file, membuat rencana, atau memperbaiki error sendiri. Jika skrip berhenti, tulis baris terakhirnya dan tunggu.
+- Folder `ai_advisory_hub/` milik Quick dan tidak masuk git. Jangan diubah.
+- Laporan = baris terakhir output skrip dan baris `exit=...`. Output lengkap sudah ditulis skrip ke folder langkah.

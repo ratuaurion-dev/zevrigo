@@ -14,6 +14,16 @@ Prinsip yang tidak bisa ditawar:
 - Aturan konsensus hanya ditulis di satu tempat (crate `consensus`).
 - Siapa pun harus bisa membangun ulang program dan mendapat hasil identik (reproducible build).
 
+## Pembagian peran (DEC-16)
+| Peran | Tugas |
+|---|---|
+| Pencipta | Keputusan pencipta: arah proyek, parameter koin, nama, lisensi, prioritas. Meneruskan satu baris perintah ke agent |
+| Quick (penasihat) | Rancangan, spesifikasi, keputusan teknis, kartu task, kode, test, dan dokumen. Menulis langsung di repo, lalu menulis skrip pemeriksaan di `ai_advisory_hub/langkah/` |
+| Agent (pelaksana) | Menjalankan skrip langkah persis: format, lint, test, dan commit. Tidak mengedit file dan tidak memperbaiki error sendiri |
+
+Untuk agent, bagian "Format laporan akhir" di bawah diganti oleh skrip langkah: skrip menulis output lengkap ke folder
+langkah, dan agent hanya menulis baris terakhirnya.
+
 ## Parameter protokol (sumber kebenaran)
 JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti dan laporkan.
 
@@ -53,6 +63,7 @@ tingkat atas tanpa izin. Perubahan struktur dicatat sebagai keputusan (DEC) di `
 ```
 homeostasis_lab/
 ├── AGENTS.md  .agent/        # instruksi agent (jangan diubah agent)
+├── ai_advisory_hub/          # ruang kerja Quick: status, antrean, langkah (lokal, tidak di-commit, DEC-16)
 ├── Cargo.toml                # workspace: members, dependencies, lints
 ├── Cargo.lock  rust-toolchain.toml  clippy.toml  Makefile
 ├── crates/                   # MOD-01..MOD-10: library inti
