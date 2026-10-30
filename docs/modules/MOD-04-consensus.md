@@ -15,7 +15,7 @@ Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeosta
 
 - Rumus jadwal pasokan koin (`base_reward`, *slow start*, pasokan ekor, alokasi genesis).
 - Penyesuaian kesulitan ASERT per blok dan validasi cap waktu blok.
-- Validasi transaksi (transfer, multi-tanda tangan, kunci waktu, kematangan coinbase), validasi blok, dan perhitungan kerja kumulatif rantai (*diisi lebih rinci di R2*).
+- Validasi transaksi (transfer, multi-tanda tangan, kunci waktu, kematangan coinbase), validasi blok, dan perhitungan kerja kumulatif rantai. Aturan lengkap: [spesifikasi-validasi-v0.1.md](../reference/spesifikasi-validasi-v0.1.md).
 
 ## Bukan Tanggung Jawab
 
@@ -24,5 +24,5 @@ Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeosta
 
 ## Task terkait
 - [TSK-M07](../tasks/TSK-M07-consensus-pasokan.md) — 🟢 selesai (rumus pasokan dan vektor uji)
-- [TSK-M08](../tasks/README.md) — ⚪ belum dimulai
+- [TSK-M08](../tasks/README.md) — 🟡 siap (target compact, ASERT, chainwork, cap waktu, parameter jaringan, genesis regtest)
 - [TSK-M09](../tasks/README.md) — ⚪ belum dimulai

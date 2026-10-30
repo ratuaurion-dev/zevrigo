@@ -1,14 +1,14 @@
 # Spesifikasi Format Homeostasis Coin (HSIS) v0.1: alamat, encoding, transaksi, dan blok terdefinisi; sighash v1 dikunci (DEC-13)
 
-> Diperbarui: 28 Oktober 2026 · Pemilik: pencipta · Task: TSK-S01 · Status: 🟡 draf v0.1
+> Diperbarui: 30 Oktober 2026 · Pemilik: pencipta · Task: TSK-S01 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-format-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | Encoding biner kanonis (DEC-12), alamat bech32m dengan dua jenis output (DEC-11), struktur transaksi, header, blok, dan Merkle |
 | 🟢 Diputuskan | DEC-13 (30 Oktober 2026): sighash v1 satu mode, Bagian 9. Dihitung di MOD-02 (TSK-M24) |
-| ➡️ Diserahkan ke TSK-S02 | Aturan validasi: coinbase, kematangan, biaya, chainwork, rumus ASERT, dan format target |
-| ➡️ Langkah berikutnya | Kartu TSK-M03 ditulis setelah TSK-M01 dan TSK-M02 selesai |
+| 🟢 Dilanjutkan | Aturan validasi (format target, ASERT, chainwork, cap waktu, transaksi, coinbase, blok): [spesifikasi-validasi-v0.1.md](spesifikasi-validasi-v0.1.md) (TSK-S02) |
+| ➡️ Langkah berikutnya | TSK-M25, TSK-M08, TSK-M09 |
 
 Legenda: 🟢 dikunci · 🟡 draf · ❓ perlu keputusan
 
@@ -233,7 +233,7 @@ d58bf09583a8b203            amount = 1 910 127 426 536 917 quanta (subsidy tingg
 | 12 | prev_block_id | bytes32 | ID blok sebelumnya (genesis: nol semua) |
 | 44 | merkle_root | bytes32 | Merkle root dari wtxid |
 | 76 | timestamp | u64le | detik Unix |
-| 84 | target | u32le | target kesulitan (format compact; rincian di TSK-S02) |
+| 84 | target | u32le | target kesulitan (format compact; rincian di Spesifikasi Validasi Bagian 3) |
 | 88 | nonce | u64le | nonce penambang |
 
 - `block_id = H(block id, header)`. Dipakai untuk identifikasi dan sebagai `prev_block_id`.
@@ -330,14 +330,9 @@ msg = H(sighash v1,
 
 ---
 
-## 11. Diserahkan ke TSK-S02 (aturan validasi)
+## 11. Aturan validasi (TSK-S02)
 
-- Jumlah output coinbase ≤ subsidy (TSK-M07) + total biaya. Genesis: tepat G.
-- Kematangan coinbase 100 blok.
-- Jumlah input ≥ jumlah output (semua penjumlahan memakai checked), biaya = selisihnya.
-- Larangan membelanjakan output dua kali di blok yang sama.
-- Format compact `target`, rumus ASERT dalam bilangan bulat, chainwork, median waktu, dan batas waktu masa depan.
-- Pemeriksaan tanda tangan atas sighash v1 (Bagian 9).
+Ditulis di [spesifikasi-validasi-v0.1.md](spesifikasi-validasi-v0.1.md). Koreksi: jumlah output coinbase wajib **tepat** subsidy + total biaya (DEC-17), bukan ≤. Genesis: tepat G.
 
 ---
 
