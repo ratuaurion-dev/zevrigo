@@ -17,5 +17,13 @@ homeostasis-rpc.workspace = true
 homeostasis-storage.workspace = true
 homeostasis-wallet-core.workspace = true
 
+[dev-dependencies]
+# DEC-20: aplikasi hanya untuk uji ujung ke ujung (FTR-02 dan seterusnya), tidak pernah sebagai dependensi biasa.
+# Dirujuk lewat path, bukan [workspace.dependencies], agar daftar dependensi workspace tetap hanya berisi pustaka inti
+# dan crate lain tidak bisa memakai aplikasi dengan `.workspace = true`.
+homeostasis-miner = { path = "../../apps/miner" }
+homeostasis-node = { path = "../../apps/node" }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
 [lints]
 workspace = true

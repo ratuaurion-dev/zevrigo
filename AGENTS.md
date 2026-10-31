@@ -94,7 +94,7 @@ homeostasis_lab/
 | MOD-14 | apps/explorer | homeostasis-explorer (bin) | Indexer dan API explorer (web menyusul) | MOD-01, 05, 08 |
 | MOD-15 | apps/wallet | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 |
 | MOD-16 | apps/merchant | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 |
-| MOD-17 | tests/integration | homeostasis-integration-tests | Uji integrasi lintas crate | semua crate inti |
+| MOD-17 | tests/integration | homeostasis-integration-tests | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, MOD-13 (DEC-20) |
 
 Aturan arah dependensi:
 - Crate di `crates/` tidak boleh bergantung pada apa pun di `apps/` atau `tests/`.

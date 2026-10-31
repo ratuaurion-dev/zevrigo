@@ -531,12 +531,15 @@ dependencies = [
  "homeostasis-crypto",
  "homeostasis-mempool",
  "homeostasis-merchant-core",
+ "homeostasis-miner",
  "homeostasis-network",
+ "homeostasis-node",
  "homeostasis-pow",
  "homeostasis-primitives",
  "homeostasis-rpc",
  "homeostasis-storage",
  "homeostasis-wallet-core",
+ "tokio",
 ]
 
 [[package]]
