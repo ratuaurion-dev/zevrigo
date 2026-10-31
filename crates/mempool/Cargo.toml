@@ -8,6 +8,11 @@ publish.workspace = true
 [dependencies]
 homeostasis-consensus.workspace = true
 homeostasis-primitives.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+# DEC-18: hanya untuk menandatangani transaksi di test. Kode produksi MOD-07 tidak memakai MOD-02 langsung.
+homeostasis-crypto.workspace = true
 
 [lints]
 workspace = true

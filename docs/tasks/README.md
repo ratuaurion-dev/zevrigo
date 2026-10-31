@@ -1,14 +1,14 @@
-# Task kerja: TSK-M12 selesai, TSK-M13 dan TSK-M18 berikutnya menuju node regtest (TSK-F01)
+# Task kerja: TSK-M13 selesai, TSK-M18 (node) berikutnya menuju node regtest (TSK-F01)
 
 > Diperbarui: 31 Oktober 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M21, M22, M24, M25, M26 |
-| 🟡 Siap dikerjakan | TSK-M13 (mempool), TSK-M18 (node), TSK-M19 (CLI), TSK-M20 (miner), TSK-M23 (pruning) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M21, M22, M24, M25, M26 |
+| 🟡 Siap dikerjakan | TSK-M18 (node), TSK-M19 (CLI), TSK-M20 (miner), TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | — (DEC-01 tetap terbuka untuk testnet) |
-| ➡️ Langkah berikutnya | TSK-M13 dan TSK-M18, lalu TSK-F01 |
+| ➡️ Langkah berikutnya | TSK-M18, lalu TSK-F01 |
 
 ## Tiga jenis task
 
@@ -47,7 +47,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M10 | MOD-05 | Penyimpanan in-memory: trait ChainStore, MemoryStore, set UTXO, undo data | TSK-M03, TSK-M22 | 🟢 selesai ([kartu](TSK-M10-storage-memory.md)) |
 | TSK-M11 | MOD-05 | Penyimpanan persisten RedbStore (redb 4.4.0, DEC-03), uji diferensial terhadap MemoryStore | TSK-M10 | 🟢 selesai ([kartu](TSK-M11-storage-redb.md)) |
 | TSK-M12 | MOD-08 | Tipe dan server/klien JSON-RPC (Spesifikasi RPC v0.1) | TSK-M03, TSK-S04, DEC-10 | 🟢 selesai ([kartu](TSK-M12-rpc.md)) |
-| TSK-M13 | MOD-07 | Mempool | TSK-M09 | ⚪ |
+| TSK-M13 | MOD-07 | Mempool | TSK-M09, DEC-18 | 🟢 selesai ([kartu](TSK-M13-mempool.md)) |
 | TSK-M14 | MOD-06 | P2P dasar (rust-libp2p, versi dicatat saat itu) | TSK-M03, TSK-S05, DEC-10 | ⚪ |
 | TSK-M15 | MOD-09 | BIP39 dan turunan kunci | TSK-M04, TSK-S03 | ⚪ |
 | TSK-M16 | MOD-09 | Penyusunan dan penandatanganan transaksi, pemilihan koin | TSK-M03, TSK-M15, TSK-M24 | ⚪ |

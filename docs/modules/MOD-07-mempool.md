@@ -3,8 +3,8 @@
 - **ID:** `MOD-07`
 - **Path:** `crates/mempool`
 - **Paket:** `homeostasis-mempool`
-- **Status:** ⚪ belum dimulai (kerangka R0)
-- **Bergantung pada:** `MOD-01`, `MOD-04`
+- **Status:** 🟢 selesai untuk regtest (TSK-M13)
+- **Bergantung pada:** `MOD-01`, `MOD-04` (test juga memakai `MOD-02` sebagai dev-dependency, DEC-18)
 - **Dipakai oleh:** `MOD-11`, `MOD-17`
 
 ## Tujuan
@@ -13,12 +13,16 @@ Mengelola antrean transaksi belum terkonfirmasi di memori sebelum dimasukkan ke 
 
 ## Tanggung Jawab
 
-- Pemeriksaan kelayakan transaksi terhadap aturan konsensus (`MOD-04`), pencegahan pengeluaran ganda di antrean, dan pemilihan transaksi bagi kandidat blok penambang (*diisi lebih rinci di R2*).
+- Pemeriksaan transaksi dengan `check_transaction` (`MOD-04`, T1 sampai T6) terhadap set UTXO ujung chain ditambah output mempool, dengan tinggi = ujung + 1.
+- Pencegahan pembelanjaan ganda di antrean (tanpa penggantian transaksi), batas total byte, dan penolakan transaksi yang lebih besar dari blok.
+- Pemeriksaan ulang setelah blok baru atau reorg (`revalidate`), dan pemilihan transaksi untuk kandidat blok sesuai urutan kedatangan (`select_for_block`).
+- Nama aturan untuk error RPC `1002` (`rule_name`, `MempoolError::rule`).
 
 ## Bukan Tanggung Jawab
 
 - Mendefinisikan ulang aturan konsensus di luar `MOD-04`.
+- Menghitung txid (diberikan pemanggil, dihitung dengan `MOD-02`).
 - Penyimpanan blok permanen di disk (`MOD-05`).
 
 ## Task terkait
-- [TSK-M13](../tasks/README.md)
+- [TSK-M13](../tasks/TSK-M13-mempool.md) — 🟢 selesai

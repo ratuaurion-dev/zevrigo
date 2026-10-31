@@ -544,7 +544,9 @@ name = "homeostasis-mempool"
 version = "0.1.0"
 dependencies = [
  "homeostasis-consensus",
+ "homeostasis-crypto",
  "homeostasis-primitives",
+ "thiserror",
 ]
 
 [[package]]
