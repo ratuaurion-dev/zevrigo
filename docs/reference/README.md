@@ -6,3 +6,12 @@ Folder ini disediakan sebagai tempat penyimpanan dua dokumen sumber kebenaran de
 2. **Dokumen Aplikasi v0.1** — spesifikasi ekosistem aplikasi pengguna (node, CLI, miner, explorer, dompet personal, dan aplikasi pelaku usaha/merchant).
 
 Kedua dokumen tersebut merupakan sumber kebenaran desain tertinggi. Ringkasan parameter numerik dan aturan kerja agent yang mengikat kode sehari-hari disalin ke `AGENTS.md` di akar repositori; jika ditemukan perbedaan tafsir antara kode/kartu tugas dan kedua dokumen referensi ini, pengerjaan wajib dihentikan untuk diklarifikasi.
+
+## Spesifikasi turunan (ditulis Quick, disetujui pencipta)
+
+| Dokumen | Isi | Task |
+|---|---|---|
+| [spesifikasi-format-v0.1.md](spesifikasi-format-v0.1.md) | Format transaksi dan blok, encoding kanonis, alamat, sighash | TSK-S01 |
+| [spesifikasi-validasi-v0.1.md](spesifikasi-validasi-v0.1.md) | Aturan validasi, ASERT, chainwork, genesis regtest | TSK-S02 |
+| [spesifikasi-wallet-v0.1.md](spesifikasi-wallet-v0.1.md) | Frasa BIP39, turunan BIP32, alamat, pemilihan koin, pemindaian saldo | TSK-S03 |
+| [spesifikasi-rpc-v0.1.md](spesifikasi-rpc-v0.1.md) | 8 metode JSON-RPC regtest | TSK-S04 |

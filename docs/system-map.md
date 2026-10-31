@@ -17,7 +17,7 @@ Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai ·
 | MOD-09 | `crates/wallet-core` | `homeostasis-wallet-core` | Kunci, penyusunan dan penandatanganan transaksi | MOD-01, 02 | ⚪ |
 | MOD-10 | `crates/merchant-core` | `homeostasis-merchant-core` | Tagihan watch-only, status pembayaran | MOD-01, 09 | ⚪ |
 | MOD-11 | `apps/node` | `homeostasis-node` (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) | 🟢 |
-| MOD-12 | `apps/cli` | `homeostasis-cli` (bin) | Alat baris perintah ke node | MOD-01, 08 | ⚪ |
+| MOD-12 | `apps/cli` | `homeostasis-cli` (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) | ⚪ |
 | MOD-13 | `apps/miner` | `homeostasis-miner` (bin) | Penambang CPU | MOD-01, 03, 08 | 🟢 |
 | MOD-14 | `apps/explorer` | `homeostasis-explorer` (bin) | Indexer dan API explorer (web menyusul) | MOD-01, 05, 08 | ⚪ |
 | MOD-15 | `apps/wallet` | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 | ⚪ |
@@ -74,6 +74,7 @@ graph LR
 
     MOD12 --> MOD01
     MOD12 --> MOD08
+    MOD12 --> MOD09
 
     MOD13 --> MOD01
     MOD13 --> MOD03

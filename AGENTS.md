@@ -54,7 +54,8 @@ JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti 
 Nilai berikut baru ditetapkan saat testnet. JANGAN dikarang. Tulis sebagai konstanta
 bertanda `// TODO(param): <nama>` dengan nilai placeholder yang jelas tidak valid:
 salt RandomX, kesulitan awal, alamat penerima alokasi genesis, hash blok Bitcoin jangkar
-beserta tingginya, magic bytes/ID jaringan, dan format alamat.
+beserta tingginya, magic bytes/ID jaringan, dan nomor SLIP-44 mainnet untuk jalur turunan wallet.
+Format alamat sudah ditetapkan (bech32m, DEC-11, Spesifikasi Format Bagian 8).
 
 ## Struktur repo dan peta modul
 Struktur ini TETAP. Jangan menambah, menghapus, atau mengganti nama crate, aplikasi, atau folder
@@ -89,7 +90,7 @@ homeostasis_lab/
 | MOD-09 | crates/wallet-core | homeostasis-wallet-core | Kunci, penyusunan dan penandatanganan transaksi | MOD-01, 02 |
 | MOD-10 | crates/merchant-core | homeostasis-merchant-core | Tagihan watch-only, status pembayaran | MOD-01, 09 |
 | MOD-11 | apps/node | homeostasis-node (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) |
-| MOD-12 | apps/cli | homeostasis-cli (bin) | Alat baris perintah ke node | MOD-01, 08 |
+| MOD-12 | apps/cli | homeostasis-cli (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) |
 | MOD-13 | apps/miner | homeostasis-miner (bin) | Penambang CPU | MOD-01, 03, 08 |
 | MOD-14 | apps/explorer | homeostasis-explorer (bin) | Indexer dan API explorer (web menyusul) | MOD-01, 05, 08 |
 | MOD-15 | apps/wallet | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 |

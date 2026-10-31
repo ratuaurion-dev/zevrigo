@@ -9,8 +9,9 @@ DEC-09), lalu mengirim blok. Hanya regtest; PoW mainnet menunggu DEC-01.
 
 ## Pemakaian
 `homeostasis-miner --payout <payload hex 64> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]`
-- `--payout`: kunci x-only (jenis 0) atau hash kondisi (jenis 1) penerima hadiah. Format alamat bech32m masih
-  `TODO(param)`, jadi yang dipakai payload hex.
+- `--payout`: kunci x-only (jenis 0) atau hash kondisi (jenis 1) penerima hadiah, sebagai payload hex. (Koreksi
+  31 Oktober 2026: format alamat bech32m sudah final sejak DEC-11; miner belum memakainya karena encode/decode alamat
+  baru dibuat di MOD-09, TSK-M15. Opsi alamat untuk miner menyusul.)
 - `--rpc-url` bawaan `http://127.0.0.1:28801`; `--blocks` bawaan 0 (terus sampai Ctrl-C).
 - Galat argumen keluar dengan kode 2, galat saat menambang kode 1.
 
