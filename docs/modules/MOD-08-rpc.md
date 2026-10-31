@@ -3,7 +3,7 @@
 - **ID:** `MOD-08`
 - **Path:** `crates/rpc`
 - **Paket:** `homeostasis-rpc`
-- **Status:** ⚪ belum dimulai (kerangka R0)
+- **Status:** 🟡 sedang berjalan (TSK-M12 bagian A selesai: tipe dan encoding; bagian B: server/klien)
 - **Bergantung pada:** `MOD-01`
 - **Dipakai oleh:** `MOD-11`, `MOD-12`, `MOD-13`, `MOD-14`, `MOD-15`, `MOD-16`, `MOD-17`
 
@@ -20,4 +20,4 @@ Menyediakan definisi tipe pesan serta klien dan server JSON-RPC antara daemon no
 - Logika konsensus (`MOD-04`), penyimpanan kunci dompet (`MOD-09`), maupun tampilan antarmuka pengguna (`MOD-12`..`MOD-16`).
 
 ## Task terkait
-- [TSK-M12](../tasks/README.md) — 🟡 siap
+- [TSK-M12](../tasks/TSK-M12-rpc.md) — 🟡 bagian A selesai, bagian B berikutnya
