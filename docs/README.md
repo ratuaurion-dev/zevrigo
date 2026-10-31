@@ -1,13 +1,13 @@
-# Homeostasis Coin (HSIS): aturan konsensus regtest lengkap, menuju node regtest pertama
+# Homeostasis Coin (HSIS): node regtest tunggal berjalan, menuju penambangan dan transaksi lewat CLI
 
-> Diperbarui: 31 Oktober 2026 · Pemilik: pencipta · Tahap: 🟡 menuju node regtest (FTR-01)
+> Diperbarui: 31 Oktober 2026 · Pemilik: pencipta · Tahap: 🟢 node regtest tunggal (FTR-01) · 🟡 menuju FTR-02 dan FTR-03
 
 | Status | Ringkasan |
 |---|---|
 | 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. MOD-01 sampai MOD-05 berjalan untuk regtest (konsensus lengkap, TSK-M09) dengan 196 test |
 | 🔴 Masalah utama | Testnet publik (FTR-06) terblokir DEC-01: strategi PoW di tengah larangan unsafe dan float |
 | ❓ Keputusan dibutuhkan | DEC-01 strategi PoW mainnet |
-| ➡️ Langkah berikutnya | TSK-M12 (RPC) dan TSK-M26, lalu TSK-M18 (node) dan TSK-F01 (node regtest) |
+| ➡️ Langkah berikutnya | TSK-M20 (miner) dan TSK-M19 (CLI), lalu TSK-F02 dan TSK-F03 |
 
 **Legenda status:** 🟢 selesai · 🟡 berjalan atau siap dikerjakan · 🔴 terblokir · ⚪ belum dimulai · ❓ perlu keputusan
 

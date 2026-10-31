@@ -7,7 +7,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 
 | ID | Fitur | Modul utama | Task | Status |
 |---|---|---|---|---|
-| FTR-01 | Node regtest tunggal memvalidasi dan menyimpan chain sendiri | MOD-01..05, MOD-08, MOD-11 | TSK-F01 | ⚪ |
+| FTR-01 | Node regtest tunggal memvalidasi dan menyimpan chain sendiri | MOD-01..05, MOD-08, MOD-11 | TSK-F01 | 🟢 |
 | FTR-02 | Menambang blok di regtest | MOD-01, 03, 04, 08, 11, 13 | TSK-F02 | ⚪ |
 | FTR-03 | Kirim dan terima HSIS lewat CLI di regtest | MOD-01, 02, 04, 07, 08, 09, 11, 12 | TSK-F03 | ⚪ |
 | FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | ⚪ |
@@ -20,7 +20,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 
 ## Kartu fitur
 
-### FTR-01 · Node regtest tunggal · ⚪
+### FTR-01 · Node regtest tunggal · 🟢
 - **Nilai:** bukti pertama bahwa aturan chain bekerja end-to-end di satu mesin.
 - **Selesai bila:** node regtest membuat genesis, menerima blok valid, menolak blok tidak valid, menyimpannya, dan menjawab RPC `get_chain_info` serta `get_block`.
 - **Catatan:** regtest memakai PoW dev (DEC-09), bukan PoW mainnet.

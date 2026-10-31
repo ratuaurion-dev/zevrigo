@@ -17,3 +17,13 @@ Jalankan pemeriksaan format, lint `clippy`, larangan `unsafe`/floating point, da
 ```bash
 make check-all
 ```
+
+## Menjalankan node regtest
+
+```bash
+cargo run -p homeostasis-node -- --regtest --datadir ~/.homeostasis
+```
+
+Node membuat chain regtest di `~/.homeostasis/regtest/chain.redb`, lalu mencetak alamat JSON-RPC (bawaan
+`http://127.0.0.1:28801`). Delapan metode RPC dijelaskan di
+[docs/reference/spesifikasi-rpc-v0.1.md](docs/reference/spesifikasi-rpc-v0.1.md). Hentikan dengan Ctrl-C.

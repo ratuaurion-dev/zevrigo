@@ -1,0 +1,296 @@
+//! Daemon node regtest (TSK-M18 bagian B): argumen baris perintah, folder data, logging, server RPC lokal, dan
+//! berhenti bersih saat menerima SIGINT (Ctrl-C) atau SIGTERM.
+//!
+//! Tanpa `clap` dan `toml` (DEC-10 bagian 2): argumen dibaca sendiri dan tidak ada file konfigurasi. Chain disimpan di
+//! `<datadir>/regtest/chain.redb` (RedbStore, MOD-05). Setelah server RPC siap, daemon mencetak satu baris
+//! `rpc: http://<alamat>` ke stdout; log ditulis ke stderr.
+
+use std::net::{Ipv4Addr, SocketAddr};
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use homeostasis_consensus::{ChainParams, ParamsError};
+use homeostasis_mempool::DEFAULT_MAX_BYTES;
+use homeostasis_primitives::Network;
+use homeostasis_rpc::transport::default_port;
+use homeostasis_rpc::{RpcBackend, RpcError, RpcServer, ServerError};
+use homeostasis_storage::{ChainStore, RedbStore, StoreError};
+use thiserror::Error;
+
+use crate::chain::{Clock, Node, NodeError};
+
+/// Teks bantuan `--help`.
+pub const USAGE: &str = concat!(
+    "homeostasis-node (MOD-11): daemon node Homeostasis Coin\n",
+    "\n",
+    "Pemakaian:\n",
+    "  homeostasis-node --regtest --datadir <folder> [--rpc-port <port>]\n",
+    "  homeostasis-node --help | --version\n",
+    "\n",
+    "Opsi:\n",
+    "  --regtest           jaringan regtest (testnet dan mainnet menunggu DEC-01)\n",
+    "  --datadir <folder>  folder data; chain disimpan di <folder>/regtest/chain.redb\n",
+    "  --rpc-port <port>   port JSON-RPC di 127.0.0.1 (bawaan regtest 28801; 0 = port bebas)\n",
+    "\n",
+    "Setelah siap, alamat RPC dicetak ke stdout sebagai `rpc: http://<alamat>`. Log ditulis ke stderr.\n",
+    "Node berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
+);
+
+/// Nama file chain di folder jaringan.
+pub const CHAIN_FILE: &str = "chain.redb";
+
+/// Perintah hasil membaca argumen.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Command {
+    /// Mencetak [`USAGE`].
+    Help,
+    /// Mencetak versi paket.
+    Version,
+    /// Menjalankan daemon.
+    Run(Config),
+}
+
+/// Konfigurasi daemon.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Config {
+    /// Jaringan. Saat ini hanya regtest.
+    pub network: Network,
+    /// Folder data.
+    pub datadir: PathBuf,
+    /// Port RPC di 127.0.0.1. `0` memilih port bebas.
+    pub rpc_port: u16,
+}
+
+/// Argumen tidak sah. Biner keluar dengan kode 2.
+#[derive(Clone, Debug, PartialEq, Eq, Error)]
+pub enum ArgError {
+    /// Argumen tidak dikenali.
+    #[error("argumen tidak dikenali: {0}")]
+    Unknown(String),
+    /// Opsi butuh nilai, tetapi nilainya tidak ada, kosong, atau berupa opsi lain.
+    #[error("opsi {0} butuh nilai")]
+    MissingValue(&'static str),
+    /// Opsi disebut lebih dari sekali.
+    #[error("opsi {0} disebut lebih dari sekali")]
+    Duplicate(&'static str),
+    /// Port RPC bukan bilangan 0 sampai 65535.
+    #[error("port RPC tidak sah: {0}")]
+    InvalidPort(String),
+    /// Jaringan belum tersedia.
+    #[error("jaringan {0} belum tersedia (menunggu DEC-01)")]
+    NetworkUnavailable(&'static str),
+    /// Jaringan tidak dipilih.
+    #[error("jaringan wajib dipilih: --regtest")]
+    MissingNetwork,
+    /// Folder data tidak diisi.
+    #[error("folder data wajib diisi: --datadir <folder>")]
+    MissingDatadir,
+    /// `--help` atau `--version` digabung dengan opsi lain.
+    #[error("--help dan --version tidak boleh digabung dengan opsi lain")]
+    Exclusive,
+}
+
+/// Galat saat menjalankan daemon. Biner keluar dengan kode 1.
+#[derive(Debug, Error)]
+pub enum DaemonError {
+    /// Folder data, runtime, atau pemasangan sinyal gagal.
+    #[error("galat I/O: {0}")]
+    Io(#[from] std::io::Error),
+    /// Parameter jaringan tidak bisa disusun.
+    #[error("parameter jaringan tidak sah: {0}")]
+    Params(#[from] ParamsError),
+    /// Penyimpanan tidak bisa dibuka (misalnya dipakai node lain).
+    #[error("penyimpanan gagal: {0}")]
+    Store(#[from] StoreError),
+    /// Node tidak bisa dibuka di atas penyimpanan.
+    #[error("node gagal dibuka: {0}")]
+    Node(#[from] NodeError),
+    /// Data chain tidak bisa dibaca.
+    #[error("data chain gagal dibaca: {0}")]
+    Rpc(#[from] RpcError),
+    /// Server RPC tidak bisa dijalankan (misalnya port terpakai).
+    #[error("server RPC gagal: {0}")]
+    Server(#[from] ServerError),
+}
+
+/// Membaca nilai opsi berikutnya. Nilai kosong atau yang diawali `--` ditolak.
+fn value_of(
+    iter: &mut impl Iterator<Item = String>,
+    option: &'static str,
+) -> Result<String, ArgError> {
+    match iter.next() {
+        Some(value) if !value.is_empty() && !value.starts_with("--") => Ok(value),
+        _ => Err(ArgError::MissingValue(option)),
+    }
+}
+
+/// Membaca argumen (tanpa nama program). Tanpa argumen sama dengan `--help`.
+///
+/// # Errors
+///
+/// [`ArgError`] untuk argumen yang tidak sah.
+pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, ArgError> {
+    let args: Vec<String> = args.into_iter().collect();
+    match args.as_slice() {
+        [] => return Ok(Command::Help),
+        [only] if only.as_str() == "--help" || only.as_str() == "-h" => return Ok(Command::Help),
+        [only] if only.as_str() == "--version" => return Ok(Command::Version),
+        _ => {}
+    }
+    let mut regtest = false;
+    let mut datadir: Option<PathBuf> = None;
+    let mut rpc_port: Option<u16> = None;
+    let mut iter = args.into_iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--regtest" => {
+                if regtest {
+                    return Err(ArgError::Duplicate("--regtest"));
+                }
+                regtest = true;
+            }
+            "--testnet" => return Err(ArgError::NetworkUnavailable("testnet")),
+            "--mainnet" => return Err(ArgError::NetworkUnavailable("mainnet")),
+            "--datadir" => {
+                if datadir.is_some() {
+                    return Err(ArgError::Duplicate("--datadir"));
+                }
+                datadir = Some(PathBuf::from(value_of(&mut iter, "--datadir")?));
+            }
+            "--rpc-port" => {
+                if rpc_port.is_some() {
+                    return Err(ArgError::Duplicate("--rpc-port"));
+                }
+                let value = value_of(&mut iter, "--rpc-port")?;
+                let port = value
+                    .parse::<u16>()
+                    .map_err(|_| ArgError::InvalidPort(value.clone()))?;
+                rpc_port = Some(port);
+            }
+            "--help" | "-h" | "--version" => return Err(ArgError::Exclusive),
+            _ => return Err(ArgError::Unknown(arg)),
+        }
+    }
+    if !regtest {
+        return Err(ArgError::MissingNetwork);
+    }
+    let datadir = datadir.ok_or(ArgError::MissingDatadir)?;
+    Ok(Command::Run(Config {
+        network: Network::Regtest,
+        datadir,
+        rpc_port: rpc_port.unwrap_or(default_port(Network::Regtest)),
+    }))
+}
+
+/// Nama folder jaringan di dalam folder data.
+const fn network_dir(network: Network) -> &'static str {
+    match network {
+        Network::Mainnet => "mainnet",
+        Network::Testnet => "testnet",
+        Network::Regtest => "regtest",
+    }
+}
+
+/// Path file chain: `<datadir>/<jaringan>/chain.redb`.
+#[must_use]
+pub fn chain_path(config: &Config) -> PathBuf {
+    config
+        .datadir
+        .join(network_dir(config.network))
+        .join(CHAIN_FILE)
+}
+
+/// Memasang logger ke stderr (level INFO, tanpa warna). Jika logger global sudah ada, logger lama tetap dipakai.
+pub fn init_logging() {
+    // Hanya gagal jika subscriber global sudah dipasang sebelumnya; itu tidak menghalangi daemon.
+    let _ = tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_target(false)
+        .with_max_level(tracing::Level::INFO)
+        .try_init();
+}
+
+/// Jam sistem dalam detik Unix. Jam sebelum 1970 dianggap 0.
+fn system_clock() -> Clock {
+    Box::new(|| {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_or(0, |elapsed| elapsed.as_secs())
+    })
+}
+
+/// Menunggu SIGINT atau SIGTERM. Penangkap sinyal dipasang saat fungsi ini dipanggil, sebelum server berjalan,
+/// sehingga sinyal yang datang sesudahnya tidak hilang. Wajib dipanggil di dalam runtime tokio.
+#[cfg(unix)]
+fn shutdown_signal() -> std::io::Result<impl Future<Output = ()>> {
+    use tokio::signal::unix::{SignalKind, signal};
+    let mut interrupt = signal(SignalKind::interrupt())?;
+    let mut terminate = signal(SignalKind::terminate())?;
+    Ok(async move {
+        tokio::select! {
+            _ = interrupt.recv() => {}
+            _ = terminate.recv() => {}
+        }
+    })
+}
+
+/// Menunggu Ctrl-C (bukan Unix).
+#[cfg(not(unix))]
+fn shutdown_signal() -> std::io::Result<impl Future<Output = ()>> {
+    Ok(async {
+        // Galat berarti sinyal tidak bisa dipasang; node berhenti seperti menerima Ctrl-C.
+        let _ = tokio::signal::ctrl_c().await;
+    })
+}
+
+/// Menjalankan server RPC sampai sinyal berhenti diterima.
+async fn serve<S: ChainStore + Send + 'static>(
+    node: Arc<Node<S>>,
+    rpc_port: u16,
+) -> Result<(), DaemonError> {
+    let shutdown = shutdown_signal()?;
+    let addr = SocketAddr::from((Ipv4Addr::LOCALHOST, rpc_port));
+    let server = RpcServer::start(addr, node).await?;
+    let local = server.local_addr();
+    tracing::info!(%local, "server RPC berjalan");
+    println!("rpc: http://{local}");
+    shutdown.await;
+    tracing::info!("sinyal berhenti diterima");
+    server.stop().await;
+    tracing::info!("node berhenti");
+    Ok(())
+}
+
+/// Menjalankan daemon sampai menerima SIGINT atau SIGTERM.
+///
+/// # Errors
+///
+/// [`DaemonError`] jika folder data, penyimpanan, node, runtime, sinyal, atau server RPC gagal.
+pub fn run(config: &Config) -> Result<(), DaemonError> {
+    let path = chain_path(config);
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir)?;
+    }
+    let store = RedbStore::create(&path)?;
+    let params = ChainParams::regtest()?;
+    let node = Arc::new(Node::open(
+        store,
+        params,
+        DEFAULT_MAX_BYTES,
+        system_clock(),
+    )?);
+    let info = node.chain_info()?;
+    tracing::info!(
+        height = info.height,
+        path = %path.display(),
+        "chain regtest dibuka"
+    );
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?;
+    runtime.block_on(serve(Arc::clone(&node), config.rpc_port))
+}
+
+#[cfg(test)]
+mod tests;
