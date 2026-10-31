@@ -1,4 +1,4 @@
-# TSK-M12 · Tipe pesan, encoding nilai, dan server/klien JSON-RPC di MOD-08 · 🟡 bagian A selesai · Prioritas: Tinggi
+# TSK-M12 · Tipe pesan, encoding nilai, dan server/klien JSON-RPC di MOD-08 · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-08 (crates/rpc) · **Untuk:** FTR-01 sampai FTR-03
 - **Bergantung pada:** TSK-M03, TSK-S04, DEC-10 bagian 2 · **Memblokir:** TSK-M18, TSK-M19, TSK-M20, TSK-F01
 - **Estimasi:** M (dua langkah) · **Ditulis:** Quick (kode dan test), 31 Oktober 2026
@@ -8,8 +8,8 @@ Menerapkan [Spesifikasi RPC v0.1](../reference/spesifikasi-rpc-v0.1.md) di MOD-0
 Cargo.lock pertama (serde_json) terpisah dari pemakaian jsonrpsee dan tokio.
 - **Bagian A (selesai):** encoding nilai (Bagian 2), parameter dan hasil 8 metode (Bagian 3), kode error (Bagian 4),
   parameter transpor (Bagian 1). Tanpa jaringan.
-- **Bagian B (berikutnya):** server dan klien `jsonrpsee` 0.26 lewat HTTP, pemetaan `ValueError` ke `-32602`, batas
-  ukuran request, dan uji server-klien lokal.
+- **Bagian B (selesai):** server dan klien `jsonrpsee` 0.26 lewat HTTP, pemetaan parameter tidak sah ke `-32602`,
+  batas ukuran request, dan uji server-klien lokal.
 
 ## Isi bagian A
 | Modul | Isi |
@@ -36,3 +36,25 @@ Cargo.lock pertama (serde_json) terpisah dari pemakaian jsonrpsee dan tokio.
   `chain_info_json_vector`, `block_info_from_block_matches_header`, `utxo_info_confirmations_and_spendable_at`,
   `submit_block_result_omits_absent_fields`.
 - `tests.rs`: `error_codes_match_spec`, `transport_defaults_match_spec`, `crate_root_reexports_are_accessible`.
+
+## Isi bagian B
+| Modul | Isi |
+|---|---|
+| `server` | Trait `RpcBackend` (8 metode, dipasang node MOD-11), `rpc_module`, `RpcServer::start/local_addr/stop` (HTTP saja tanpa WebSocket, batas request 1 MiB), `ServerError` |
+| `client` | `RpcClient` dengan 8 metode bertipe dan `raw_request`, `error_code`, `reject_reason` |
+| `error` | `RpcError` (`NotFound` 1001, `InvalidTransaction { reason }` 1002 dengan `data.reason`, `InvalidEncoding` 1003, `Internal` -32603) dan konversinya ke objek error JSON-RPC |
+
+## Keputusan teknis bagian B (Quick, tanpa DEC baru)
+- Parameter wajib objek JSON berdasarkan nama. Array posisional, `null`, atau tanpa parameter ditolak `-32602`.
+  Metode tanpa parameter hanya menerima kosong (`{}`, `[]`, `null`, atau tidak ada).
+- `RpcBackend` sinkron: node membaca storage dan mempool tanpa async. Server berjalan di runtime tokio milik node.
+- `jsonrpsee` dipakai dengan fitur `server` dan `client-core`. Klien HTTP lewat sub-paket resmi `jsonrpsee-http-client`
+  0.26.1 tanpa fitur bawaan, karena fitur `http-client` di paket utama selalu menyalakan TLS (rustls dan ring, yang
+  dikompilasi dengan C). Server hanya lokal, jadi TLS tidak dibutuhkan. Dicatat di DEC-10.
+- `tokio` dipakai langsung hanya sebagai dev-dependency (`macros`, `rt`) untuk test async; di kode produksi tokio
+  dibawa jsonrpsee.
+
+## Test bagian B (rpc 18 → 23, workspace 216 → 221)
+- `error/tests.rs`: `rpc_error_maps_to_spec_codes`.
+- `server/tests.rs` (server di 127.0.0.1 port bebas, backend tiruan): `round_trip_all_methods`,
+  `backend_errors_use_spec_codes`, `invalid_params_and_unknown_method_are_rejected`, `request_size_limit_is_one_mib`.

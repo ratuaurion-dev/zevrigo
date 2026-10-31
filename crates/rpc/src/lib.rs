@@ -1,15 +1,20 @@
-//! MOD-08: Tipe pesan dan encoding nilai JSON-RPC sesuai Spesifikasi RPC v0.1 (TSK-M12 bagian A).
+//! MOD-08: Tipe pesan, encoding nilai, server, dan klien JSON-RPC sesuai Spesifikasi RPC v0.1 (TSK-M12).
 //!
-//! Server dan klien `jsonrpsee` menyusul di TSK-M12 bagian B. Crate ini bukan konsensus.
+//! Server dan klien memakai `jsonrpsee` 0.26 lewat HTTP lokal. Data node disediakan lewat trait [`RpcBackend`],
+//! sehingga crate ini tetap hanya bergantung pada MOD-01. Crate ini bukan konsensus.
 
 #![forbid(unsafe_code)]
 
+pub mod client;
 pub mod error;
+pub mod server;
 pub mod transport;
 pub mod types;
 pub mod value;
 
-pub use error::RejectData;
+pub use client::{RpcClient, error_code, reject_reason};
+pub use error::{RejectData, RpcError};
+pub use server::{RpcBackend, RpcServer, ServerError, rpc_module};
 pub use types::{
     BlockInfo, BlockTemplate, ChainInfo, GetBlockHashParams, GetBlockParams,
     GetBlockTemplateParams, MAX_SCAN_PAYLOADS, METHODS, MempoolInfo, PayloadList, ScanUtxosParams,

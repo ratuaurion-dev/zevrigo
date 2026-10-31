@@ -43,6 +43,7 @@ redb = { version = "4.4.0", default-features = false, features = ["std"] }
 # DEC-10 bagian 2: hanya untuk crate di luar konsensus (network, rpc, aplikasi). Fitur ditambah per crate.
 tokio = { version = "1.54.1", default-features = false }
 jsonrpsee = { version = "0.26.1", default-features = false }
+jsonrpsee-http-client = { version = "0.26.1", default-features = false }
 serde = { version = "1.0.229", default-features = false, features = ["std", "derive"] }
 serde_json = { version = "1.0.154", default-features = false, features = ["std"] }
 tracing = { version = "0.1.44", default-features = false, features = ["std"] }

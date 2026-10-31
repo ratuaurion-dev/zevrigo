@@ -7,12 +7,15 @@ publish.workspace = true
 
 [dependencies]
 homeostasis-primitives.workspace = true
+jsonrpsee = { workspace = true, features = ["server", "client-core"] }
+jsonrpsee-http-client.workspace = true
 serde.workspace = true
-serde_json.workspace = true
+serde_json = { workspace = true, features = ["raw_value"] }
 thiserror.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+tokio = { workspace = true, features = ["macros", "rt"] }
 
 [lints]
 workspace = true
