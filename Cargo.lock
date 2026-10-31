@@ -578,10 +578,13 @@ name = "homeostasis-node"
 version = "0.1.0"
 dependencies = [
  "homeostasis-consensus",
+ "homeostasis-crypto",
  "homeostasis-mempool",
  "homeostasis-network",
+ "homeostasis-primitives",
  "homeostasis-rpc",
  "homeostasis-storage",
+ "thiserror",
 ]
 
 [[package]]
