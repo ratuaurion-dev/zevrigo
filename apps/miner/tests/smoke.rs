@@ -18,14 +18,15 @@ fn version_flag_prints_package_version() {
 }
 
 #[test]
-fn help_and_no_args_print_placeholder_info() {
+fn help_and_no_args_print_usage() {
     for args in [&[][..], &["--help"][..]] {
         let out = Command::new(BIN).args(args).output().unwrap();
         assert_eq!(out.status.code(), Some(0));
         let stdout = String::from_utf8(out.stdout).unwrap();
         assert!(stdout.contains("homeostasis-miner"));
         assert!(stdout.contains("MOD-13"));
-        assert!(stdout.contains("kerangka R0, belum berfungsi"));
+        assert!(stdout.contains("--payout <payload hex 64>"));
+        assert!(!stdout.contains("kerangka R0"));
     }
 }
 

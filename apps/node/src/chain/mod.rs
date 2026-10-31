@@ -410,6 +410,7 @@ impl<S: ChainStore + Send + 'static> RpcBackend for Node<S> {
             .next()
             .ok_or_else(|| internal("tinggi blok meluap"))?;
         let target = self.next_target(tip_height, tip.timestamp)?;
+        let full_target = decode_compact(target).map_err(internal)?.to_be_bytes();
         let median = median_time_past(&state.recent_timestamps())
             .ok_or_else(|| internal("cap waktu chain kosong"))?;
         let min_timestamp = median
@@ -451,6 +452,7 @@ impl<S: ChainStore + Send + 'static> RpcBackend for Node<S> {
             height: height.get(),
             prev_block_id: Hex32::from(tip.id),
             target: CompactHex::new(target),
+            full_target: Hex32::new(full_target),
             min_timestamp,
             subsidy: Quanta::new(subsidy),
             fees: Quanta::new(fees),

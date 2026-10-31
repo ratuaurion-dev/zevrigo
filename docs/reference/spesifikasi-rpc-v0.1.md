@@ -80,6 +80,7 @@ Parameter: `payout_kind` (`0` atau `1`) dan `payout_payload` (hash 32 byte). Has
 | Field | Isi |
 |---|---|
 | `height`, `prev_block_id`, `target` | tinggi, induk, dan target wajib blok berikutnya |
+| `full_target` | target yang sama sebagai hash 32 byte (256-bit big-endian, hasil decode `target`), agar miner tidak menulis ulang aturan decode compact. Ditambahkan 31 Oktober 2026 (TSK-M20); field hasil baru tidak memecah klien lama |
 | `min_timestamp` | `median_time_past + 1` |
 | `subsidy`, `fees` | subsidy blok dan total biaya transaksi yang dimasukkan |
 | `hex` | blok lengkap siap ditambang: coinbase `extra` kosong dengan satu output `subsidy + fees` ke payout, transaksi dari mempool, Merkle root sudah benar, `nonce = 0`, `timestamp = max(jam lokal, min_timestamp)` |

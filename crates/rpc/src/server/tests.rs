@@ -87,6 +87,7 @@ impl RpcBackend for Mock {
             height: 2,
             prev_block_id: h(0xb1),
             target: CompactHex::new(0x207f_ffff),
+            full_target: h(0x7f),
             min_timestamp: 1_793_145_601,
             subsidy: Quanta::new(Amount::from_quanta(1_910_127_426_536_917)),
             fees: Quanta::new(Amount::ZERO),

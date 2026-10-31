@@ -27,3 +27,14 @@ cargo run -p homeostasis-node -- --regtest --datadir ~/.homeostasis
 Node membuat chain regtest di `~/.homeostasis/regtest/chain.redb`, lalu mencetak alamat JSON-RPC (bawaan
 `http://127.0.0.1:28801`). Delapan metode RPC dijelaskan di
 [docs/reference/spesifikasi-rpc-v0.1.md](docs/reference/spesifikasi-rpc-v0.1.md). Hentikan dengan Ctrl-C.
+
+## Menambang di regtest
+
+Dengan node berjalan, di terminal lain:
+
+```bash
+cargo run -p homeostasis-miner -- --payout <kunci x-only hex 64> --blocks 10
+```
+
+Miner mengambil template dari node, mencari nonce dengan PoW dev regtest, dan mengirim blok. Hadiah coinbase bisa
+dibelanjakan setelah 100 blok. `--blocks 0` (bawaan) menambang terus sampai Ctrl-C.

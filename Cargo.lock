@@ -564,6 +564,8 @@ dependencies = [
  "homeostasis-pow",
  "homeostasis-primitives",
  "homeostasis-rpc",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

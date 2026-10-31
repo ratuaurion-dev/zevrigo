@@ -208,6 +208,9 @@ pub struct BlockTemplate {
     pub prev_block_id: Hex32,
     /// Target wajib blok berikutnya.
     pub target: CompactHex,
+    /// Target yang sama dalam bentuk 256-bit big-endian (hasil decode `target` oleh node), agar miner tidak perlu
+    /// menulis ulang aturan decode compact MOD-04 (TSK-M20).
+    pub full_target: Hex32,
     /// Cap waktu minimum (`median_time_past + 1`).
     pub min_timestamp: u64,
     /// Subsidy blok.

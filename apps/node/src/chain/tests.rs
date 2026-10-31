@@ -215,6 +215,10 @@ fn mines_blocks_from_template() {
     assert_eq!(template.height, 1);
     assert_eq!(template.prev_block_id, genesis_id);
     assert_eq!(template.target.get(), LIMIT);
+    assert_eq!(
+        template.full_target.bytes(),
+        &params().pow_limit().to_be_bytes()
+    );
     assert_eq!(template.min_timestamp, T0 + 1);
     assert_eq!(template.subsidy.amount(), Amount::from_quanta(SUBSIDY_1));
     assert_eq!(template.fees.amount(), Amount::ZERO);
