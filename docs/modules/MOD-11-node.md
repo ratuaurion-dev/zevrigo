@@ -15,7 +15,7 @@ Menjalankan daemon node penuh Homeostasis Coin (baik mode arsip maupun *pruned*)
 
 - `Node<S: ChainStore>` (TSK-M18 bagian A): genesis regtest, penerimaan blok V1–V10 lewat MOD-04 lalu `apply_block`, pemeriksaan ulang mempool, template blok untuk miner, dan implementasi `RpcBackend` (MOD-08) untuk 8 metode.
 - Daemon (TSK-M18 bagian B): `homeostasis-node --regtest --datadir <folder> [--rpc-port <port>]`, chain di `<folder>/regtest/chain.redb`, log ke stderr, server RPC di 127.0.0.1, berhenti bersih dengan SIGINT atau SIGTERM.
-- Sinkronisasi P2P, pemilihan chain berdasarkan chainwork, dan reorg menyusul di TSK-F04.
+- Cabang chain, pemilihan chain berdasarkan chainwork, dan reorg (TSK-M27); sinkronisasi header lalu blok, siaran, dan opsi `--p2p-port`/`--connect` (TSK-M28), sesuai [spesifikasi-p2p-v0.1.md](../reference/spesifikasi-p2p-v0.1.md).
 
 ## Bukan Tanggung Jawab
 

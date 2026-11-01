@@ -49,7 +49,7 @@ JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti 
 | Penyesuaian kesulitan | ASERT per blok, waktu paruh 720 blok |
 | Cap waktu blok | harus > median 11 blok terakhir dan ≤ waktu lokal node + 3_600 detik |
 | Pemilihan chain | chain sah dengan kerja kumulatif terbanyak. TANPA batas kedalaman reorg. Tanpa checkpoint |
-| Jaringan P2P | rust-libp2p (bukan bagian konsensus) |
+| Jaringan P2P | rust-libp2p 0.57 (DEC-24), protokol di docs/reference/spesifikasi-p2p-v0.1.md (bukan bagian konsensus) |
 
 Nilai berikut baru ditetapkan saat testnet. JANGAN dikarang. Tulis sebagai konstanta
 bertanda `// TODO(param): <nama>` dengan nilai placeholder yang jelas tidak valid:

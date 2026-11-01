@@ -15,3 +15,4 @@ Kedua dokumen tersebut merupakan sumber kebenaran desain tertinggi. Ringkasan pa
 | [spesifikasi-validasi-v0.1.md](spesifikasi-validasi-v0.1.md) | Aturan validasi, ASERT, chainwork, genesis regtest | TSK-S02 |
 | [spesifikasi-wallet-v0.1.md](spesifikasi-wallet-v0.1.md) | Frasa BIP39, turunan BIP32, alamat, pemilihan koin, pemindaian saldo | TSK-S03 |
 | [spesifikasi-rpc-v0.1.md](spesifikasi-rpc-v0.1.md) | 8 metode JSON-RPC regtest | TSK-S04 |
+| [spesifikasi-p2p-v0.1.md](spesifikasi-p2p-v0.1.md) | Transport libp2p (DEC-24), 5 protokol, sinkronisasi header lalu blok, siaran, sanksi rekan | TSK-S05 |

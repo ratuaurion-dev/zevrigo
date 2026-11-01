@@ -52,6 +52,8 @@ serde = { version = "1.0.229", default-features = false, features = ["std", "der
 serde_json = { version = "1.0.154", default-features = false, features = ["std"] }
 tracing = { version = "0.1.44", default-features = false, features = ["std"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt"] }
+# DEC-10 bagian 5 (DEC-24): hanya MOD-06 network. Noise membawa ring (C dan assembly). Fitur ditambah di crate.
+libp2p = { version = "0.57.1", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
