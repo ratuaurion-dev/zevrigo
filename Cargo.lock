@@ -542,6 +542,7 @@ dependencies = [
 name = "homeostasis-integration-tests"
 version = "0.1.0"
 dependencies = [
+ "homeostasis-cli",
  "homeostasis-consensus",
  "homeostasis-crypto",
  "homeostasis-mempool",

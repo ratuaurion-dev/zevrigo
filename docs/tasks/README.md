@@ -1,14 +1,14 @@
-# Task kerja: wallet-core dan CLI wallet selesai (TSK-M15, M16, M19), berikutnya kirim dan terima ujung ke ujung (TSK-F03)
+# Task kerja: FTR-01 sampai FTR-03 selesai (node, penambangan, kirim dan terima lewat CLI di regtest)
 
 > Diperbarui: 1 November 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M15, M16, M18, M19, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest) |
-| 🟡 Siap dikerjakan | TSK-F03 (FTR-03 kirim dan terima lewat CLI), TSK-M23 (pruning) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M15, M16, M18, M19, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI) |
+| 🟡 Siap dikerjakan | TSK-M23 (pruning); TSK-S05 (pesan P2P) untuk FTR-04; explorer untuk FTR-05 |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | — (DEC-01 tetap terbuka untuk testnet) |
-| ➡️ Langkah berikutnya | TSK-F03 |
+| ➡️ Langkah berikutnya | Pilihan pencipta: FTR-04 jaringan multi-node (TSK-S05, TSK-M14) atau FTR-05 explorer |
 
 ## Tiga jenis task
 
@@ -68,7 +68,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 |---|---|---|---|
 | TSK-F01 | FTR-01 Node regtest tunggal | TSK-M09, M10, M12, M18 | 🟢 selesai (uji `apps/node/tests/regtest_node.rs`, [kartu TSK-M18](TSK-M18-node.md)) |
 | TSK-F02 | FTR-02 Menambang di regtest | TSK-F01, TSK-M20, DEC-20 | 🟢 selesai ([kartu](TSK-F02-menambang-regtest.md)) |
-| TSK-F03 | FTR-03 Kirim dan terima lewat CLI | TSK-F02, TSK-M13, M16, M19 | 🟡 siap |
+| TSK-F03 | FTR-03 Kirim dan terima lewat CLI | TSK-F02, TSK-M13, M16, M19, DEC-23 | 🟢 selesai ([kartu](TSK-F03-kirim-terima-cli.md)) |
 | TSK-F04 | FTR-04 Jaringan multi-node dan uji reorg | TSK-F02, TSK-M14 | ⚪ |
 | TSK-F05 | FTR-05 Explorer minimal | TSK-F01, TSK-M11 | ⚪ |
 | TSK-F06 | FTR-06 Testnet publik | TSK-F03, F04, F05, TSK-M06 | 🔴 DEC-01 |
