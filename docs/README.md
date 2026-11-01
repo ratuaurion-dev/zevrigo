@@ -1,13 +1,13 @@
 # Homeostasis Coin (HSIS): node dan penambangan regtest berjalan, menuju transaksi lewat CLI
 
-> Diperbarui: 31 Oktober 2026 · Pemilik: pencipta · Tahap: 🟢 node regtest (FTR-01) dan penambangan (FTR-02) · 🟡 menuju FTR-03
+> Diperbarui: 1 November 2026 · Pemilik: pencipta · Tahap: 🟢 node regtest (FTR-01) dan penambangan (FTR-02) · 🟡 menuju FTR-03
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. Node, mempool, RPC, dan miner berjalan untuk regtest; FTR-01 dan FTR-02 diuji ujung ke ujung (247 test) |
+| 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. Node, mempool, RPC, dan miner berjalan untuk regtest; FTR-01 dan FTR-02 diuji ujung ke ujung. Wallet-core: frasa BIP39, kunci BIP32, dan alamat bech32m (TSK-M15). 280 test |
 | 🔴 Masalah utama | Testnet publik (FTR-06) terblokir DEC-01: strategi PoW di tengah larangan unsafe dan float |
 | ❓ Keputusan dibutuhkan | DEC-01 strategi PoW mainnet |
-| ➡️ Langkah berikutnya | Wallet-core (TSK-M15, M16) sesuai Spesifikasi Wallet v0.1, CLI (TSK-M19), lalu TSK-F03 |
+| ➡️ Langkah berikutnya | Penyusunan dan tanda tangan transaksi (TSK-M16), CLI wallet (TSK-M19), lalu TSK-F03 |
 
 **Legenda status:** 🟢 selesai · 🟡 berjalan atau siap dikerjakan · 🔴 terblokir · ⚪ belum dimulai · ❓ perlu keputusan
 

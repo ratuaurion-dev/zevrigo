@@ -72,3 +72,22 @@ fn sighash_reexport_is_accessible() {
         Err(crate::SighashError::Coinbase)
     );
 }
+
+#[test]
+fn tweak_reexport_is_accessible() {
+    let mut one = [0_u8; 32];
+    if let Some(last) = one.last_mut() {
+        *last = 1;
+    }
+    let point = crate::public_key_compressed(&one).unwrap();
+    assert_eq!(point.len(), crate::COMPRESSED_PUBLIC_KEY_LEN);
+    assert!(crate::is_valid_public_key(&point));
+    assert_eq!(
+        crate::public_tweak_add(&point, &one),
+        crate::public_key_compressed(&crate::secret_tweak_add(&one, &one).unwrap())
+    );
+    assert_eq!(
+        crate::secret_tweak_add(&[0_u8; 32], &one),
+        Err(crate::TweakError::InvalidSecretKey)
+    );
+}
