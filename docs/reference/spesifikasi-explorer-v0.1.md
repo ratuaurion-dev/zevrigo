@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | axum 0.8 + SQLite (DEC-25). Indexer membaca node lewat RPC v0.1, mundur sedalam apa pun saat reorg, memeriksa sendiri jumlah koin setiap blok. API JSON baca saja: status, blok, transaksi, alamat, pasokan, alokasi genesis, mempool, pencarian |
 | ⏳ Ditunda | Antarmuka web (React), paket Docker, batas laju, perkiraan daya tambang, peringatan konsentrasi tambang, detail transaksi mempool, testnet dan mainnet |
-| ➡️ Langkah berikutnya | TSK-M29 (indexer), TSK-M30 (API dan program), lalu TSK-F05 (uji ujung ke ujung) |
+| ➡️ Langkah berikutnya | TSK-M30 (API dan program), lalu TSK-F05 (uji ujung ke ujung). TSK-M29 (indexer) selesai |
 
 Explorer **bukan konsensus** dan tidak memvalidasi blok. Explorer memercayai node yang ditunjuknya untuk PoW dan tanda
 tangan; siapa pun bisa menjalankan node dan explorer sendiri (Dokumen Aplikasi Bagian 7). Jumlah koin diperiksa explorer
@@ -21,7 +21,7 @@ sendiri dengan rumus MOD-04 (Bagian 4), sehingga pasokan dan alokasi genesis bis
 |---|---|
 | Program | `homeostasis-explorer` (MOD-14, `apps/explorer`): pustaka `homeostasis_explorer` dan biner tipis |
 | Sumber data | Node mana pun lewat JSON-RPC v0.1: `get_chain_info`, `get_block_hash`, `get_block`, `get_mempool`. Tanpa metode RPC baru |
-| Penyimpanan indeks | SQLite lewat `rusqlite` 0.41.1 (fitur `bundled`, SQLite 3.54.1 ikut dikompilasi), satu file `<datadir>/<jaringan>/explorer.sqlite` |
+| Penyimpanan indeks | SQLite lewat `rusqlite` 0.41.1 (fitur `bundled`, SQLite 3.54.1 ikut dikompilasi; fitur `fallible_uint` untuk konversi `u64` yang diperiksa), satu file `<datadir>/<jaringan>/explorer.sqlite` |
 | HTTP | `axum` 0.8.9 (fitur `http1`, `json`, `query`, `tokio`), hanya `GET`, JSON UTF-8 |
 | Dependensi modul | MOD-01 (tipe), MOD-02 (txid, block_id), MOD-04 (subsidy dan jadwal pasokan), MOD-08 (klien RPC dan encoding nilai), MOD-09 (alamat bech32m). Tanpa MOD-05 |
 | Jaringan | regtest saja di v0.1; testnet dan mainnet bersama TSK-F06 |
@@ -37,7 +37,7 @@ Semua tabel `STRICT`. Indeks adalah data turunan: menghapus file berarti indeks 
 | `meta` | `key TEXT`, `value BLOB` | kunci `key`. Isi: `schema_version` (u32le, = 1), `network_id` (32 byte), `mined_total` (16 byte) |
 | `blocks` | `height INTEGER`, `block_id BLOB`, `prev_block_id BLOB`, `merkle_root BLOB`, `timestamp INTEGER`, `target INTEGER`, `nonce BLOB`, `size INTEGER`, `tx_count INTEGER`, `subsidy BLOB`, `fees BLOB` | kunci `height`; unik `block_id` |
 | `txs` | `txid BLOB`, `height INTEGER`, `position INTEGER`, `size INTEGER`, `is_coinbase INTEGER`, `fee BLOB` | kunci `txid`; indeks `(height, position)` |
-| `outputs` | `txid BLOB`, `idx INTEGER`, `height INTEGER`, `kind INTEGER`, `payload BLOB`, `amount BLOB`, `spent_txid BLOB NULL`, `spent_input INTEGER NULL`, `spent_height INTEGER NULL` | kunci `(txid, idx)`; indeks `(payload, height)`, `spent_height` |
+| `outputs` | `txid BLOB`, `idx INTEGER`, `height INTEGER`, `kind INTEGER`, `payload BLOB`, `amount BLOB`, `spent_txid BLOB NULL`, `spent_input INTEGER NULL`, `spent_height INTEGER NULL` | kunci `(txid, idx)`; indeks `(payload, height)`, `spent_txid`, `spent_height` |
 | `mempool` | `txid BLOB` | kunci `txid` |
 
 Aturan nilai (larangan float, AGENTS.md):
@@ -98,7 +98,7 @@ karakter, nonce string desimal. Alamat bech32m regtest (`rhsis1…`, DEC-11). Ju
 | `/blocks?before=<h>` | paling banyak 20 blok dengan tinggi `< h` (bawaan: semua), terbaru dulu: `height`, `block_id`, `timestamp`, `size`, `tx_count`, `confirmations` |
 | `/block/<kunci>` | kunci = tinggi desimal atau `block_id` hex. Header lengkap, `size`, `subsidy`, `fees`, `confirmations`, `txids`, `next_block_id` (atau `null`) |
 | `/tx/<txid>` | `txid`, `block_id`, `height`, `position`, `size`, `is_coinbase`, `fee`, `confirmations`; `inputs` (`txid`, `index`, `amount`, `kind`, `payload`, `address`); `outputs` (`index`, `amount`, `kind`, `payload`, `address`, `spent_by` = `{txid, input, height}` atau `null`) |
-| `/address/<alamat>?page=<n>` | `address`, `kind`, `payload`, `balance` (Σ output belum dibelanjakan), `received`, `sent`, `utxo_count`, `tx_count`, `page`, `page_size` (= 25), `txs` (terbaru dulu: `txid`, `height`, `confirmations`, `received`, `sent`) |
+| `/address/<alamat>?page=<n>` (halaman mulai 0) | `address`, `kind`, `payload`, `balance` (Σ output belum dibelanjakan), `received`, `sent`, `utxo_count`, `tx_count`, `page`, `page_size` (= 25), `txs` (terbaru dulu: `txid`, `height`, `confirmations`, `received`, `sent`) |
 | `/supply` | `height`, `mined_total` (Σ subsidy di indeks), `scheduled_mined_total` (jadwal MOD-04 di tinggi itu), `matches_schedule`, `genesis_allocation`, `total_supply` (= alokasi genesis + `mined_total`), `fees_total`, `next_subsidy`, `tip_target`, `average_block_seconds` (rata-rata bilangan bulat 100 blok terakhir) |
 | `/allocation?page=<n>` | Halaman alokasi genesis (Dokumen Aplikasi Bagian 7): `genesis_block_id`, `allocated` (Σ output coinbase genesis), `outputs` (setiap output genesis dengan `address` dan `spent_by`), `unspent` (Σ output genesis yang belum dibelanjakan), `addresses` (setiap alamat penerima alokasi dengan isi sama seperti `/address`, halaman `n`) |
 | `/mempool` | `count`, `txids` (RPC v0.1 hanya memberi txid; isi transaksi mempool ditunda) |

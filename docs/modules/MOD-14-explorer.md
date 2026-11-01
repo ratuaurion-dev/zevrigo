@@ -3,7 +3,7 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `homeostasis-explorer` (bin)
-- **Status:** 🟡 spesifikasi selesai (TSK-S06, DEC-25); kode menunggu TSK-M29 dan TSK-M30
+- **Status:** 🟡 indexer SQLite selesai (TSK-M29); API dan program menunggu TSK-M30
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08`, `MOD-09` (DEC-25); pustaka `axum` dan `rusqlite` (DEC-10 bagian 6)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
@@ -29,5 +29,6 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 
 ## Task terkait
 - [TSK-S06](../reference/spesifikasi-explorer-v0.1.md) — 🟢 spesifikasi v0.1
-- TSK-M29 (indexer) dan TSK-M30 (API dan program) — 🟡 siap ([backlog](../tasks/README.md))
+- [TSK-M29](../tasks/TSK-M29-explorer-indexer.md) — 🟢 selesai (indexer, pemeriksaan I1–I4, query)
+- TSK-M30 (API dan program) — 🟡 siap ([backlog](../tasks/README.md))
 - TSK-F05 (FTR-05, uji ujung ke ujung) — ⚪
