@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | rust-libp2p 0.57 (DEC-24): TCP, Noise, Yamux, request-response. 5 protokol dengan encoding kanonis sendiri, sinkronisasi header lalu blok, siaran blok dan transaksi, pemilihan chain berdasarkan chainwork, sanksi rekan |
 | ⏳ Ditunda | Penemuan rekan otomatis (Kademlia, mDNS, seed DNS), relay dan NAT, pembatasan bandwidth, perlindungan eclipse, blok kompak, pemangkasan (TSK-M23) |
-| ➡️ Langkah berikutnya | TSK-M28 (indeks header, sinkronisasi, siaran, opsi daemon), lalu TSK-F04. TSK-M27 dan TSK-M14 (MOD-06) selesai |
+| ➡️ Langkah berikutnya | TSK-F04 (4 node atau lebih, reorg dalam). TSK-M27, TSK-M14 (MOD-06), dan TSK-M28 (daemon) selesai |
 
 P2P **bukan konsensus**. Aturan di dokumen ini bisa diubah lewat versi protokol baru tanpa memecah chain. Semua blok dan
 transaksi yang diterima dari rekan tetap diperiksa penuh dengan MOD-04 (V1 sampai V10, T1 sampai T6).
@@ -124,7 +124,11 @@ yang dilepas dikembalikan ke mempool jika masih sah.
 | `3` | Tidak sah (V1 sampai V10, T1 sampai T6) | Penerima memberi sanksi kepada pengirim |
 | `4` | Ditolak kebijakan mempool (penuh, terlalu besar, bentrok input) | — (bukan pelanggaran) |
 
-Blok yang induknya belum dikenal tidak disimpan; penerima mengandalkan sinkronisasi header. Transaksi dengan input yang
+Blok yang induknya belum dikenal tidak disimpan; penerima mengandalkan sinkronisasi header.
+
+Rincian `tx` (TSK-M28): input yang tidak ada di view chain + mempool, coinbase yang belum matang, dan kunci waktu kondisi
+yang belum terpenuhi bergantung pada view atau jam penerima, jadi dijawab `4` tanpa sanksi. Pelanggaran T1 sampai T6
+lain dan galat struktur dijawab `3`. Jawaban `Blocks` yang berisi blok lain dari ID yang diminta dihitung pesan rusak. Transaksi dengan input yang
 belum ada di view chain + mempool ditolak dengan status `4`, tanpa sanksi.
 
 ---

@@ -1,9 +1,10 @@
-//! Daemon node regtest (TSK-M18 bagian B): argumen baris perintah, folder data, logging, server RPC lokal, dan
-//! berhenti bersih saat menerima SIGINT (Ctrl-C) atau SIGTERM.
+//! Daemon node regtest (TSK-M18 bagian B, TSK-M28): argumen baris perintah, folder data, logging, server RPC lokal,
+//! P2P, dan berhenti bersih saat menerima SIGINT (Ctrl-C) atau SIGTERM.
 //!
 //! Tanpa `clap` dan `toml` (DEC-10 bagian 2): argumen dibaca sendiri dan tidak ada file konfigurasi. Chain disimpan di
-//! `<datadir>/regtest/chain.redb` (RedbStore, MOD-05). Setelah server RPC siap, daemon mencetak satu baris
-//! `rpc: http://<alamat>` ke stdout; log ditulis ke stderr.
+//! `<datadir>/regtest/chain.redb` (RedbStore, MOD-05), kunci rekan P2P di `<datadir>/regtest/p2p_key`. Setelah server
+//! RPC siap, daemon mencetak baris `rpc: http://<alamat>` ke stdout, lalu `p2p: /ip4/<alamat>/tcp/<port>/p2p/<PeerId>`
+//! setelah P2P mendengar (Spesifikasi P2P v0.1 Bagian 8); log ditulis ke stderr.
 
 use std::net::{Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
@@ -12,28 +13,38 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use homeostasis_consensus::{ChainParams, ParamsError};
 use homeostasis_mempool::DEFAULT_MAX_BYTES;
+use homeostasis_network::{
+    KeyError, Multiaddr, Network as P2pNetwork, NetworkConfig, NetworkError, P2P_KEY_FILE,
+    load_or_create,
+};
 use homeostasis_primitives::Network;
 use homeostasis_rpc::transport::default_port;
 use homeostasis_rpc::{RpcBackend, RpcError, RpcServer, ServerError};
 use homeostasis_storage::{ChainStore, RedbStore, StoreError};
 use thiserror::Error;
+use tokio::sync::mpsc;
 
 use crate::chain::{Clock, Node, NodeError};
+use crate::p2p::{P2pService, Relay, local_status};
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
     "homeostasis-node (MOD-11): daemon node Homeostasis Coin\n",
     "\n",
     "Pemakaian:\n",
-    "  homeostasis-node --regtest --datadir <folder> [--rpc-port <port>]\n",
+    "  homeostasis-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>]\n",
+    "                   [--connect <multiaddr>]...\n",
     "  homeostasis-node --help | --version\n",
     "\n",
     "Opsi:\n",
     "  --regtest           jaringan regtest (testnet dan mainnet menunggu DEC-01)\n",
     "  --datadir <folder>  folder data; chain disimpan di <folder>/regtest/chain.redb\n",
     "  --rpc-port <port>   port JSON-RPC di 127.0.0.1 (bawaan regtest 28801; 0 = port bebas)\n",
+    "  --p2p-port <port>   port P2P di 127.0.0.1 (bawaan regtest 28800; 0 = port bebas)\n",
+    "  --connect <addr>    rekan P2P, misalnya /ip4/127.0.0.1/tcp/28800/p2p/<PeerId>; boleh berulang\n",
     "\n",
-    "Setelah siap, alamat RPC dicetak ke stdout sebagai `rpc: http://<alamat>`. Log ditulis ke stderr.\n",
+    "Setelah siap, alamat RPC dicetak ke stdout sebagai `rpc: http://<alamat>`, lalu alamat P2P sebagai\n",
+    "`p2p: <multiaddr>`. Log ditulis ke stderr.\n",
     "Node berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
 );
 
@@ -60,6 +71,10 @@ pub struct Config {
     pub datadir: PathBuf,
     /// Port RPC di 127.0.0.1. `0` memilih port bebas.
     pub rpc_port: u16,
+    /// Port P2P di 127.0.0.1. `0` memilih port bebas.
+    pub p2p_port: u16,
+    /// Alamat rekan dari `--connect`, urut seperti di argumen.
+    pub connect: Vec<Multiaddr>,
 }
 
 /// Argumen tidak sah. Biner keluar dengan kode 2.
@@ -77,6 +92,12 @@ pub enum ArgError {
     /// Port RPC bukan bilangan 0 sampai 65535.
     #[error("port RPC tidak sah: {0}")]
     InvalidPort(String),
+    /// Port P2P bukan bilangan 0 sampai 65535.
+    #[error("port P2P tidak sah: {0}")]
+    InvalidP2pPort(String),
+    /// Nilai `--connect` bukan multiaddr.
+    #[error("alamat rekan tidak sah: {0}")]
+    InvalidAddress(String),
     /// Jaringan belum tersedia.
     #[error("jaringan {0} belum tersedia (menunggu DEC-01)")]
     NetworkUnavailable(&'static str),
@@ -112,6 +133,22 @@ pub enum DaemonError {
     /// Server RPC tidak bisa dijalankan (misalnya port terpakai).
     #[error("server RPC gagal: {0}")]
     Server(#[from] ServerError),
+    /// Kunci rekan P2P tidak bisa dibaca atau dibuat.
+    #[error("kunci rekan P2P gagal: {0}")]
+    P2pKey(#[from] KeyError),
+    /// Layanan P2P tidak bisa dijalankan (misalnya port terpakai).
+    #[error("P2P gagal: {0}")]
+    P2p(#[from] NetworkError),
+}
+
+/// Port P2P bawaan per jaringan (Spesifikasi P2P v0.1 Bagian 1).
+#[must_use]
+pub const fn default_p2p_port(network: Network) -> u16 {
+    match network {
+        Network::Mainnet => 8_800,
+        Network::Testnet => 18_800,
+        Network::Regtest => 28_800,
+    }
 }
 
 /// Membaca nilai opsi berikutnya. Nilai kosong atau yang diawali `--` ditolak.
@@ -141,6 +178,8 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut regtest = false;
     let mut datadir: Option<PathBuf> = None;
     let mut rpc_port: Option<u16> = None;
+    let mut p2p_port: Option<u16> = None;
+    let mut connect: Vec<Multiaddr> = Vec::new();
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -168,6 +207,23 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
                     .map_err(|_| ArgError::InvalidPort(value.clone()))?;
                 rpc_port = Some(port);
             }
+            "--p2p-port" => {
+                if p2p_port.is_some() {
+                    return Err(ArgError::Duplicate("--p2p-port"));
+                }
+                let value = value_of(&mut iter, "--p2p-port")?;
+                let port = value
+                    .parse::<u16>()
+                    .map_err(|_| ArgError::InvalidP2pPort(value.clone()))?;
+                p2p_port = Some(port);
+            }
+            "--connect" => {
+                let value = value_of(&mut iter, "--connect")?;
+                let address = value
+                    .parse::<Multiaddr>()
+                    .map_err(|_| ArgError::InvalidAddress(value.clone()))?;
+                connect.push(address);
+            }
             "--help" | "-h" | "--version" => return Err(ArgError::Exclusive),
             _ => return Err(ArgError::Unknown(arg)),
         }
@@ -180,6 +236,8 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         network: Network::Regtest,
         datadir,
         rpc_port: rpc_port.unwrap_or(default_port(Network::Regtest)),
+        p2p_port: p2p_port.unwrap_or(default_p2p_port(Network::Regtest)),
+        connect,
     }))
 }
 
@@ -199,6 +257,29 @@ pub fn chain_path(config: &Config) -> PathBuf {
         .datadir
         .join(network_dir(config.network))
         .join(CHAIN_FILE)
+}
+
+/// Path kunci rekan P2P: `<datadir>/<jaringan>/p2p_key`.
+#[must_use]
+pub fn p2p_key_path(config: &Config) -> PathBuf {
+    config
+        .datadir
+        .join(network_dir(config.network))
+        .join(P2P_KEY_FILE)
+}
+
+/// Alamat dengar P2P `/ip4/127.0.0.1/tcp/<port>`.
+///
+/// # Errors
+///
+/// [`NetworkError::Listen`] jika alamat tidak bisa disusun.
+pub fn p2p_listen_address(port: u16) -> Result<Multiaddr, NetworkError> {
+    let text = format!("/ip4/127.0.0.1/tcp/{port}");
+    text.parse::<Multiaddr>()
+        .map_err(|error| NetworkError::Listen {
+            address: text.clone(),
+            reason: error.to_string(),
+        })
 }
 
 /// Memasang logger ke stderr (level INFO, tanpa warna). Jika logger global sudah ada, logger lama tetap dipakai.
@@ -244,18 +325,30 @@ fn shutdown_signal() -> std::io::Result<impl Future<Output = ()>> {
     })
 }
 
-/// Menjalankan server RPC sampai sinyal berhenti diterima.
+/// Menjalankan server RPC dan P2P sampai sinyal berhenti diterima.
 async fn serve<S: ChainStore + Send + 'static>(
     node: Arc<Node<S>>,
-    rpc_port: u16,
+    config: &Config,
 ) -> Result<(), DaemonError> {
     let shutdown = shutdown_signal()?;
-    let addr = SocketAddr::from((Ipv4Addr::LOCALHOST, rpc_port));
-    let server = RpcServer::start(addr, node).await?;
+    let (sender, receiver) = mpsc::unbounded_channel();
+    let relay = Arc::new(Relay::new(Arc::clone(&node), sender));
+    let addr = SocketAddr::from((Ipv4Addr::LOCALHOST, config.rpc_port));
+    let server = RpcServer::start(addr, relay).await?;
     let local = server.local_addr();
     tracing::info!(%local, "server RPC berjalan");
     println!("rpc: http://{local}");
-    shutdown.await;
+
+    let keypair = load_or_create(&p2p_key_path(config))?;
+    let mut p2p_config = NetworkConfig::new(node.params().network_id());
+    p2p_config.listen = vec![p2p_listen_address(config.p2p_port)?];
+    p2p_config.connect.clone_from(&config.connect);
+    let network = P2pNetwork::new(keypair, p2p_config, local_status(&node)?)?;
+    let p2p = P2pService::new(Arc::clone(&node), network).run(receiver);
+    tokio::select! {
+        () = shutdown => {}
+        () = p2p => {}
+    }
     tracing::info!("sinyal berhenti diterima");
     server.stop().await;
     tracing::info!("node berhenti");
@@ -289,7 +382,7 @@ pub fn run(config: &Config) -> Result<(), DaemonError> {
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
-    runtime.block_on(serve(Arc::clone(&node), config.rpc_port))
+    runtime.block_on(serve(Arc::clone(&node), config))
 }
 
 #[cfg(test)]

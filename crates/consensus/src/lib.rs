@@ -29,8 +29,8 @@ pub use supply::{
 pub use uint::U256;
 pub use validation::{
     BlockError, BlockSummary, ParentContext, TxError, UtxoLookup, check_block_context_free,
-    check_block_transactions, check_future_timestamp, check_header_context, check_transaction,
-    decode_block,
+    check_block_transactions, check_future_timestamp, check_header_context,
+    check_header_context_free, check_transaction, decode_block,
 };
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.

@@ -1,7 +1,8 @@
 //! Validasi transaksi dan blok (Spesifikasi Validasi v0.1 Bagian 7 sampai 9, DEC-09, DEC-17).
 //!
 //! Tiga tahap, dipanggil berurutan oleh node:
-//! 1. Bebas konteks, V1–V4: [`decode_block`] dan [`check_block_context_free`].
+//! 1. Bebas konteks, V1–V4: [`decode_block`] dan [`check_block_context_free`]. Untuk header tanpa badan blok
+//!    (sinkronisasi header P2P, TSK-M28): V2–V3 di [`check_header_context_free`].
 //! 2. Konteks header, V5–V7: [`check_header_context`]. V8 terpisah di [`check_future_timestamp`], karena hanya
 //!    menunda blok baru dan tidak dipakai saat memeriksa ulang chain yang tersimpan.
 //! 3. Konteks UTXO, V9–V10: [`check_block_transactions`], dengan T1–T6 per transaksi di [`check_transaction`].
@@ -236,16 +237,16 @@ pub fn decode_block(bytes: &[u8]) -> Result<Block, BlockError> {
     Ok(Block::from_bytes(bytes)?)
 }
 
-/// V2–V4: target sah dan ≤ `pow_limit`, PoW, dan Merkle root.
+/// V2–V3 untuk header saja: target sah dan ≤ `pow_limit`, lalu PoW. Dipakai sinkronisasi header P2P (Spesifikasi P2P
+/// Bagian 5), saat badan blok belum ada; [`check_block_context_free`] memanggil fungsi ini lalu memeriksa V4.
 ///
 /// PoW regtest hanya diterima jika `params.network()` adalah regtest. Testnet dan mainnet selalu
 /// [`BlockError::PowUnavailable`] sampai DEC-01 (DEC-09).
 ///
 /// # Errors
 ///
-/// Galat aturan pertama yang dilanggar, berurutan V2, V3, V4.
-pub fn check_block_context_free(block: &Block, params: &ChainParams) -> Result<(), BlockError> {
-    let header = block.header();
+/// Galat aturan pertama yang dilanggar, berurutan V2, V3.
+pub fn check_header_context_free(header: &Header, params: &ChainParams) -> Result<(), BlockError> {
     let target = decode_compact(header.target())?;
     if target > params.pow_limit() {
         return Err(BlockError::TargetAboveLimit);
@@ -258,6 +259,17 @@ pub fn check_block_context_free(block: &Block, params: &ChainParams) -> Result<(
             return Err(BlockError::PowUnavailable { network });
         }
     }
+    Ok(())
+}
+
+/// V2–V4: target sah dan ≤ `pow_limit`, PoW ([`check_header_context_free`]), lalu Merkle root.
+///
+/// # Errors
+///
+/// Galat aturan pertama yang dilanggar, berurutan V2, V3, V4.
+pub fn check_block_context_free(block: &Block, params: &ChainParams) -> Result<(), BlockError> {
+    let header = block.header();
+    check_header_context_free(header, params)?;
     if block_merkle_root(block) != Some(header.merkle_root()) {
         return Err(BlockError::MerkleRootMismatch);
     }

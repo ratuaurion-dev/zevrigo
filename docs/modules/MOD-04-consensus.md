@@ -26,3 +26,4 @@ Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeosta
 - [TSK-M07](../tasks/TSK-M07-consensus-pasokan.md) — 🟢 selesai (rumus pasokan dan vektor uji)
 - [TSK-M08](../tasks/TSK-M08-consensus-target-asert.md) — 🟢 selesai (target compact, ASERT, chainwork, cap waktu, parameter jaringan, genesis regtest)
 - [TSK-M09](../tasks/TSK-M09-consensus-validasi.md) — 🟢 selesai (validasi transaksi dan blok, V1–V10)
+- [TSK-M28](../tasks/TSK-M28-p2p-daemon.md) — 🟢 `check_header_context_free` (V2–V3 untuk header tanpa badan, sinkronisasi header P2P)

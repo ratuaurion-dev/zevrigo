@@ -1,8 +1,12 @@
 use std::path::PathBuf;
 
+use homeostasis_network::Multiaddr;
 use homeostasis_primitives::Network;
 
-use super::{ArgError, Command, Config, USAGE, chain_path, parse_args};
+use super::{
+    ArgError, Command, Config, USAGE, chain_path, default_p2p_port, p2p_key_path,
+    p2p_listen_address, parse_args,
+};
 
 fn args(list: &[&str]) -> Vec<String> {
     list.iter().map(|arg| (*arg).to_owned()).collect()
@@ -13,6 +17,8 @@ fn run_config(datadir: &str, rpc_port: u16) -> Command {
         network: Network::Regtest,
         datadir: PathBuf::from(datadir),
         rpc_port,
+        p2p_port: 28_800,
+        connect: Vec::new(),
     })
 }
 
@@ -101,4 +107,80 @@ fn chain_file_lives_under_network_folder() {
         chain_path(&config),
         PathBuf::from("data").join("regtest").join("chain.redb")
     );
+}
+
+#[test]
+fn parses_p2p_options() {
+    let first = "/ip4/127.0.0.1/tcp/28800";
+    let second = "/ip4/10.0.0.2/tcp/1/p2p/12D3KooWQK1wnefoLrcVHbbnf5tLzbopUd3K3bFAoJpA7YJgL5pV";
+    let Ok(Command::Run(config)) = parse_args(args(&[
+        "--regtest",
+        "--datadir",
+        "d",
+        "--p2p-port",
+        "0",
+        "--connect",
+        first,
+        "--connect",
+        second,
+    ])) else {
+        unreachable!("argumen sah");
+    };
+    assert_eq!(config.p2p_port, 0);
+    assert_eq!(
+        config.connect,
+        vec![
+            first.parse::<Multiaddr>().unwrap(),
+            second.parse::<Multiaddr>().unwrap()
+        ]
+    );
+    assert_eq!(
+        p2p_key_path(&config),
+        PathBuf::from("d").join("regtest").join("p2p_key")
+    );
+    assert_eq!(
+        p2p_listen_address(28_800).unwrap(),
+        first.parse::<Multiaddr>().unwrap()
+    );
+    assert_eq!(default_p2p_port(Network::Regtest), 28_800);
+    assert_eq!(default_p2p_port(Network::Testnet), 18_800);
+    assert_eq!(default_p2p_port(Network::Mainnet), 8_800);
+    assert!(USAGE.contains("--p2p-port"));
+    assert!(USAGE.contains("--connect"));
+
+    let cases: [(&[&str], ArgError); 4] = [
+        (
+            &["--regtest", "--datadir", "x", "--p2p-port", "70000"],
+            ArgError::InvalidP2pPort("70000".to_owned()),
+        ),
+        (
+            &[
+                "--regtest",
+                "--datadir",
+                "x",
+                "--p2p-port",
+                "1",
+                "--p2p-port",
+                "2",
+            ],
+            ArgError::Duplicate("--p2p-port"),
+        ),
+        (
+            &[
+                "--regtest",
+                "--datadir",
+                "x",
+                "--connect",
+                "127.0.0.1:28800",
+            ],
+            ArgError::InvalidAddress("127.0.0.1:28800".to_owned()),
+        ),
+        (
+            &["--regtest", "--datadir", "x", "--connect"],
+            ArgError::MissingValue("--connect"),
+        ),
+    ];
+    for (list, expected) in cases {
+        assert_eq!(parse_args(args(list)), Err(expected), "{list:?}");
+    }
 }

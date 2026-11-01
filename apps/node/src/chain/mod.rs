@@ -13,6 +13,10 @@
 //!
 //! Blok yang induknya belum dikenal dilaporkan `orphan` dan tidak disimpan. Blok yang gagal V8 dilaporkan `deferred`
 //! dan tidak disimpan; pengirim boleh mengirim ulang.
+//!
+//! Sinkronisasi P2P (TSK-M28) memakai indeks header tanpa badan blok, locator, dan jawaban `GetHeaders`/`GetBlocks`
+//! di submodul `sync`; [`Node::receive_block`] dan [`Node::receive_transaction`] melaporkan juga apakah ujung chain
+//! berubah atau transaksi baru masuk mempool, untuk siaran ke rekan.
 
 use std::collections::BTreeMap;
 use std::fmt::Display;
@@ -38,6 +42,10 @@ use homeostasis_rpc::{
 };
 use homeostasis_storage::{ChainStore, StoreError};
 use thiserror::Error;
+
+mod sync;
+
+pub use sync::{HeadersOutcome, MAX_LOCATOR_IDS, locator_heights};
 
 /// Nama aturan untuk blok yang induk atau leluhurnya tidak sah: blok itu tidak punya induk sah (V5).
 pub const INVALID_ANCESTOR_RULE: &str = "V5";
@@ -259,6 +267,15 @@ struct SideBlock {
     sequence: u64,
 }
 
+/// Header yang lolos V2, V3, dan V5 sampai V8 terhadap induknya, tetapi badan bloknya belum diterima (sinkronisasi
+/// header lalu blok, TSK-M28).
+#[derive(Clone, Copy, Debug)]
+struct HeaderEntry {
+    header: Header,
+    chainwork: U256,
+    sequence: u64,
+}
+
 /// Data induk untuk V5 sampai V7 dan chainwork blok baru.
 struct Parent {
     height: u64,
@@ -274,13 +291,15 @@ enum Connect {
     Invalid(&'static str),
 }
 
-/// Isi node yang dijaga satu mutex: penyimpanan, mempool, ringkasan chain aktif, blok cabang, dan blok tidak sah.
+/// Isi node yang dijaga satu mutex: penyimpanan, mempool, ringkasan chain aktif, blok cabang, indeks header, dan blok
+/// tidak sah.
 struct ChainState<S> {
     store: S,
     mempool: Mempool,
     metas: Vec<BlockMeta>,
     heights: BTreeMap<Hash32, u64>,
     side: BTreeMap<Hash32, SideBlock>,
+    headers: BTreeMap<Hash32, HeaderEntry>,
     invalid: BTreeMap<Hash32, &'static str>,
     next_sequence: u64,
 }
@@ -423,26 +442,32 @@ impl<S> ChainState<S> {
         }
     }
 
-    /// Menandai blok `id` tidak sah, lalu membuang semua blok cabang keturunannya dengan aturan
+    /// Menandai blok `id` tidak sah, lalu membuang semua blok cabang dan header keturunannya dengan aturan
     /// [`INVALID_ANCESTOR_RULE`].
     fn mark_invalid(&mut self, id: Hash32, rule: &'static str) {
         self.side.remove(&id);
+        self.headers.remove(&id);
         self.invalid.insert(id, rule);
         loop {
-            let children: Vec<Hash32> = self
+            let invalid = &self.invalid;
+            let mut children: Vec<Hash32> = self
                 .side
                 .iter()
-                .filter(|(_, entry)| {
-                    self.invalid
-                        .contains_key(&entry.block.header().prev_block_id())
-                })
+                .filter(|(_, entry)| invalid.contains_key(&entry.block.header().prev_block_id()))
                 .map(|(child, _)| *child)
                 .collect();
+            children.extend(
+                self.headers
+                    .iter()
+                    .filter(|(_, entry)| invalid.contains_key(&entry.header.prev_block_id()))
+                    .map(|(child, _)| *child),
+            );
             if children.is_empty() {
                 return;
             }
             for child in children {
                 self.side.remove(&child);
+                self.headers.remove(&child);
                 self.invalid.insert(child, INVALID_ANCESTOR_RULE);
             }
         }
@@ -469,6 +494,57 @@ impl<S: ChainStore> ChainState<S> {
             .apply_block(block, id, &txids)
             .map_err(internal)?;
         self.push_meta(meta)
+    }
+}
+
+/// Hasil menerima satu blok (RPC atau P2P): hasil `submit_block` dan apakah ujung chain aktif berubah.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BlockReceipt {
+    /// Hasil seperti `submit_block` (Spesifikasi RPC 3.5).
+    pub result: SubmitBlockResult,
+    /// `true` jika ujung chain aktif berubah karena blok ini (disambung ke ujung atau reorg ke cabangnya).
+    pub new_tip: bool,
+}
+
+/// Hasil memasukkan transaksi ke mempool.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum TxOutcome {
+    /// Transaksi baru masuk mempool.
+    Added,
+    /// Transaksi sudah ada di mempool.
+    Duplicate,
+    /// Ditolak mempool: aturan konsensus (T1 sampai T6, struktur) atau kebijakan antrean.
+    Rejected(MempoolError),
+}
+
+/// Ujung chain aktif untuk pesan `Status` P2P.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TipSummary {
+    /// Tinggi ujung.
+    pub height: u64,
+    /// ID blok ujung.
+    pub id: Hash32,
+    /// Chainwork kumulatif ujung, 256 bit big-endian.
+    pub chainwork: [u8; 32],
+}
+
+/// Hasil RPC `send_raw_transaction` dari [`TxOutcome`]. Duplikat dianggap berhasil, karena transaksinya memang sudah
+/// di mempool.
+///
+/// # Errors
+///
+/// [`RpcError::InvalidTransaction`] dengan nama aturan dari [`mempool_reason`] jika transaksi ditolak.
+pub fn transaction_result(
+    id: Hash32,
+    outcome: &TxOutcome,
+) -> Result<SendRawTransactionResult, RpcError> {
+    match outcome {
+        TxOutcome::Added | TxOutcome::Duplicate => Ok(SendRawTransactionResult {
+            txid: Hex32::from(id),
+        }),
+        TxOutcome::Rejected(error) => Err(RpcError::InvalidTransaction {
+            reason: mempool_reason(error).to_owned(),
+        }),
     }
 }
 
@@ -524,6 +600,7 @@ impl<S: ChainStore> Node<S> {
                 metas,
                 heights,
                 side: BTreeMap::new(),
+                headers: BTreeMap::new(),
                 invalid: BTreeMap::new(),
                 next_sequence: 0,
             }),
@@ -708,6 +785,146 @@ impl<S: ChainStore> Node<S> {
             self.reorg_to(state, candidate)?;
         }
     }
+
+    /// Ujung chain aktif untuk pesan `Status` P2P.
+    ///
+    /// # Errors
+    ///
+    /// [`RpcError::Internal`] jika state node rusak.
+    pub fn tip_summary(&self) -> Result<TipSummary, RpcError> {
+        let state = self.lock()?;
+        let (height, tip) = state.tip()?;
+        Ok(TipSummary {
+            height,
+            id: tip.id,
+            chainwork: tip.chainwork.to_be_bytes(),
+        })
+    }
+
+    /// Menerima satu blok (RPC `submit_block` atau P2P), berurutan V1 sampai V10 seperti `submit_block`, dan
+    /// melaporkan apakah ujung chain aktif berubah.
+    ///
+    /// # Errors
+    ///
+    /// [`RpcError::Internal`] jika node gagal memproses blok.
+    pub fn receive_block(&self, bytes: &[u8]) -> Result<BlockReceipt, RpcError> {
+        // V1.
+        let block = match decode_block(bytes) {
+            Ok(block) => block,
+            Err(error) => {
+                return Ok(BlockReceipt {
+                    result: invalid(None, block_rule(&error, "V2")),
+                    new_tip: false,
+                });
+            }
+        };
+        let mut guard = self.lock()?;
+        let state = &mut *guard;
+        let (_, before) = state.tip()?;
+        let result = self.submit_decoded(state, block)?;
+        let (_, after) = state.tip()?;
+        Ok(BlockReceipt {
+            result,
+            new_tip: after.id != before.id,
+        })
+    }
+
+    /// `submit_block` untuk blok yang sudah lolos V1, dengan state node terkunci.
+    fn submit_decoded(
+        &self,
+        state: &mut ChainState<S>,
+        block: Block,
+    ) -> Result<SubmitBlockResult, RpcError> {
+        let header = *block.header();
+        let id = block_id(&header);
+        if state.known(&id) {
+            return Ok(outcome(SubmitStatus::Duplicate, id));
+        }
+        if let Some(rule) = state.invalid.get(&id) {
+            return Ok(invalid(Some(id), rule));
+        }
+        // V2 sampai V4. Tidak dicatat sebagai tidak sah: blok seperti ini murah dibuat.
+        if let Err(error) = check_block_context_free(&block, &self.params) {
+            return Ok(invalid(Some(id), block_rule(&error, "V2")));
+        }
+        let prev = header.prev_block_id();
+        if state.invalid.contains_key(&prev) {
+            state.invalid.insert(id, INVALID_ANCESTOR_RULE);
+            return Ok(invalid(Some(id), INVALID_ANCESTOR_RULE));
+        }
+        let Some(parent) = state.parent_info(&prev)? else {
+            return Ok(outcome(SubmitStatus::Orphan, id));
+        };
+        // V5 sampai V7 terhadap induk, di chain aktif maupun cabang.
+        let context = ParentContext {
+            block_id: prev,
+            height: BlockHeight::new(parent.height),
+            timestamps: &parent.timestamps,
+        };
+        if let Err(error) = check_header_context(&header, &context, &self.params) {
+            let rule = block_rule(&error, "V6");
+            state.invalid.insert(id, rule);
+            return Ok(invalid(Some(id), rule));
+        }
+        // V8: ditunda, bukan tidak sah.
+        if check_future_timestamp(&header, (self.clock)()).is_err() {
+            return Ok(outcome(SubmitStatus::Deferred, id));
+        }
+        let (_, tip) = state.tip()?;
+        if prev == tip.id {
+            // V9 dan V10 terhadap set UTXO ujung chain.
+            return match self.connect(state, &block, id)? {
+                Connect::Applied => {
+                    state.headers.remove(&id);
+                    self.revalidate_mempool(state)?;
+                    Ok(outcome(SubmitStatus::Accepted, id))
+                }
+                Connect::Invalid(rule) => {
+                    state.invalid.insert(id, rule);
+                    Ok(invalid(Some(id), rule))
+                }
+            };
+        }
+        // Blok cabang: V9 dan V10 menunggu sampai cabangnya disambungkan.
+        let work = header_work(&header).ok_or_else(|| internal("target blok tidak sah"))?;
+        let chainwork = parent
+            .chainwork
+            .checked_add(work)
+            .ok_or_else(|| internal("chainwork meluap"))?;
+        state.store_side(id, block, chainwork);
+        state.headers.remove(&id);
+        self.activate_best(state)?;
+        if let Some(rule) = state.invalid.get(&id) {
+            return Ok(invalid(Some(id), rule));
+        }
+        Ok(outcome(SubmitStatus::Accepted, id))
+    }
+
+    /// Memasukkan transaksi ke mempool (RPC `send_raw_transaction` atau P2P), diperiksa T1 sampai T6 terhadap ujung
+    /// chain aktif dan isi mempool. Mengembalikan txid dan hasilnya.
+    ///
+    /// # Errors
+    ///
+    /// [`RpcError::Internal`] jika state node rusak atau penyimpanan gagal dibaca.
+    pub fn receive_transaction(&self, tx: Transaction) -> Result<(Hash32, TxOutcome), RpcError> {
+        let id = txid(&tx);
+        let mut guard = self.lock()?;
+        let state = &mut *guard;
+        let (tip_height, _) = state.tip()?;
+        let height = BlockHeight::new(tip_height)
+            .next()
+            .ok_or_else(|| internal("tinggi blok meluap"))?;
+        let utxos = prefetch(&state.store, [&tx]).map_err(internal)?;
+        let outcome = match state
+            .mempool
+            .add(tx, id, height, &self.params.network_id(), &utxos)
+        {
+            Ok(_) => TxOutcome::Added,
+            Err(MempoolError::Duplicate { .. }) => TxOutcome::Duplicate,
+            Err(error) => TxOutcome::Rejected(error),
+        };
+        Ok((id, outcome))
+    }
 }
 
 impl<S: ChainStore + Send + 'static> RpcBackend for Node<S> {
@@ -813,98 +1030,13 @@ impl<S: ChainStore + Send + 'static> RpcBackend for Node<S> {
     }
 
     fn submit_block(&self, bytes: &[u8]) -> Result<SubmitBlockResult, RpcError> {
-        // V1.
-        let block = match decode_block(bytes) {
-            Ok(block) => block,
-            Err(error) => return Ok(invalid(None, block_rule(&error, "V2"))),
-        };
-        let header = *block.header();
-        let id = block_id(&header);
-        let mut guard = self.lock()?;
-        let state = &mut *guard;
-        if state.known(&id) {
-            return Ok(outcome(SubmitStatus::Duplicate, id));
-        }
-        if let Some(rule) = state.invalid.get(&id) {
-            return Ok(invalid(Some(id), rule));
-        }
-        // V2 sampai V4. Tidak dicatat sebagai tidak sah: blok seperti ini murah dibuat.
-        if let Err(error) = check_block_context_free(&block, &self.params) {
-            return Ok(invalid(Some(id), block_rule(&error, "V2")));
-        }
-        let prev = header.prev_block_id();
-        if state.invalid.contains_key(&prev) {
-            state.invalid.insert(id, INVALID_ANCESTOR_RULE);
-            return Ok(invalid(Some(id), INVALID_ANCESTOR_RULE));
-        }
-        let Some(parent) = state.parent_info(&prev)? else {
-            return Ok(outcome(SubmitStatus::Orphan, id));
-        };
-        // V5 sampai V7 terhadap induk, di chain aktif maupun cabang.
-        let context = ParentContext {
-            block_id: prev,
-            height: BlockHeight::new(parent.height),
-            timestamps: &parent.timestamps,
-        };
-        if let Err(error) = check_header_context(&header, &context, &self.params) {
-            let rule = block_rule(&error, "V6");
-            state.invalid.insert(id, rule);
-            return Ok(invalid(Some(id), rule));
-        }
-        // V8: ditunda, bukan tidak sah.
-        if check_future_timestamp(&header, (self.clock)()).is_err() {
-            return Ok(outcome(SubmitStatus::Deferred, id));
-        }
-        let (_, tip) = state.tip()?;
-        if prev == tip.id {
-            // V9 dan V10 terhadap set UTXO ujung chain.
-            return match self.connect(state, &block, id)? {
-                Connect::Applied => {
-                    self.revalidate_mempool(state)?;
-                    Ok(outcome(SubmitStatus::Accepted, id))
-                }
-                Connect::Invalid(rule) => {
-                    state.invalid.insert(id, rule);
-                    Ok(invalid(Some(id), rule))
-                }
-            };
-        }
-        // Blok cabang: V9 dan V10 menunggu sampai cabangnya disambungkan.
-        let work = header_work(&header).ok_or_else(|| internal("target blok tidak sah"))?;
-        let chainwork = parent
-            .chainwork
-            .checked_add(work)
-            .ok_or_else(|| internal("chainwork meluap"))?;
-        state.store_side(id, block, chainwork);
-        self.activate_best(state)?;
-        if let Some(rule) = state.invalid.get(&id) {
-            return Ok(invalid(Some(id), rule));
-        }
-        Ok(outcome(SubmitStatus::Accepted, id))
+        self.receive_block(bytes).map(|receipt| receipt.result)
     }
 
     fn send_raw_transaction(&self, bytes: &[u8]) -> Result<SendRawTransactionResult, RpcError> {
         let tx = Transaction::from_bytes(bytes).map_err(|_| RpcError::InvalidEncoding)?;
-        let id = txid(&tx);
-        let mut guard = self.lock()?;
-        let state = &mut *guard;
-        let (tip_height, _) = state.tip()?;
-        let height = BlockHeight::new(tip_height)
-            .next()
-            .ok_or_else(|| internal("tinggi blok meluap"))?;
-        let utxos = prefetch(&state.store, [&tx]).map_err(internal)?;
-        match state
-            .mempool
-            .add(tx, id, height, &self.params.network_id(), &utxos)
-        {
-            // Duplikat dianggap berhasil: transaksinya memang sudah di mempool.
-            Ok(_) | Err(MempoolError::Duplicate { .. }) => Ok(SendRawTransactionResult {
-                txid: Hex32::from(id),
-            }),
-            Err(error) => Err(RpcError::InvalidTransaction {
-                reason: mempool_reason(&error).to_owned(),
-            }),
-        }
+        let (id, outcome) = self.receive_transaction(tx)?;
+        transaction_result(id, &outcome)
     }
 
     fn mempool(&self) -> Result<MempoolInfo, RpcError> {

@@ -3,7 +3,7 @@
 - **ID:** `MOD-06`
 - **Path:** `crates/network`
 - **Paket:** `homeostasis-network`
-- **Status:** 🟢 P2P dasar selesai (TSK-M14); dipakai daemon di TSK-M28
+- **Status:** 🟢 P2P dasar selesai (TSK-M14); dipakai daemon sejak TSK-M28
 - **Bergantung pada:** `MOD-01`; pustaka `libp2p` 0.57.1 (tanpa fitur `tokio`), `libp2p-swarm` dan `libp2p-tcp` (fitur `tokio`), dan `tokio` (DEC-10 bagian 2 dan 5, DEC-24)
 - **Dipakai oleh:** `MOD-11`, `MOD-17`
 
@@ -28,4 +28,4 @@ Menangani komunikasi *peer-to-peer* antar node menggunakan `rust-libp2p` 0.57 (D
 
 ## Task terkait
 - [TSK-M14](../tasks/TSK-M14-network-libp2p.md) — 🟢 selesai
-- [TSK-M28](../tasks/README.md) — 🟡 siap (MOD-11)
+- [TSK-M28](../tasks/TSK-M28-p2p-daemon.md) — 🟢 selesai (MOD-11)

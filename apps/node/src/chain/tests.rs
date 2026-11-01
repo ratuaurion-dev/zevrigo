@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use homeostasis_consensus::{
     BlockError, ChainParams, DifficultyError, SupplySchedule, TxError, check_block_context_free,
-    regtest_genesis,
+    check_header_context_free, regtest_genesis,
 };
 use homeostasis_crypto::{SecretKey, block_id, block_merkle_root, sighash_v1, sign, txid};
 use homeostasis_mempool::{DEFAULT_MAX_BYTES, MempoolError};
@@ -18,7 +18,10 @@ use homeostasis_rpc::{
 };
 use homeostasis_storage::{ChainStore, MemoryStore, RedbStore};
 
-use super::{Clock, Node, NodeError, block_rule, mempool_reason};
+use super::{
+    Clock, HeadersOutcome, MAX_LOCATOR_IDS, Node, NodeError, block_rule, locator_heights,
+    mempool_reason,
+};
 
 /// Cap waktu genesis regtest.
 const T0: u64 = 1_793_145_600;
@@ -861,4 +864,203 @@ fn memory_and_redb_agree_after_reorg_and_reopen() {
     assert_eq!(reopened.node.chain_info().unwrap(), info);
     assert_active(&reopened, &b);
     assert_eq!(side_count(&reopened), 0);
+}
+
+#[test]
+fn locator_heights_follow_spacing() {
+    assert_eq!(locator_heights(0), vec![0]);
+    assert_eq!(locator_heights(5), vec![5, 4, 3, 2, 1, 0]);
+    assert_eq!(locator_heights(9), (0..=9).rev().collect::<Vec<u64>>());
+    assert_eq!(
+        locator_heights(30),
+        vec![30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 19, 15, 7, 0]
+    );
+    for tip in [1_u64 << 53, u64::MAX] {
+        let heights = locator_heights(tip);
+        assert!(heights.len() <= MAX_LOCATOR_IDS, "{tip}");
+        assert_eq!(heights.first(), Some(&tip));
+        assert_eq!(heights.last(), Some(&0));
+        assert!(heights.windows(2).all(|pair| pair[0] > pair[1]));
+    }
+}
+
+#[test]
+fn headers_then_blocks_sync_two_nodes() {
+    let a = open(MemoryStore::default());
+    let b = open(MemoryStore::default());
+    a.now.store(FAR, Ordering::SeqCst);
+    b.now.store(FAR, Ordering::SeqCst);
+    let genesis = params().network_id();
+    let blocks = extend(&a, genesis, 1, 20, 2);
+    let ids: Vec<Hash32> = blocks.iter().map(id_of).collect();
+
+    // Node baru: locator hanya genesis. Node A menjawab header sesudahnya, dengan batas `max` dan `stop`.
+    let locator = b.node.locator().unwrap();
+    assert_eq!(locator, vec![genesis]);
+    let headers = a
+        .node
+        .headers_after(&locator, &Hash32::ZERO, 2_000)
+        .unwrap();
+    assert_eq!(headers.iter().map(block_id).collect::<Vec<_>>(), ids);
+    assert_eq!(
+        a.node
+            .headers_after(&locator, &ids[4], 2_000)
+            .unwrap()
+            .len(),
+        5
+    );
+    assert_eq!(
+        a.node
+            .headers_after(&locator, &Hash32::ZERO, 3)
+            .unwrap()
+            .len(),
+        3
+    );
+    assert!(
+        a.node
+            .headers_after(&[ids[19], genesis], &Hash32::ZERO, 2_000)
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        a.node
+            .headers_after(&[Hash32::from_bytes([0x55; 32])], &Hash32::ZERO, 2_000)
+            .unwrap()
+            .is_empty()
+    );
+    let a_locator = a.node.locator().unwrap();
+    assert_eq!(a_locator.len(), locator_heights(20).len());
+    assert_eq!(a_locator.first(), Some(&ids[19]));
+    assert_eq!(a_locator.get(10), Some(&ids[8]));
+    assert_eq!(a_locator.last(), Some(&genesis));
+
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 20,
+            last: Some(ids[19])
+        }
+    );
+    // Header yang sudah dikenal tidak ditambah lagi; badan blok belum ada, chain aktif tetap genesis.
+    assert_eq!(
+        b.node.accept_headers(&headers[..5]).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 0,
+            last: Some(ids[4])
+        }
+    );
+    assert_eq!(
+        b.node.accept_headers(&[]).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 0,
+            last: None
+        }
+    );
+    assert_eq!(b.node.chain_info().unwrap().height, 0);
+
+    let first = b.node.missing_blocks(16).unwrap();
+    assert_eq!(first, ids[..16].to_vec());
+    let bodies = a.node.blocks_by_id(&first).unwrap();
+    assert_eq!(bodies.len(), 16);
+    for (body, expected) in bodies.iter().zip(&blocks) {
+        assert_eq!(body.as_ref(), Some(expected));
+        let receipt = b.node.receive_block(&expected.to_bytes()).unwrap();
+        assert_eq!(receipt.result.status, SubmitStatus::Accepted);
+        assert!(receipt.new_tip);
+    }
+    let rest = b.node.missing_blocks(16).unwrap();
+    assert_eq!(rest, ids[16..].to_vec());
+    for body in a.node.blocks_by_id(&rest).unwrap().into_iter().flatten() {
+        assert!(b.node.receive_block(&body.to_bytes()).unwrap().new_tip);
+    }
+    assert!(b.node.missing_blocks(16).unwrap().is_empty());
+    assert_active(&b, &blocks);
+    assert_eq!(b.node.tip_summary().unwrap(), a.node.tip_summary().unwrap());
+
+    let again = b.node.receive_block(&blocks[3].to_bytes()).unwrap();
+    assert_eq!(again.result.status, SubmitStatus::Duplicate);
+    assert!(!again.new_tip);
+    assert_eq!(
+        a.node
+            .blocks_by_id(&[Hash32::from_bytes([0x55; 32]), ids[0]])
+            .unwrap(),
+        vec![None, Some(blocks[0].clone())]
+    );
+}
+
+#[test]
+fn bad_headers_are_rejected_or_deferred() {
+    let a = open(MemoryStore::default());
+    let b = open(MemoryStore::default());
+    a.now.store(FAR, Ordering::SeqCst);
+    b.now.store(FAR, Ordering::SeqCst);
+    let genesis = params().network_id();
+    let blocks = extend(&a, genesis, 1, 3, 2);
+    let headers: Vec<Header> = blocks.iter().map(|block| *block.header()).collect();
+
+    // Induk tidak dikenal, dan header yang tidak menyambung ke header sebelumnya (h1 tetap disimpan).
+    assert_eq!(
+        b.node.accept_headers(&headers[1..]).unwrap(),
+        HeadersOutcome::Disconnected
+    );
+    assert_eq!(
+        b.node.accept_headers(&[headers[0], headers[2]]).unwrap(),
+        HeadersOutcome::Disconnected
+    );
+
+    // V3: hash di atas target.
+    let params = params();
+    let h = headers[0];
+    let high = (0_u64..)
+        .map(|nonce| {
+            Header::new(
+                h.height(),
+                h.prev_block_id(),
+                h.merkle_root(),
+                h.timestamp(),
+                h.target(),
+                nonce,
+            )
+        })
+        .find(|header| {
+            matches!(
+                check_header_context_free(header, &params),
+                Err(BlockError::HighHash)
+            )
+        })
+        .unwrap();
+    assert_eq!(
+        b.node.accept_headers(&[high]).unwrap(),
+        HeadersOutcome::Invalid { rule: "V3" }
+    );
+    // V5: tinggi 2 langsung di atas genesis.
+    let tall = *block_on(genesis, 2, 4, Vec::new(), 0).header();
+    assert_eq!(
+        b.node.accept_headers(&[tall]).unwrap(),
+        HeadersOutcome::Invalid { rule: "V5" }
+    );
+
+    // V8: jam lokal tertinggal lebih dari 1 jam dari h2. Pemrosesan berhenti tanpa menyimpan h2.
+    b.now.store(T0 + 240 - 3_601, Ordering::SeqCst);
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Deferred { added: 0 }
+    );
+    b.now.store(FAR, Ordering::SeqCst);
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 2,
+            last: Some(id_of(&blocks[2]))
+        }
+    );
+    assert_eq!(
+        b.node.missing_blocks(16).unwrap(),
+        blocks.iter().map(id_of).collect::<Vec<_>>()
+    );
+    for block in &blocks {
+        assert!(b.node.receive_block(&block.to_bytes()).unwrap().new_tip);
+    }
+    assert!(b.node.missing_blocks(16).unwrap().is_empty());
+    assert_active(&b, &blocks);
 }

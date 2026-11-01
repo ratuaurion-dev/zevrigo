@@ -28,6 +28,16 @@ Node membuat chain regtest di `~/.homeostasis/regtest/chain.redb`, lalu mencetak
 `http://127.0.0.1:28801`). Delapan metode RPC dijelaskan di
 [docs/reference/spesifikasi-rpc-v0.1.md](docs/reference/spesifikasi-rpc-v0.1.md). Hentikan dengan Ctrl-C.
 
+Node juga mendengar P2P di `127.0.0.1:28800` dan mencetak alamatnya sebagai `p2p: /ip4/127.0.0.1/tcp/28800/p2p/<PeerId>`.
+Node kedua di folder lain bisa tersambung dan mengejar chain:
+
+```bash
+cargo run -p homeostasis-node -- --regtest --datadir ~/.homeostasis-2 --rpc-port 28811 --p2p-port 28810 \
+  --connect /ip4/127.0.0.1/tcp/28800/p2p/<PeerId>
+```
+
+Blok dan transaksi baru disiarkan antar node. Aturan lengkap di [docs/reference/spesifikasi-p2p-v0.1.md](docs/reference/spesifikasi-p2p-v0.1.md).
+
 ## Menambang di regtest
 
 Dengan node berjalan, di terminal lain:

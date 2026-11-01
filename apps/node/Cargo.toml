@@ -18,7 +18,7 @@ homeostasis-primitives.workspace = true
 homeostasis-rpc.workspace = true
 homeostasis-storage.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal", "sync", "time"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true
 
