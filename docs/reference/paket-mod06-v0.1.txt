@@ -1,0 +1,141 @@
+# Paket baru di Cargo.lock karena MOD-06 (libp2p 0.57.1, TSK-M14)
+# Dibuat skrip gerbang Q78 dari Cargo.lock dan source registry crates.io. Kolom: nama versi | lisensi |
+# build script | baris unsafe di luar komentar (src/) | status lisensi (ok = permisif menurut daftar Q78).
+# Paket yang hanya untuk target lain (misalnya wasm32) ikut tercatat karena Cargo.lock berlaku untuk semua target.
+# jumlah: 136, lisensi ditolak: 0
+aead 0.5.2 | MIT OR Apache-2.0 | tidak | 0 | ok
+aes 0.8.4 | MIT OR Apache-2.0 | tidak | 110 | ok
+aes-gcm 0.10.3 | Apache-2.0 OR MIT | tidak | 0 | ok
+anyhow 1.0.104 | MIT OR Apache-2.0 | ya | 104 | ok
+async-io 2.6.0 | Apache-2.0 OR MIT | ya | 57 | ok
+asynchronous-codec 0.7.0 | MIT | tidak | 0 | ok
+base-x 0.2.11 | MIT | tidak | 4 | ok
+base256emoji 1.0.2 | MIT | tidak | 0 | ok
+base45 3.2.0 | MIT | tidak | 9 | ok
+blake2 0.10.6 | MIT OR Apache-2.0 | tidak | 26 | ok
+block-buffer 0.12.1 | MIT OR Apache-2.0 | tidak | 22 | ok
+bs58 0.5.1 | MIT/Apache-2.0 | tidak | 1 | ok
+bumpalo 3.20.3 | MIT OR Apache-2.0 | tidak | 185 | ok
+byteorder 1.5.0 | Unlicense OR MIT | tidak | 40 | ok
+chacha20 0.9.1 | Apache-2.0 OR MIT | tidak | 23 | ok
+chacha20poly1305 0.10.1 | Apache-2.0 OR MIT | tidak | 0 | ok
+cipher 0.4.4 | MIT OR Apache-2.0 | tidak | 2 | ok
+cmov 0.5.4 | Apache-2.0 OR MIT | tidak | 26 | ok
+concurrent-queue 2.5.0 | Apache-2.0 OR MIT | tidak | 17 | ok
+const-oid 0.10.2 | Apache-2.0 OR MIT | tidak | 1 | ok
+const-str 0.4.3 | MIT | tidak | 30 | ok
+core-foundation 0.9.4 | MIT OR Apache-2.0 | tidak | 207 | ok
+core-foundation-sys 0.8.7 | MIT OR Apache-2.0 | tidak | 13 | ok
+crossbeam-utils 0.8.23 | MIT OR Apache-2.0 | ya | 76 | ok
+crypto-common 0.2.2 | MIT OR Apache-2.0 | tidak | 0 | ok
+ctr 0.9.2 | MIT OR Apache-2.0 | tidak | 0 | ok
+ctutils 0.4.7 | Apache-2.0 OR MIT | tidak | 0 | ok
+curve25519-dalek 4.1.3 | BSD-3-Clause | ya | 35 | ok
+curve25519-dalek 5.0.0 | BSD-3-Clause | ya | 33 | ok
+curve25519-dalek-derive 0.1.1 | MIT/Apache-2.0 | tidak | 5 | ok
+data-encoding 2.11.1 | MIT | tidak | 6 | ok
+data-encoding-macro 0.1.21 | MIT | tidak | 0 | ok
+data-encoding-macro-internal 0.1.19 | MIT | tidak | 0 | ok
+digest 0.11.3 | MIT OR Apache-2.0 | tidak | 0 | ok
+ed25519 3.0.0 | Apache-2.0 OR MIT | tidak | 0 | ok
+ed25519-dalek 3.0.0 | BSD-3-Clause | tidak | 0 | ok
+either 1.19.0 | MIT OR Apache-2.0 | tidak | 2 | ok
+fiat-crypto 0.2.9 | MIT OR Apache-2.0 OR BSD-1-Clause | tidak | 0 | ok
+fiat-crypto 0.3.0 | MIT OR Apache-2.0 OR BSD-1-Clause | tidak | 0 | ok
+foldhash 0.2.0 | Zlib | tidak | 10 | ok
+futures-bounded 0.3.1 | MIT | tidak | 6 | ok
+futures-executor 0.3.34 | MIT OR Apache-2.0 | tidak | 9 | ok
+futures-lite 2.6.1 | Apache-2.0 OR MIT | tidak | 1 | ok
+futures-timer 3.0.3 | MIT/Apache-2.0 | tidak | 14 | ok
+ghash 0.5.1 | Apache-2.0 OR MIT | tidak | 0 | ok
+gloo-timers 0.2.6 | MIT/Apache-2.0 | tidak | 0 | ok
+hashlink 0.12.2 | MIT OR Apache-2.0 | tidak | 104 | ok
+heck 0.5.0 | MIT OR Apache-2.0 | tidak | 0 | ok
+hermit-abi 0.5.3 | MIT OR Apache-2.0 | tidak | 2 | ok
+hkdf 0.13.0 | MIT OR Apache-2.0 | tidak | 0 | ok
+hmac 0.13.0 | MIT OR Apache-2.0 | tidak | 0 | ok
+hybrid-array 0.4.15 | MIT OR Apache-2.0 | tidak | 37 | ok
+if-addrs 0.15.0 | MIT OR BSD-3-Clause | tidak | 36 | ok
+if-watch 3.2.2 | MIT OR Apache-2.0 | tidak | 5 | ok
+inout 0.1.4 | MIT OR Apache-2.0 | tidak | 22 | ok
+ipnet 2.12.2 | MIT OR Apache-2.0 | tidak | 0 | ok
+itertools 0.14.0 | MIT OR Apache-2.0 | tidak | 10 | ok
+js-sys 0.3.85 | MIT OR Apache-2.0 | tidak | 7 | ok
+libp2p 0.57.1 | MIT | tidak | 0 | ok
+libp2p-allow-block-list 0.7.0 | MIT | tidak | 0 | ok
+libp2p-connection-limits 0.7.0 | MIT | tidak | 0 | ok
+libp2p-core 0.44.0 | MIT | tidak | 0 | ok
+libp2p-identity 0.3.1 | MIT | tidak | 0 | ok
+libp2p-noise 0.47.0 | MIT | tidak | 0 | ok
+libp2p-request-response 0.30.0 | MIT | tidak | 0 | ok
+libp2p-swarm 0.48.0 | MIT | tidak | 0 | ok
+libp2p-swarm-derive 0.36.0 | MIT | tidak | 0 | ok
+libp2p-tcp 0.45.0 | MIT | tidak | 0 | ok
+libp2p-yamux 0.48.0 | MIT | tidak | 0 | ok
+match-lookup 0.1.3 | MIT | tidak | 0 | ok
+multiaddr 0.19.1 | MIT | tidak | 0 | ok
+multibase 0.9.3 | MIT | tidak | 0 | ok
+multihash 0.19.5 | MIT | tidak | 3 | ok
+multistream-select 0.14.0 | MIT | tidak | 0 | ok
+netlink-packet-core 0.8.2 | MIT | tidak | 0 | ok
+netlink-packet-route 0.28.0 | MIT | tidak | 0 | ok
+netlink-proto 0.12.2 | MIT | tidak | 0 | ok
+netlink-sys 0.8.8 | MIT | tidak | 22 | ok
+nix 0.30.1 | MIT | ya | 838 | ok
+nohash-hasher 0.2.0 | Apache-2.0 OR MIT | tidak | 0 | ok
+opaque-debug 0.3.1 | MIT OR Apache-2.0 | tidak | 0 | ok
+parking 2.2.1 | Apache-2.0 OR MIT | tidak | 0 | ok
+paste 1.0.15 | MIT OR Apache-2.0 | ya | 0 | ok
+polling 3.11.0 | Apache-2.0 OR MIT | tidak | 98 | ok
+poly1305 0.8.0 | Apache-2.0 OR MIT | tidak | 50 | ok
+polyval 0.6.2 | Apache-2.0 OR MIT | tidak | 23 | ok
+prost 0.14.4 | Apache-2.0 | tidak | 12 | ok
+prost-derive 0.14.4 | Apache-2.0 | tidak | 0 | ok
+ring 0.17.14 | Apache-2.0 AND ISC | ya | 228 | ok
+rtnetlink 0.20.0 | MIT | tidak | 1 | ok
+rustc_version 0.4.1 | MIT OR Apache-2.0 | tidak | 0 | ok
+rustversion 1.0.23 | MIT OR Apache-2.0 | ya | 1 | ok
+rw-stream-sink 0.5.0 | MIT | tidak | 0 | ok
+semver 1.0.28 | MIT OR Apache-2.0 | tidak | 47 | ok
+send_wrapper 0.4.0 | MIT/Apache-2.0 | tidak | 8 | ok
+sha2 0.11.1 | MIT OR Apache-2.0 | tidak | 39 | ok
+signature 3.0.0 | Apache-2.0 OR MIT | tidak | 0 | ok
+snow 0.10.0 | Apache-2.0 OR MIT | ya | 0 | ok
+static_assertions 1.1.0 | MIT OR Apache-2.0 | tidak | 1 | ok
+system-configuration 0.7.0 | MIT OR Apache-2.0 | tidak | 46 | ok
+system-configuration-sys 0.6.0 | MIT OR Apache-2.0 | ya | 16 | ok
+thiserror 1.0.69 | MIT OR Apache-2.0 | ya | 0 | ok
+thiserror-impl 1.0.69 | MIT OR Apache-2.0 | tidak | 1 | ok
+tinyvec 1.13.3 | Zlib OR Apache-2.0 OR MIT | tidak | 0 | ok
+universal-hash 0.5.1 | MIT OR Apache-2.0 | tidak | 1 | ok
+unsigned-varint 0.8.0 | MIT | tidak | 0 | ok
+untrusted 0.9.0 | ISC | tidak | 0 | ok
+wasm-bindgen 0.2.108 | MIT OR Apache-2.0 | ya | 82 | ok
+wasm-bindgen-futures 0.4.58 | MIT OR Apache-2.0 | tidak | 15 | ok
+wasm-bindgen-macro 0.2.108 | MIT OR Apache-2.0 | tidak | 0 | ok
+wasm-bindgen-macro-support 0.2.108 | MIT OR Apache-2.0 | tidak | 40 | ok
+wasm-bindgen-shared 0.2.108 | MIT OR Apache-2.0 | ya | 0 | ok
+web-sys 0.3.85 | MIT OR Apache-2.0 | tidak | 1 | ok
+web-time 1.1.0 | MIT OR Apache-2.0 | tidak | 0 | ok
+windows 0.62.2 | MIT OR Apache-2.0 | tidak | 326383 | ok
+windows-collections 0.3.2 | MIT OR Apache-2.0 | tidak | 147 | ok
+windows-core 0.62.2 | MIT OR Apache-2.0 | tidak | 224 | ok
+windows-future 0.3.2 | MIT OR Apache-2.0 | tidak | 196 | ok
+windows-implement 0.60.2 | MIT OR Apache-2.0 | tidak | 11 | ok
+windows-interface 0.59.3 | MIT OR Apache-2.0 | tidak | 12 | ok
+windows-numerics 0.3.1 | MIT OR Apache-2.0 | tidak | 3 | ok
+windows-result 0.4.1 | MIT OR Apache-2.0 | tidak | 27 | ok
+windows-strings 0.5.1 | MIT OR Apache-2.0 | tidak | 73 | ok
+windows-sys 0.52.0 | MIT OR Apache-2.0 | tidak | 3411 | ok
+windows-targets 0.52.6 | MIT OR Apache-2.0 | tidak | 0 | ok
+windows-threading 0.2.1 | MIT OR Apache-2.0 | tidak | 19 | ok
+windows_aarch64_gnullvm 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+windows_aarch64_msvc 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+windows_i686_gnu 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+windows_i686_gnullvm 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+windows_i686_msvc 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+windows_x86_64_gnu 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+windows_x86_64_gnullvm 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+windows_x86_64_msvc 0.52.6 | MIT OR Apache-2.0 | ya | 0 | ok
+x25519-dalek 3.0.0 | BSD-3-Clause | tidak | 0 | ok
+yamux 0.14.1 | Apache-2.0 OR MIT | tidak | 0 | ok

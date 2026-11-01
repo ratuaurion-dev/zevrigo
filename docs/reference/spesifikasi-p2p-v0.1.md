@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | rust-libp2p 0.57 (DEC-24): TCP, Noise, Yamux, request-response. 5 protokol dengan encoding kanonis sendiri, sinkronisasi header lalu blok, siaran blok dan transaksi, pemilihan chain berdasarkan chainwork, sanksi rekan |
 | ⏳ Ditunda | Penemuan rekan otomatis (Kademlia, mDNS, seed DNS), relay dan NAT, pembatasan bandwidth, perlindungan eclipse, blok kompak, pemangkasan (TSK-M23) |
-| ➡️ Langkah berikutnya | TSK-M27 (cabang dan reorg di penyimpanan dan node), TSK-M14 (MOD-06), TSK-M28 (integrasi daemon), lalu TSK-F04 |
+| ➡️ Langkah berikutnya | TSK-M28 (indeks header, sinkronisasi, siaran, opsi daemon), lalu TSK-F04. TSK-M27 dan TSK-M14 (MOD-06) selesai |
 
 P2P **bukan konsensus**. Aturan di dokumen ini bisa diubah lewat versi protokol baru tanpa memecah chain. Semua blok dan
 transaksi yang diterima dari rekan tetap diperiksa penuh dengan MOD-04 (V1 sampai V10, T1 sampai T6).
@@ -18,7 +18,7 @@ transaksi yang diterima dari rekan tetap diperiksa penuh dengan MOD-04 (V1 sampa
 
 | Hal | Nilai |
 |---|---|
-| Pustaka | `libp2p` 0.57.1, tanpa fitur bawaan; fitur `tokio`, `tcp`, `noise`, `yamux`, `request-response`, `ed25519`, `macros`. Hanya di MOD-06 |
+| Pustaka | `libp2p` 0.57.1, tanpa fitur bawaan; fitur `tcp`, `noise`, `yamux`, `request-response`, `ed25519`, `macros`, ditambah `libp2p-swarm` 0.48.0 dan `libp2p-tcp` 0.45.0 dengan fitur `tokio` (runtime). Hanya di MOD-06. Fitur `tokio` libp2p sendiri tidak dipakai, karena rujukan lemahnya (`libp2p-quic?/tokio`, dns, mdns, upnp) memasukkan QUIC, TLS, dan DNS ke Cargo.lock walaupun tidak dikompilasi (TSK-M14, Q78) |
 | Lapisan | TCP, lalu Noise XX (enkripsi dan autentikasi rekan), lalu Yamux (multipleks aliran) |
 | Identitas rekan | Kunci Ed25519 libp2p, terpisah dari kunci wallet. 32 byte rahasia dari sumber acak sistem operasi saat node pertama kali berjalan, disimpan di `<datadir>/<jaringan>/p2p_key` (32 byte mentah, izin `0600`). `PeerId` diturunkan dari kunci ini |
 | Port bawaan | regtest 28_800 · testnet 18_800 · mainnet 8_800 (RPC tetap `x_801`) |
@@ -57,7 +57,7 @@ sama sekali, karena negosiasi protokol libp2p gagal.
 
 | Pesan | Isi | Batas |
 |---|---|---|
-| `Status` | `version: u8` (= 1) ‖ `network_id: bytes32` ‖ `tip_height: u64le` ‖ `tip_id: bytes32` ‖ `chainwork: bytes32` (256-bit big-endian) | 73 byte tetap |
+| `Status` | `version: u8` (= 1) ‖ `network_id: bytes32` ‖ `tip_height: u64le` ‖ `tip_id: bytes32` ‖ `chainwork: bytes32` (256-bit big-endian) | 105 byte tetap (1 + 32 + 8 + 32 + 32) |
 | `GetHeaders` | `locator: vec<bytes32>` ‖ `stop: bytes32` | locator 1 sampai 64 ID; `stop` nol berarti tanpa batas |
 | `Headers` | `headers: vec<Header>` | 0 sampai 2_000 header |
 | `GetBlocks` | `ids: vec<bytes32>` | 1 sampai 16 ID |
@@ -65,6 +65,8 @@ sama sekali, karena negosiasi protokol libp2p gagal.
 | `Ack` | `status: u8` | lihat Bagian 6 |
 
 `Status.version` selain 1 atau `network_id` yang berbeda dari milik node: koneksi ditutup tanpa sanksi.
+
+Koreksi 1 November 2026 (TSK-M14): ukuran `Status` adalah 105 byte; versi pertama dokumen ini salah menulis 73 byte.
 
 ---
 
@@ -137,7 +139,9 @@ belum ada di view chain + mempool ditolak dengan status `4`, tanpa sanksi.
 | `Entry` `00` untuk blok yang sudah diumumkan | Dilewati untuk blok itu |
 | Tidak menjawab dalam 30 detik | Permintaan dianggap gagal; setelah 3 kali berturut-turut, putus (tanpa blokir) |
 
-Blokir disimpan di memori per `PeerId` dan per alamat IP, sehingga hilang saat node dimulai ulang. Rekan dari alamat yang
+Blokir disimpan di memori per `PeerId` dan per alamat IP, sehingga hilang saat node dimulai ulang. Alamat loopback
+(`127.0.0.0/8`, `::1`) hanya diblokir per `PeerId`, supaya beberapa node di satu mesin (uji TSK-F04) tidak saling
+memblokir (TSK-M14). Rekan dari alamat yang
 ditulis lewat `--connect` juga bisa diblokir.
 
 ---
@@ -180,4 +184,4 @@ ditulis lewat `--connect` juga bisa diblokir.
 | ID | Keputusan | Status |
 |---|---|---|
 | DEC-24 | Transport P2P memakai rust-libp2p 0.57 (TCP, Noise, Yamux, request-response), sesuai AGENTS.md. Konsekuensi: ring dan generasi kedua pustaka RustCrypto ikut masuk lewat MOD-06 | 🟢 diputuskan pencipta 1 November 2026 |
-| DEC-10 bagian 5 | `libp2p` 0.57.1 tanpa fitur bawaan, fitur `tokio`, `tcp`, `noise`, `yamux`, `request-response`, `ed25519`, `macros`, hanya di MOD-06 | 🟢 1 November 2026 (konsekuensi DEC-24) |
+| DEC-10 bagian 5 | `libp2p` 0.57.1 tanpa fitur bawaan, fitur `tcp`, `noise`, `yamux`, `request-response`, `ed25519`, `macros`, serta `libp2p-swarm` dan `libp2p-tcp` dengan fitur `tokio`, hanya di MOD-06 | 🟢 1 November 2026 (konsekuensi DEC-24) |

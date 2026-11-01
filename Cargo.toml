@@ -54,6 +54,10 @@ tracing = { version = "0.1.44", default-features = false, features = ["std"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt"] }
 # DEC-10 bagian 5 (DEC-24): hanya MOD-06 network. Noise membawa ring (C dan assembly). Fitur ditambah di crate.
 libp2p = { version = "0.57.1", default-features = false }
+# Fitur `tokio` libp2p tidak dipakai: isinya rujukan lemah (`libp2p-quic?/tokio`, dns, mdns, upnp) yang membuat Cargo.lock
+# memuat QUIC, TLS, dan DNS. Runtime tokio diaktifkan langsung di dua sub-paket resmi ini (versi sama dengan libp2p 0.57.1).
+libp2p-swarm = { version = "0.48.0", default-features = false }
+libp2p-tcp = { version = "0.45.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

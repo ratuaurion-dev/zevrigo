@@ -7,6 +7,16 @@ publish.workspace = true
 
 [dependencies]
 homeostasis-primitives.workspace = true
+# DEC-10 bagian 5 (DEC-24), Spesifikasi P2P v0.1 Bagian 1. Tanpa fitur `tokio` libp2p (rujukan lemah ke QUIC, DNS, mDNS,
+# UPnP masuk Cargo.lock); runtime tokio lewat fitur `tokio` di libp2p-swarm dan libp2p-tcp.
+libp2p = { workspace = true, features = ["tcp", "noise", "yamux", "request-response", "ed25519", "macros"] }
+libp2p-swarm = { workspace = true, features = ["tokio"] }
+libp2p-tcp = { workspace = true, features = ["tokio"] }
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "time"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt", "time"] }
 
 [lints]
 workspace = true
