@@ -58,6 +58,10 @@ libp2p = { version = "0.57.1", default-features = false }
 # memuat QUIC, TLS, dan DNS. Runtime tokio diaktifkan langsung di dua sub-paket resmi ini (versi sama dengan libp2p 0.57.1).
 libp2p-swarm = { version = "0.48.0", default-features = false }
 libp2p-tcp = { version = "0.45.0", default-features = false }
+# DEC-10 bagian 6 (DEC-25): hanya MOD-14 explorer. rusqlite dengan fitur `bundled` mengompilasi SQLite (C).
+# Fitur bawaan keduanya dimatikan; fitur ditambah di crate saat pemakaian pertama (TSK-M29, TSK-M30).
+axum = { version = "0.8.9", default-features = false }
+rusqlite = { version = "0.41.1", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

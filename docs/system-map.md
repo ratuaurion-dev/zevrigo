@@ -19,7 +19,7 @@ Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai ·
 | MOD-11 | `apps/node` | `homeostasis-node` (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) | 🟢 |
 | MOD-12 | `apps/cli` | `homeostasis-cli` (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) | 🟢 |
 | MOD-13 | `apps/miner` | `homeostasis-miner` (bin) | Penambang CPU | MOD-01, 03, 08 | 🟢 |
-| MOD-14 | `apps/explorer` | `homeostasis-explorer` (bin) | Indexer dan API explorer (web menyusul) | MOD-01, 05, 08 | ⚪ |
+| MOD-14 | `apps/explorer` | `homeostasis-explorer` (bin) | Indexer dan API explorer (web menyusul) | MOD-01, 02, 04, 08, 09 (DEC-25) | ⚪ |
 | MOD-15 | `apps/wallet` | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 | ⚪ |
 | MOD-16 | `apps/merchant` | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 | ⚪ |
 | MOD-17 | `tests/integration` | `homeostasis-integration-tests` | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, 13 (DEC-20), 12 (DEC-23) | 🟡 |
@@ -81,8 +81,10 @@ graph LR
     MOD13 --> MOD08
 
     MOD14 --> MOD01
-    MOD14 --> MOD05
+    MOD14 --> MOD02
+    MOD14 --> MOD04
     MOD14 --> MOD08
+    MOD14 --> MOD09
 
     MOD15 --> MOD08
     MOD15 --> MOD09
@@ -103,6 +105,7 @@ graph LR
     MOD17 -.->|dev, DEC-20| MOD11
     MOD17 -.->|dev, DEC-20| MOD13
     MOD17 -.->|dev, DEC-23| MOD12
+    MOD17 -.->|dev, DEC-25| MOD14
 ```
 
 ## Matriks fitur × modul
@@ -115,7 +118,7 @@ Keterangan: ● = memakai atau mengubah modul · ○ = hanya membaca
 | FTR-02 Menambang | ● | | ● | ● | ○ | | | ● | | | ● | | ● | | | | ● |
 | FTR-03 Kirim dan terima | ● | ● | | ● | ○ | | ● | ● | ● | | ● | ● | ● | | | | ● |
 | FTR-04 Multi-node | ○ | | | ● | ● | ● | ○ | | | | ● | | | | | | ● |
-| FTR-05 Explorer | ○ | | | ○ | ● | | | ● | | | | | | ● | | | |
+| FTR-05 Explorer | ○ | ○ | | ○ | | | | ● | ○ | | ○ | | ○ | ● | | | ● |
 | FTR-06 Testnet publik | ● | ● | ● | ● | ● | ● | ● | ● | ● | | ● | ● | ● | ● | | | ● |
 | FTR-07 Wallet desktop | ○ | | | | | | | ● | ● | | | | | | ● | | |
 | FTR-08 Wallet mobile | ○ | | | | | | | ● | ● | | | | | | ● | | |
