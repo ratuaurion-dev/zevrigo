@@ -24,7 +24,7 @@ homeostasis-wallet-core.workspace = true
 homeostasis-cli = { path = "../../apps/cli" }
 homeostasis-miner = { path = "../../apps/miner" }
 homeostasis-node = { path = "../../apps/node" }
-tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "sync"] }
 
 [lints]
 workspace = true

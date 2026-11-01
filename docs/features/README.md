@@ -1,6 +1,6 @@
 # Fitur: 10 fitur, 5 pertama membentuk jalur menuju testnet
 
-> Diperbarui: 1 November 2026 · Status keseluruhan: 🟡 FTR-01 sampai FTR-03 selesai
+> Diperbarui: 1 November 2026 · Status keseluruhan: 🟡 FTR-01 sampai FTR-04 selesai
 
 Fitur adalah kemampuan yang terasa bagi pengguna dan selalu melibatkan lebih dari satu modul.
 Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua task modul yang dibutuhkannya selesai.
@@ -10,7 +10,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 | FTR-01 | Node regtest tunggal memvalidasi dan menyimpan chain sendiri | MOD-01..05, MOD-08, MOD-11 | TSK-F01 | 🟢 |
 | FTR-02 | Menambang blok di regtest | MOD-01, 03, 04, 08, 11, 13 | TSK-F02 | 🟢 |
 | FTR-03 | Kirim dan terima HSIS lewat CLI di regtest | MOD-01, 02, 04, 07, 08, 09, 11, 12 | TSK-F03 | 🟢 |
-| FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | ⚪ |
+| FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | 🟢 |
 | FTR-05 | Explorer minimal dengan halaman alokasi pencipta | MOD-01, 05, 08, 14 | TSK-F05 | ⚪ |
 | FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 DEC-01 |
 | FTR-07 | Wallet desktop (P0) | MOD-08, 09, 15 | TSK-F07 | ⚪ |
@@ -33,7 +33,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 - **Nilai:** transaksi pertama antar dua wallet.
 - **Selesai bila:** wallet CLI membuat alamat, menerima coinbase yang sudah matang (100 blok), mengirim ke wallet lain, dan transaksi terkonfirmasi.
 
-### FTR-04 · Jaringan multi-node · ⚪
+### FTR-04 · Jaringan multi-node · 🟢
 - **Nilai:** konsensus terbukti di banyak node, termasuk saat jaringan terpisah lalu tersambung lagi.
 - **Selesai bila:** 4 node atau lebih tetap sinkron; uji reorg dalam (tanpa batas kedalaman) lolos; node yang sempat offline mengejar chain dengan kerja terbanyak.
 

@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | rust-libp2p 0.57 (DEC-24): TCP, Noise, Yamux, request-response. 5 protokol dengan encoding kanonis sendiri, sinkronisasi header lalu blok, siaran blok dan transaksi, pemilihan chain berdasarkan chainwork, sanksi rekan |
 | ⏳ Ditunda | Penemuan rekan otomatis (Kademlia, mDNS, seed DNS), relay dan NAT, pembatasan bandwidth, perlindungan eclipse, blok kompak, pemangkasan (TSK-M23) |
-| ➡️ Langkah berikutnya | TSK-F04 (4 node atau lebih, reorg dalam). TSK-M27, TSK-M14 (MOD-06), dan TSK-M28 (daemon) selesai |
+| ➡️ Langkah berikutnya | Semua task v0.1 selesai: TSK-M27, TSK-M14 (MOD-06), TSK-M28 (daemon), TSK-F04 (lima node, reorg dalam). Sebelum testnet: penemuan rekan, batas memori cabang, perlindungan eclipse |
 
 P2P **bukan konsensus**. Aturan di dokumen ini bisa diubah lewat versi protokol baru tanpa memecah chain. Semua blok dan
 transaksi yang diterima dari rekan tetap diperiksa penuh dengan MOD-04 (V1 sampai V10, T1 sampai T6).

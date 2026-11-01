@@ -1,13 +1,13 @@
-# Homeostasis Coin (HSIS): node, penambangan, dan kirim-terima lewat CLI berjalan di regtest
+# Homeostasis Coin (HSIS): node, penambangan, kirim-terima lewat CLI, dan jaringan multi-node berjalan di regtest
 
-> Diperbarui: 1 November 2026 · Pemilik: pencipta · Tahap: 🟢 node regtest (FTR-01), penambangan (FTR-02), kirim dan terima lewat CLI (FTR-03), node regtest saling tersambung lewat P2P (TSK-M28)
+> Diperbarui: 1 November 2026 · Pemilik: pencipta · Tahap: 🟢 node regtest (FTR-01), penambangan (FTR-02), kirim dan terima lewat CLI (FTR-03), jaringan multi-node dan reorg dalam (FTR-04)
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. Node, mempool, RPC, dan miner berjalan untuk regtest; FTR-01 sampai FTR-03 diuji ujung ke ujung. Wallet-core: frasa BIP39, kunci BIP32, alamat bech32m (TSK-M15), serta pemilihan koin dan tanda tangan transaksi (TSK-M16). CLI wallet regtest (TSK-M19). Cabang chain dan reorg di node (TSK-M27). 310 test |
+| 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. Node, mempool, RPC, dan miner berjalan untuk regtest; FTR-01 sampai FTR-04 diuji ujung ke ujung. Wallet-core: frasa BIP39, kunci BIP32, alamat bech32m (TSK-M15), serta pemilihan koin dan tanda tangan transaksi (TSK-M16). CLI wallet regtest (TSK-M19). Cabang chain dan reorg di node (TSK-M27). P2P libp2p (TSK-M14) di daemon (TSK-M28): lima node uji tetap sinkron, terpisah lalu tersambung dengan reorg 10 blok, node offline dan node baru mengejar (TSK-F04). 343 test |
 | 🔴 Masalah utama | Testnet publik (FTR-06) terblokir DEC-01: strategi PoW di tengah larangan unsafe dan float |
 | ❓ Keputusan dibutuhkan | DEC-01 strategi PoW mainnet |
-| ➡️ Langkah berikutnya | FTR-04 jaringan multi-node: spesifikasi P2P v0.1 selesai (TSK-S05, DEC-24); cabang dan reorg selesai (TSK-M27); MOD-06 libp2p selesai (TSK-M14); P2P di daemon selesai (TSK-M28); berikutnya uji 4 node dan reorg dalam (TSK-F04) |
+| ➡️ Langkah berikutnya | FTR-04 selesai. Pencipta memilih: FTR-05 explorer minimal, atau DEC-01 (PoW mainnet) yang membuka testnet publik (FTR-06) |
 
 **Legenda status:** 🟢 selesai · 🟡 berjalan atau siap dikerjakan · 🔴 terblokir · ⚪ belum dimulai · ❓ perlu keputusan
 
