@@ -1,30 +1,39 @@
-//! MOD-12: Alat baris perintah ke node Homeostasis Coin (`homeostasis-cli`).
+//! MOD-12: Alat baris perintah node dan wallet regtest Homeostasis Coin (`homeostasis-cli`).
 
 #![forbid(unsafe_code)]
 
 use std::process::ExitCode;
 
+use homeostasis_cli::{Command, USAGE, os_random, parse_args, run};
+
 const BIN_NAME: &str = "homeostasis-cli";
-const MODULE_ID: &str = "MOD-12";
 
 fn main() -> ExitCode {
-    let mut args = std::env::args().skip(1);
-    match (args.next().as_deref(), args.next()) {
-        (None, None) | (Some("--help"), None) => {
-            println!("{BIN_NAME} ({MODULE_ID}): kerangka R0, belum berfungsi");
-            ExitCode::SUCCESS
+    let config = match parse_args(std::env::args().skip(1)) {
+        Ok(Command::Help) => {
+            println!("{USAGE}");
+            return ExitCode::SUCCESS;
         }
-        (Some("--version"), None) => {
+        Ok(Command::Version) => {
             println!("{BIN_NAME} {}", env!("CARGO_PKG_VERSION"));
+            return ExitCode::SUCCESS;
+        }
+        Ok(Command::Run(config)) => config,
+        Err(error) => {
+            eprintln!("{BIN_NAME}: {error}");
+            eprintln!();
+            eprintln!("{USAGE}");
+            return ExitCode::from(2);
+        }
+    };
+    match run(&config, os_random) {
+        Ok(text) => {
+            print!("{text}");
             ExitCode::SUCCESS
         }
-        (Some(arg), None) => {
-            eprintln!("{BIN_NAME}: argumen tidak dikenali: {arg}");
-            ExitCode::from(2)
-        }
-        (Some(_), Some(_)) | (None, Some(_)) => {
-            eprintln!("{BIN_NAME}: argumen tidak valid (gunakan --help atau --version)");
-            ExitCode::from(2)
+        Err(error) => {
+            eprintln!("{BIN_NAME}: {error}");
+            ExitCode::FAILURE
         }
     }
 }

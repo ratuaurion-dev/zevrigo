@@ -38,3 +38,16 @@ cargo run -p homeostasis-miner -- --payout <kunci x-only hex 64> --blocks 10
 
 Miner mengambil template dari node, mencari nonce dengan PoW dev regtest, dan mengirim blok. Hadiah coinbase bisa
 dibelanjakan setelah 100 blok. `--blocks 0` (bawaan) menambang terus sampai Ctrl-C.
+
+## Wallet CLI regtest
+
+```bash
+cargo run -p homeostasis-cli -- --datadir ~/.homeostasis wallet-create
+cargo run -p homeostasis-cli -- --datadir ~/.homeostasis address
+cargo run -p homeostasis-cli -- --datadir ~/.homeostasis balance
+cargo run -p homeostasis-cli -- --datadir ~/.homeostasis send --to <alamat rhsis1...> --amount 1.5
+```
+
+Wallet disimpan di `~/.homeostasis/regtest/wallet.json` (izin `0600`, tanpa enkripsi; hanya untuk regtest). Simpan
+frasa 24 kata yang dicetak `wallet-create`. `address` juga mencetak payload hex yang bisa dipakai untuk `--payout`
+miner, sehingga hadiah tambang masuk ke wallet. Aturan lengkap di [docs/reference/spesifikasi-wallet-v0.1.md](docs/reference/spesifikasi-wallet-v0.1.md).

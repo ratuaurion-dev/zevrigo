@@ -4,10 +4,10 @@
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. Node, mempool, RPC, dan miner berjalan untuk regtest; FTR-01 dan FTR-02 diuji ujung ke ujung. Wallet-core: frasa BIP39, kunci BIP32, alamat bech32m (TSK-M15), serta pemilihan koin dan tanda tangan transaksi (TSK-M16). 289 test |
+| 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. Node, mempool, RPC, dan miner berjalan untuk regtest; FTR-01 dan FTR-02 diuji ujung ke ujung. Wallet-core: frasa BIP39, kunci BIP32, alamat bech32m (TSK-M15), serta pemilihan koin dan tanda tangan transaksi (TSK-M16). CLI wallet regtest (TSK-M19). 305 test |
 | 🔴 Masalah utama | Testnet publik (FTR-06) terblokir DEC-01: strategi PoW di tengah larangan unsafe dan float |
 | ❓ Keputusan dibutuhkan | DEC-01 strategi PoW mainnet |
-| ➡️ Langkah berikutnya | CLI wallet (TSK-M19), lalu kirim dan terima ujung ke ujung (TSK-F03) |
+| ➡️ Langkah berikutnya | Kirim dan terima ujung ke ujung dengan node sungguhan (TSK-F03), menutup FTR-03 |
 
 **Legenda status:** 🟢 selesai · 🟡 berjalan atau siap dikerjakan · 🔴 terblokir · ⚪ belum dimulai · ❓ perlu keputusan
 

@@ -3,7 +3,7 @@
 - **ID:** `MOD-12`
 - **Path:** `apps/cli`
 - **Paket:** `homeostasis-cli` (bin)
-- **Status:** ⚪ belum dimulai (kerangka R0)
+- **Status:** 🟢 TSK-M19 selesai: `info`, `wallet-create`, `wallet-restore`, `address`, `balance`, `send` (hanya regtest)
 - **Bergantung pada:** `MOD-01`, `MOD-08`, `MOD-09` (DEC-21)
 - **Dipakai oleh:** —
 
@@ -22,4 +22,4 @@ Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan 
 - Menulis sendiri logika frasa, kunci, alamat, atau tanda tangan; semuanya dari `MOD-09`.
 
 ## Task terkait
-- [TSK-M19](../tasks/README.md)
+- [TSK-M19](../tasks/TSK-M19-cli-wallet.md) — 🟢 selesai (pustaka `homeostasis_cli`: `args`, `wallet_file`, `scan`, `commands`)
