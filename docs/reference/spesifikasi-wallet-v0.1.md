@@ -1,6 +1,6 @@
 # Spesifikasi Wallet Homeostasis Coin (HSIS) v0.1: frasa BIP39, turunan BIP32, alamat, pemilihan koin, pemindaian saldo
 
-> Diperbarui: 31 Oktober 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S03 · Status: 🟢 v0.1
+> Diperbarui: 1 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S03 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-wallet-v0.1.md`
 
 | Status | Ringkasan |
@@ -92,6 +92,9 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 | Ukuran | Bisa dihitung pasti sebelum menandatangani, karena tanda tangan BIP340 selalu 64 byte (witness jenis 0 selalu 65 byte) |
 | Kembalian | Ke alamat `branch 1` indeks berikutnya yang belum pernah dipakai. Jika kembalian 0, tanpa output kembalian. Kembalian 1 quanta tetap sah (tanpa batas dust) |
 | Urutan output | Penerima, lalu kembalian |
+| Sisa kecil | Jika sisa setelah biaya tanpa kembalian tidak cukup untuk biaya output kembalian ditambah 1 quanta, sisa itu ikut menjadi biaya (tanpa output kembalian) |
+| Batas varint | Panjang varint kembalian `L` dicari dari 1 byte ke atas; dipakai `L` terkecil yang memberi kembalian dengan varint ≤ `L`. Di batas varint biaya bisa `tarif × (ukuran + 1)` agar kembalian tetap unik (TSK-M16) |
+| Ukuran maksimum | Transaksi lebih dari 100_000 byte ditolak wallet (sama dengan batas mempool) |
 
 ---
 

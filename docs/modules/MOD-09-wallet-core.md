@@ -3,7 +3,7 @@
 - **ID:** `MOD-09`
 - **Path:** `crates/wallet-core`
 - **Paket:** `homeostasis-wallet-core`
-- **Status:** 🟡 sedang berjalan (TSK-M15 selesai: frasa BIP39, turunan BIP32, kunci akun publik, alamat bech32m; sisa: TSK-M16)
+- **Status:** 🟡 sedang berjalan (TSK-M15 dan TSK-M16 selesai: frasa BIP39, turunan BIP32, kunci akun publik, alamat bech32m, pemilihan koin, biaya, kembalian, tanda tangan; sisa: output jenis 1 dan MuSig2)
 - **Bergantung pada:** `MOD-01`, `MOD-02`
 - **Dipakai oleh:** `MOD-10`, `MOD-12` (DEC-21), `MOD-15`, `MOD-17`
 
@@ -23,4 +23,4 @@ Menyediakan pustaka inti pengelolaan kunci, pemilihan UTXO, penyusunan, dan pena
 
 ## Task terkait
 - [TSK-M15](../tasks/TSK-M15-wallet-frasa-turunan-alamat.md) — 🟢 selesai (modul `mnemonic`, `bip32`, `address`)
-- [TSK-M16](../tasks/README.md) — 🟡 siap (pemilihan koin, penyusunan, dan tanda tangan transaksi)
+- [TSK-M16](../tasks/TSK-M16-wallet-kirim.md) — 🟢 selesai (modul `send`: `plan`, `sign_plan`, `build_transaction`)

@@ -1,14 +1,14 @@
-# Task kerja: frasa, kunci, dan alamat wallet selesai (TSK-M15), berikutnya penyusunan transaksi (TSK-M16) dan CLI (TSK-M19) menuju TSK-F03
+# Task kerja: wallet-core selesai (TSK-M15, TSK-M16), berikutnya CLI wallet (TSK-M19) menuju TSK-F03
 
 > Diperbarui: 1 November 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M15, M18, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest) |
-| 🟡 Siap dikerjakan | TSK-M16 (pemilihan koin, penyusunan, dan tanda tangan transaksi), TSK-M23 (pruning) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M15, M16, M18, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest) |
+| 🟡 Siap dikerjakan | TSK-M19 (CLI: perintah node dan wallet regtest), TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | — (DEC-01 tetap terbuka untuk testnet) |
-| ➡️ Langkah berikutnya | TSK-M16, lalu TSK-M19, lalu TSK-F03 |
+| ➡️ Langkah berikutnya | TSK-M19, lalu TSK-F03 |
 
 ## Tiga jenis task
 
@@ -50,10 +50,10 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M13 | MOD-07 | Mempool | TSK-M09, DEC-18 | 🟢 selesai ([kartu](TSK-M13-mempool.md)) |
 | TSK-M14 | MOD-06 | P2P dasar (rust-libp2p, versi dicatat saat itu) | TSK-M03, TSK-S05, DEC-10 | ⚪ |
 | TSK-M15 | MOD-09 (+ MOD-02) | BIP39, turunan BIP32, kunci akun publik, alamat bech32m | TSK-M04, TSK-S03, DEC-10 bagian 4 | 🟢 selesai ([kartu](TSK-M15-wallet-frasa-turunan-alamat.md)) |
-| TSK-M16 | MOD-09 | Penyusunan dan penandatanganan transaksi, pemilihan koin | TSK-M03, TSK-M15, TSK-M24 | 🟡 siap |
+| TSK-M16 | MOD-09 | Penyusunan dan penandatanganan transaksi, pemilihan koin | TSK-M03, TSK-M15, TSK-M24 | 🟢 selesai ([kartu](TSK-M16-wallet-kirim.md)) |
 | TSK-M17 | MOD-10 | Tagihan watch-only dan status pembayaran | TSK-M16 | ⚪ |
 | TSK-M18 | MOD-11 | Node: logika chain dan backend RPC (A), lalu konfigurasi, folder data, logging, shutdown (B) | TSK-M09, M11, M12, M13, M26, DEC-10, DEC-19 | 🟢 selesai ([kartu](TSK-M18-node.md)) |
-| TSK-M19 | MOD-12 | CLI: perintah node dan wallet regtest | TSK-M12, TSK-M16, DEC-21 | ⚪ |
+| TSK-M19 | MOD-12 | CLI: perintah node dan wallet regtest | TSK-M12, TSK-M16, DEC-21 | 🟡 siap |
 | TSK-M20 | MOD-13 | Miner: loop penambangan dengan PoW dev | TSK-M05, TSK-M12, TSK-M18 | 🟢 selesai ([kartu](TSK-M20-miner.md)) |
 | TSK-M21 | MOD-02 | ID transaksi dan blok: txid, wtxid, block_id, hash kondisi, Merkle root blok | TSK-M02, TSK-M03 | 🟢 selesai ([kartu](TSK-M21-crypto-ids.md)) |
 | TSK-M22 | MOD-01 | Tipe OutPoint dan UtxoEntry (dipakai bersama MOD-04, MOD-05, MOD-07, MOD-09) | TSK-M03 | 🟢 selesai ([kartu](TSK-M22-primitives-utxo.md)) |
