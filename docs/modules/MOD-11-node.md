@@ -3,7 +3,7 @@
 - **ID:** `MOD-11`
 - **Path:** `apps/node`
 - **Paket:** `homeostasis-node` (bin)
-- **Status:** 🟢 selesai untuk regtest satu node (TSK-M18, TSK-F01); P2P dan reorg menyusul (TSK-F04)
+- **Status:** 🟢 regtest satu node (TSK-M18, TSK-F01) dan cabang chain + reorg (TSK-M27); P2P menyusul (TSK-M28, TSK-F04)
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-05`, `MOD-06`, `MOD-07`, `MOD-08` (MOD-01 dan MOD-02 sejak DEC-19)
 - **Dipakai oleh:** —
 
@@ -24,3 +24,4 @@ Menjalankan daemon node penuh Homeostasis Coin (baik mode arsip maupun *pruned*)
 
 ## Task terkait
 - [TSK-M18](../tasks/TSK-M18-node.md) — 🟢 selesai (termasuk TSK-F01)
+- [TSK-M27](../tasks/TSK-M27-cabang-reorg.md) — 🟢 selesai (blok cabang, pemilihan chain berdasarkan chainwork, reorg)

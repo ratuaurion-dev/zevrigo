@@ -356,7 +356,7 @@ fn submit_block_statuses_and_rules() {
     );
     assert_eq!(submit(&merkle), rejected_block(&merkle, "V4"));
 
-    // Induk bukan ujung chain: orphan, tidak disimpan.
+    // Induk tidak dikenal: orphan, tidak disimpan.
     let orphan = solve(
         &Block::new(
             header_with(
@@ -603,4 +603,262 @@ fn rule_names_for_blocks_and_mempool() {
         mempool_reason(&MempoolError::Invalid(TxError::OutputsExceedInputs)),
         "T5"
     );
+}
+
+/// Jam jauh di depan untuk uji cabang: semua blok bercap waktu `T0 + 120 × h` lolos V8.
+const FAR: u64 = T0 + 120 * 1_000;
+
+/// Blok setinggi `height` di atas `prev`: coinbase tepat jadwal pasokan ditambah `fee` ke `owner`, transaksi `txs`,
+/// cap waktu `T0 + 120 × height` (sesuai jadwal, sehingga target tetap `pow_limit`), dan PoW yang lolos. Pemilik yang
+/// berbeda membuat cabang berbeda di tinggi yang sama.
+fn block_on(prev: Hash32, height: u64, owner: u8, txs: Vec<Transaction>, fee: u128) -> Block {
+    let index = usize::try_from(height).unwrap();
+    let schedule: Vec<_> = SupplySchedule::new().take(index + 1).collect();
+    let reward = schedule[index].subsidy.as_quanta() + fee;
+    let coinbase = Transaction::coinbase(
+        BlockHeight::new(height),
+        Vec::new(),
+        vec![out_to(reward, owner)],
+    )
+    .unwrap();
+    let mut all = vec![coinbase];
+    all.extend(txs);
+    let header = Header::new(
+        BlockHeight::new(height),
+        prev,
+        Hash32::ZERO,
+        T0 + 120 * height,
+        LIMIT,
+        0,
+    );
+    solve(&with_txs(&header, all))
+}
+
+fn id_of(block: &Block) -> Hash32 {
+    block_id(block.header())
+}
+
+fn submit<S: ChainStore + Send + 'static>(fx: &Fixture<S>, block: &Block) -> SubmitBlockResult {
+    fx.node.submit_block(&block.to_bytes()).unwrap()
+}
+
+/// Rantai `count` blok di atas `prev` mulai tinggi `from`, semuanya ke `owner`; setiap blok wajib `accepted`.
+fn extend<S: ChainStore + Send + 'static>(
+    fx: &Fixture<S>,
+    prev: Hash32,
+    from: u64,
+    count: u64,
+    owner: u8,
+) -> Vec<Block> {
+    let mut blocks = Vec::new();
+    let mut parent = prev;
+    for height in from..from + count {
+        let block = block_on(parent, height, owner, Vec::new(), 0);
+        assert_eq!(
+            submit(fx, &block).status,
+            SubmitStatus::Accepted,
+            "tinggi {height}"
+        );
+        parent = id_of(&block);
+        blocks.push(block);
+    }
+    blocks
+}
+
+fn side_count<S: ChainStore>(fx: &Fixture<S>) -> usize {
+    fx.node.lock().unwrap().side.len()
+}
+
+fn assert_active<S: ChainStore + Send + 'static>(fx: &Fixture<S>, blocks: &[Block]) {
+    let info = fx.node.chain_info().unwrap();
+    let height = u64::try_from(blocks.len()).unwrap();
+    assert_eq!(info.height, height);
+    assert_eq!(
+        info.best_block_id,
+        Hex32::from(id_of(blocks.last().unwrap()))
+    );
+    assert_eq!(
+        info.chainwork,
+        work(u8::try_from(2 * (blocks.len() + 1)).unwrap())
+    );
+    let schedule: Vec<_> = SupplySchedule::new().take(blocks.len() + 1).collect();
+    assert_eq!(
+        info.mined_total.amount(),
+        schedule[blocks.len()].mined_total_after
+    );
+    for (h, block) in (1_u64..).zip(blocks) {
+        assert_eq!(
+            fx.node.block_hash(h),
+            Ok(Hex32::from(id_of(block))),
+            "tinggi {h}"
+        );
+    }
+}
+
+/// Chain A tiga blok ke kunci 2, lalu cabang B empat blok ke kunci 4 dari genesis. Mengembalikan (A, B).
+fn reorg_scenario<S: ChainStore + Send + 'static>(fx: &Fixture<S>) -> (Vec<Block>, Vec<Block>) {
+    fx.now.store(FAR, Ordering::SeqCst);
+    let genesis = params().network_id();
+    let a = extend(fx, genesis, 1, 3, 2);
+    // B1 sampai B3: cabang, chainwork paling banyak sama dengan A, sehingga A tetap aktif.
+    let mut b = extend(fx, genesis, 1, 3, 4);
+    assert_active(fx, &a);
+    assert_eq!(side_count(fx), 3);
+    // B4: chainwork B lebih besar, reorg sedalam 3 blok.
+    let b4 = block_on(id_of(&b[2]), 4, 4, Vec::new(), 0);
+    assert_eq!(submit(fx, &b4).status, SubmitStatus::Accepted);
+    b.push(b4);
+    assert_active(fx, &b);
+    (a, b)
+}
+
+#[test]
+fn heavier_branch_reorgs_and_back() {
+    let fx = open(MemoryStore::default());
+    let (mut a, b) = reorg_scenario(&fx);
+    assert_eq!(side_count(&fx), 3);
+    assert!(
+        fx.node
+            .scan_utxos(&[Hex32::new(key(2))])
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(fx.node.scan_utxos(&[Hex32::new(key(4))]).unwrap().len(), 4);
+    // Blok cabang dikenal (duplicate), tetapi bukan isi chain aktif untuk get_block.
+    assert_eq!(submit(&fx, &a[0]).status, SubmitStatus::Duplicate);
+    assert_eq!(submit(&fx, &b[0]).status, SubmitStatus::Duplicate);
+    assert_eq!(
+        fx.node.block(Hex32::from(id_of(&a[0]))),
+        Err(RpcError::NotFound)
+    );
+
+    // A4 menyamai chainwork B: B tetap aktif (yang lebih dulu diterima). A5 membuat A lebih berat: reorg kembali.
+    let a4 = block_on(id_of(&a[2]), 4, 2, Vec::new(), 0);
+    assert_eq!(submit(&fx, &a4).status, SubmitStatus::Accepted);
+    assert_active(&fx, &b);
+    let a5 = block_on(id_of(&a4), 5, 2, Vec::new(), 0);
+    assert_eq!(submit(&fx, &a5).status, SubmitStatus::Accepted);
+    a.push(a4);
+    a.push(a5);
+    assert_active(&fx, &a);
+    assert_eq!(side_count(&fx), 4);
+    assert!(
+        fx.node
+            .scan_utxos(&[Hex32::new(key(4))])
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(fx.node.scan_utxos(&[Hex32::new(key(2))]).unwrap().len(), 5);
+    assert_eq!(fx.node.scan_utxos(&[Hex32::new(key(1))]).unwrap().len(), 1);
+}
+
+#[test]
+fn reorg_returns_transactions_to_mempool() {
+    let fx = open(MemoryStore::default());
+    fx.now.store(FAR, Ordering::SeqCst);
+    let genesis = params().network_id();
+    let main = extend(&fx, genesis, 1, 99, 2);
+    let a99 = id_of(main.last().unwrap());
+    let tx = spend_genesis(1, G - 1_000);
+    let a100 = block_on(a99, 100, 2, vec![tx.clone()], 1_000);
+    assert_eq!(submit(&fx, &a100).status, SubmitStatus::Accepted);
+    assert!(fx.node.mempool().unwrap().txids.is_empty());
+    assert_eq!(fx.node.scan_utxos(&[Hex32::new(key(3))]).unwrap().len(), 1);
+
+    // Cabang B dari blok 99 tanpa transaksi itu: B100 menyamai, B101 melebihi chainwork A.
+    let b100 = block_on(a99, 100, 4, Vec::new(), 0);
+    assert_eq!(submit(&fx, &b100).status, SubmitStatus::Accepted);
+    assert_eq!(
+        fx.node.chain_info().unwrap().best_block_id,
+        Hex32::from(id_of(&a100))
+    );
+    let b101 = block_on(id_of(&b100), 101, 4, Vec::new(), 0);
+    assert_eq!(submit(&fx, &b101).status, SubmitStatus::Accepted);
+    let info = fx.node.chain_info().unwrap();
+    assert_eq!(info.height, 101);
+    assert_eq!(info.best_block_id, Hex32::from(id_of(&b101)));
+
+    // Transaksi dari blok yang dilepas kembali ke mempool, dan alokasi genesis belum dibelanjakan di chain B.
+    assert_eq!(
+        fx.node.mempool().unwrap().txids,
+        vec![Hex32::from(txid(&tx))]
+    );
+    assert!(
+        fx.node
+            .scan_utxos(&[Hex32::new(key(3))])
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(fx.node.scan_utxos(&[Hex32::new(key(1))]).unwrap().len(), 1);
+    let template = fx.node.block_template(&payout(4)).unwrap();
+    assert_eq!(template.height, 102);
+    assert_eq!(template.fees.amount(), Amount::from_quanta(1_000));
+    let block = Block::from_bytes(template.hex.as_slice()).unwrap();
+    assert_eq!(block.txs().len(), 2);
+    assert_eq!(submit(&fx, &solve(&block)).status, SubmitStatus::Accepted);
+    assert!(fx.node.mempool().unwrap().txids.is_empty());
+    assert_eq!(fx.node.scan_utxos(&[Hex32::new(key(3))]).unwrap().len(), 1);
+}
+
+#[test]
+fn invalid_branch_is_marked_and_active_chain_restored() {
+    let fx = open(MemoryStore::default());
+    fx.now.store(FAR, Ordering::SeqCst);
+    let genesis = params().network_id();
+    let a = extend(&fx, genesis, 1, 2, 2);
+    let b1 = block_on(genesis, 1, 4, Vec::new(), 0);
+    assert_eq!(submit(&fx, &b1).status, SubmitStatus::Accepted);
+    // B2 mengklaim satu quanta terlalu banyak (V10). Headernya sah, jadi diterima sebagai blok cabang dulu.
+    let b2 = block_on(id_of(&b1), 2, 4, Vec::new(), 1);
+    assert_eq!(submit(&fx, &b2).status, SubmitStatus::Accepted);
+    // B3 membuat cabang B lebih berat; reorg gagal di B2, chain A dipulihkan.
+    let b3 = block_on(id_of(&b2), 3, 4, Vec::new(), 0);
+    assert_eq!(submit(&fx, &b3), rejected_block(&b3, "V5"));
+    assert_eq!(super::INVALID_ANCESTOR_RULE, "V5");
+    assert_active(&fx, &a);
+    assert_eq!(fx.node.scan_utxos(&[Hex32::new(key(2))]).unwrap().len(), 2);
+    assert!(
+        fx.node
+            .scan_utxos(&[Hex32::new(key(4))])
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(submit(&fx, &b2), rejected_block(&b2, "V10"));
+    assert_eq!(submit(&fx, &b3), rejected_block(&b3, "V5"));
+    let b4 = block_on(id_of(&b3), 4, 4, Vec::new(), 0);
+    assert_eq!(submit(&fx, &b4), rejected_block(&b4, "V5"));
+    // B1 sendiri sah dan tetap blok cabang.
+    assert_eq!(submit(&fx, &b1).status, SubmitStatus::Duplicate);
+    assert_eq!(side_count(&fx), 1);
+
+    // Cabang sah lain di atas B1 menang setelah lebih berat.
+    let c2 = block_on(id_of(&b1), 2, 5, Vec::new(), 0);
+    assert_eq!(submit(&fx, &c2).status, SubmitStatus::Accepted);
+    assert_active(&fx, &a);
+    let c3 = block_on(id_of(&c2), 3, 5, Vec::new(), 0);
+    assert_eq!(submit(&fx, &c3).status, SubmitStatus::Accepted);
+    assert_active(&fx, &[b1, c2, c3]);
+    assert_eq!(side_count(&fx), 2);
+}
+
+#[test]
+fn memory_and_redb_agree_after_reorg_and_reopen() {
+    let mem = open(MemoryStore::default());
+    let rdb = open(RedbStore::in_memory().unwrap());
+    let (_, b) = reorg_scenario(&mem);
+    let (_, b_rdb) = reorg_scenario(&rdb);
+    assert_eq!(b, b_rdb);
+    let info = mem.node.chain_info().unwrap();
+    assert_eq!(info, rdb.node.chain_info().unwrap());
+    let payloads = [Hex32::new(key(1)), Hex32::new(key(2)), Hex32::new(key(4))];
+    assert_eq!(
+        mem.node.scan_utxos(&payloads).unwrap(),
+        rdb.node.scan_utxos(&payloads).unwrap()
+    );
+
+    // Dibuka ulang: chain aktif (cabang B) utuh; blok cabang tidak disimpan di penyimpanan (v0.1).
+    let reopened = open(rdb.node.into_store().unwrap());
+    assert_eq!(reopened.node.chain_info().unwrap(), info);
+    assert_active(&reopened, &b);
+    assert_eq!(side_count(&reopened), 0);
 }

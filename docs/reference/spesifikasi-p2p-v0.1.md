@@ -158,6 +158,8 @@ ditulis lewat `--connect` juga bisa diblokir.
 - Perlindungan eclipse dan sybil minimal (batas koneksi, sanksi). Wajib ditinjau ulang sebelum mainnet.
 - Blok dikirim utuh ke setiap rekan; cukup untuk blok 100_000 byte setiap 120 detik, tetapi boros jika rekan banyak.
 - Ring (kode C dan assembly) masuk lewat Noise (DEC-24). Reproducible build (TSK-F10) wajib mengunci versi compiler C.
+- Blok cabang disimpan di memori node, tanpa batas jumlah, dan hilang saat node dibuka ulang (diterima lagi dari rekan
+  lewat sinkronisasi). Penyimpanan cabang di MOD-05 dan batas memori menyusul sebelum testnet.
 
 ---
 
@@ -165,8 +167,8 @@ ditulis lewat `--connect` juga bisa diblokir.
 
 | Isi | Modul | Task |
 |---|---|---|
-| Penyimpanan blok cabang dan data untuk reorg | MOD-05 | TSK-M27 |
-| Indeks header, pemilihan chain berdasarkan chainwork, reorg, blok yang induknya belum dikenal | MOD-11 | TSK-M27 |
+| Blok cabang (di memori node pada v0.1; MOD-05 tetap hanya chain aktif), pemilihan chain berdasarkan chainwork, reorg, blok yang induknya belum dikenal | MOD-11 | TSK-M27 |
+| Indeks header tanpa badan blok (untuk sinkronisasi header dulu) | MOD-11 | TSK-M28 |
 | Swarm libp2p, 5 protokol, codec pesan, kunci rekan, batas koneksi, sanksi | MOD-06 | TSK-M14 |
 | Sinkronisasi header lalu blok, siaran, opsi daemon | MOD-11 | TSK-M28 |
 | 4 node atau lebih tetap sinkron, jaringan terpisah lalu tersambung (reorg dalam), node yang tertinggal mengejar | MOD-17 | TSK-F04 |
