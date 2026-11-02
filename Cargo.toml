@@ -43,6 +43,13 @@ k256 = { version = "0.13.4", default-features = false }
 sha2 = { version = "0.10.9", default-features = false }
 hmac = { version = "0.12.1", default-features = false }
 pbkdf2 = { version = "0.12.2", default-features = false, features = ["hmac"] }
+# DEC-27 (DEC-10 bagian 8): enkripsi file wallet, hanya MOD-09 (argon2, chacha20poly1305, zeroize) dan MOD-12
+# (rpassword, zeroize). Seri digest 0.10 seperti k256: chacha20poly1305 0.10.1, blake2 0.10.6, dan zeroize 1.9.1
+# sudah ada di Cargo.lock lewat libp2p dan k256. Fitur ditambah di crate.
+argon2 = { version = "0.5.3", default-features = false }
+chacha20poly1305 = { version = "0.10.1", default-features = false }
+zeroize = { version = "1.9.1", default-features = false }
+rpassword = { version = "7.5.4", default-features = false }
 redb = { version = "4.4.0", default-features = false, features = ["std"] }
 # DEC-10 bagian 2: hanya untuk crate di luar konsensus (network, rpc, aplikasi). Fitur ditambah per crate.
 tokio = { version = "1.54.1", default-features = false }
@@ -80,3 +87,11 @@ lossy_float_literal = "deny"
 cast_precision_loss = "deny"
 imprecise_flops = "deny"
 suboptimal_flops = "deny"
+
+# DEC-27: Argon2id dan BLAKE2 di dalamnya dioptimalkan juga di profil dev dan test, agar uji wallet dengan parameter
+# Argon2id penuh (64 MiB) tidak lambat. Tidak mengubah Cargo.lock maupun build rilis.
+[profile.dev.package.argon2]
+opt-level = 3
+
+[profile.dev.package.blake2]
+opt-level = 3

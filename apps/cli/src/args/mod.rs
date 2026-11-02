@@ -20,17 +20,22 @@ pub const USAGE: &str = concat!(
     "\n",
     "Perintah:\n",
     "  info                                ringkasan chain dari node\n",
-    "  wallet-create                       wallet baru 24 kata di <folder>/regtest/wallet.json\n",
-    "  wallet-restore --mnemonic \"<kata>\"  pulihkan wallet dari 12 sampai 24 kata\n",
+    "  wallet-create                       wallet baru 24 kata di <folder>/regtest/wallet.json, dikunci password\n",
+    "  wallet-restore --mnemonic \"<kata>\"  pulihkan wallet dari 12 sampai 24 kata, dikunci password\n",
+    "  wallet-encrypt                      kunci wallet lama (tanpa password) dengan password\n",
+    "  wallet-show-phrase                  tampilkan frasa pemulihan (butuh password)\n",
     "  address                             alamat penerimaan baru dan payload-nya (tanpa node)\n",
     "  balance                             saldo dari node lewat scan_utxos\n",
     "  send --to <alamat> --amount <HSIS> [--fee-rate <quanta per byte>]\n",
-    "                                      kirim HSIS (tarif bawaan 1 quanta per byte)\n",
+    "                                      kirim HSIS (tarif bawaan 1 quanta per byte, butuh password)\n",
     "\n",
     "Opsi umum:\n",
     "  --rpc-url <url>       alamat RPC node (bawaan http://127.0.0.1:28801)\n",
     "  --datadir <folder>    folder data wallet, wajib untuk perintah wallet\n",
-    "  --passphrase <teks>   passphrase BIP39, ASCII cetak; tidak disimpan di file wallet",
+    "  --passphrase <teks>   passphrase BIP39, ASCII cetak; tidak disimpan di file wallet\n",
+    "\n",
+    "Password wallet (minimal 8 karakter) diketik tanpa tampil di layar; untuk skrip regtest boleh lewat variabel\n",
+    "lingkungan HOMEOSTASIS_WALLET_PASSWORD. address dan balance tidak butuh password.",
 );
 
 /// Perintah hasil membaca argumen.
@@ -80,6 +85,10 @@ pub enum Action {
         /// Frasa pemulihan apa adanya; dinormalkan saat diurai.
         mnemonic: String,
     },
+    /// `wallet-encrypt`: kunci file wallet lama (versi 1, tanpa password) dengan password.
+    WalletEncrypt,
+    /// `wallet-show-phrase`: tampilkan frasa pemulihan.
+    WalletShowPhrase,
     /// `address`: alamat penerimaan berikutnya.
     Address,
     /// `balance`: saldo dari node.
@@ -103,6 +112,8 @@ impl Action {
             Self::Info => "info",
             Self::WalletCreate => "wallet-create",
             Self::WalletRestore { .. } => "wallet-restore",
+            Self::WalletEncrypt => "wallet-encrypt",
+            Self::WalletShowPhrase => "wallet-show-phrase",
             Self::Address => "address",
             Self::Balance => "balance",
             Self::Send { .. } => "send",
@@ -124,9 +135,12 @@ impl core::fmt::Debug for Action {
                 .field("amount", amount)
                 .field("fee_rate", fee_rate)
                 .finish(),
-            Self::Info | Self::WalletCreate | Self::Address | Self::Balance => {
-                f.write_str(self.name())
-            }
+            Self::Info
+            | Self::WalletCreate
+            | Self::WalletEncrypt
+            | Self::WalletShowPhrase
+            | Self::Address
+            | Self::Balance => f.write_str(self.name()),
         }
     }
 }
@@ -147,7 +161,9 @@ pub enum ArgError {
     #[error("--help dan --version tidak boleh digabung dengan argumen lain")]
     Exclusive,
     /// Tidak ada perintah.
-    #[error("perintah wajib diisi (info, wallet-create, wallet-restore, address, balance, send)")]
+    #[error(
+        "perintah wajib diisi (info, wallet-create, wallet-restore, wallet-encrypt, wallet-show-phrase, address, balance, send)"
+    )]
     MissingAction,
     /// Lebih dari satu perintah.
     #[error("hanya satu perintah yang boleh: {0}")]
@@ -182,6 +198,8 @@ enum Kind {
     Info,
     WalletCreate,
     WalletRestore,
+    WalletEncrypt,
+    WalletShowPhrase,
     Address,
     Balance,
     Send,
@@ -193,6 +211,8 @@ impl Kind {
             "info" => Some(Self::Info),
             "wallet-create" => Some(Self::WalletCreate),
             "wallet-restore" => Some(Self::WalletRestore),
+            "wallet-encrypt" => Some(Self::WalletEncrypt),
+            "wallet-show-phrase" => Some(Self::WalletShowPhrase),
             "address" => Some(Self::Address),
             "balance" => Some(Self::Balance),
             "send" => Some(Self::Send),
@@ -205,6 +225,8 @@ impl Kind {
             Self::Info => "info",
             Self::WalletCreate => "wallet-create",
             Self::WalletRestore => "wallet-restore",
+            Self::WalletEncrypt => "wallet-encrypt",
+            Self::WalletShowPhrase => "wallet-show-phrase",
             Self::Address => "address",
             Self::Balance => "balance",
             Self::Send => "send",
@@ -370,6 +392,8 @@ fn build(kind: Kind, options: Options) -> Result<Config, ArgError> {
         Kind::WalletRestore => Action::WalletRestore {
             mnemonic: require(options.mnemonic, "--mnemonic", kind)?,
         },
+        Kind::WalletEncrypt => Action::WalletEncrypt,
+        Kind::WalletShowPhrase => Action::WalletShowPhrase,
         Kind::Address => Action::Address,
         Kind::Balance => Action::Balance,
         Kind::Send => Action::Send {

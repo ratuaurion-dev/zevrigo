@@ -4,7 +4,7 @@
 
 use std::process::ExitCode;
 
-use homeostasis_cli::{Command, USAGE, os_random, parse_args, run};
+use homeostasis_cli::{Command, USAGE, os_random, parse_args, run, terminal_password};
 
 const BIN_NAME: &str = "homeostasis-cli";
 
@@ -26,7 +26,7 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    match run(&config, os_random) {
+    match run(&config, os_random, terminal_password) {
         Ok(text) => {
             print!("{text}");
             ExitCode::SUCCESS

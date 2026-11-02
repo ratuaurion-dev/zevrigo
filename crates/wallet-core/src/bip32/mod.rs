@@ -12,6 +12,7 @@ use homeostasis_crypto::{
 };
 use homeostasis_primitives::Network;
 use sha2::Sha512;
+use zeroize::Zeroize;
 
 use crate::mnemonic::Seed;
 
@@ -194,6 +195,14 @@ impl ExtendedPrivKey {
 impl fmt::Debug for ExtendedPrivKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("ExtendedPrivKey(<rahasia>)")
+    }
+}
+
+/// Kunci rahasia dan chain code dihapus dari memori saat kunci dibuang (DEC-27).
+impl Drop for ExtendedPrivKey {
+    fn drop(&mut self) {
+        self.secret.zeroize();
+        self.chain_code.zeroize();
     }
 }
 

@@ -1,0 +1,9 @@
+# Paket baru di Cargo.lock karena DEC-27 (enkripsi file wallet MOD-09 dan password MOD-12, TSK-M37)
+# Dibuat skrip gerbang Q89 dari Cargo.lock dan source registry crates.io. Kolom: nama versi | lisensi |
+# build script | baris unsafe di luar komentar (src/) | status lisensi (ok = permisif menurut daftar Q78/Q82/Q83/Q89).
+# Paket yang hanya untuk target lain (misalnya wasm32) ikut tercatat karena Cargo.lock berlaku untuk semua target.
+# jumlah: 4, lisensi ditolak: 0
+argon2 0.5.3 | MIT OR Apache-2.0 | tidak | 2 | ok
+base64ct 1.8.3 | Apache-2.0 OR MIT | tidak | 4 | ok
+rpassword 7.5.4 | Apache-2.0 | tidak | 20 | ok
+rtoolbox 0.0.6 | Apache-2.0 | tidak | 15 | ok

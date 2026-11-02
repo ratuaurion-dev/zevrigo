@@ -17,7 +17,7 @@ mod ftr03 {
     use std::sync::atomic::{AtomicU64, Ordering};
 
     use homeostasis_cli::{
-        Balance, Cli, CliError, Sent, next_address, wallet_create, wallet_restore,
+        Balance, Cli, CliError, Protection, Sent, next_address, wallet_create, wallet_restore,
     };
     use homeostasis_consensus::{
         ChainParams, REGTEST_GENESIS_TIMESTAMP, ScheduleEntry, SupplySchedule,
@@ -29,7 +29,7 @@ mod ftr03 {
     use homeostasis_primitives::{Amount, Block, Decode, Network, OutputKind};
     use homeostasis_rpc::{Hex32, KindNumber, RpcClient, RpcServer};
     use homeostasis_storage::RedbStore;
-    use homeostasis_wallet_core::{SendError, decode_address};
+    use homeostasis_wallet_core::{KdfParams, SendError, decode_address};
     use tokio::runtime::Runtime;
 
     /// Dikirim wallet A ke wallet B: 0,005 HSIS (butuh dua coinbase matang A, sehingga ada dua input dan kembalian).
@@ -95,8 +95,34 @@ mod ftr03 {
         Amount::from_quanta(value)
     }
 
+    /// Password kedua wallet uji (DEC-27).
+    const PASSWORD: &str = "password uji ftr03";
+
+    /// Kunci file wallet dengan [`PASSWORD`], Argon2id ringan (8 KiB, 1 putaran) agar uji cepat; `fill` membedakan
+    /// salt dan nonce.
+    fn lock(fill: u8) -> Protection<'static> {
+        Protection {
+            password: PASSWORD,
+            kdf: KdfParams {
+                memory_kib: 8,
+                iterations: 1,
+                parallelism: 1,
+            },
+            salt: [fill; 16],
+            nonce: [fill; 24],
+        }
+    }
+
     fn send(cli: &Cli, datadir: &Path, to: &str, amount: u128, aux: u8) -> Result<Sent, CliError> {
-        cli.send(datadir, "", to, quanta(amount), FEE_RATE, &[aux; 32])
+        cli.send(
+            datadir,
+            "",
+            PASSWORD,
+            to,
+            quanta(amount),
+            FEE_RATE,
+            &[aux; 32],
+        )
     }
 
     /// Txid semua transaksi di blok setinggi `height`, dan jumlah output coinbase-nya.
@@ -138,8 +164,8 @@ mod ftr03 {
         // Dua wallet baru (entropi tetap agar deterministik; biner memakai /dev/urandom).
         let dir_a = TempDir::new("a");
         let dir_b = TempDir::new("b");
-        let (mnemonic_a, _) = wallet_create(&dir_a.0, &[0x11; 32]).unwrap();
-        wallet_create(&dir_b.0, &[0x22; 32]).unwrap();
+        let (mnemonic_a, _) = wallet_create(&dir_a.0, &[0x11; 32], "", &lock(1)).unwrap();
+        wallet_create(&dir_b.0, &[0x22; 32], "", &lock(2)).unwrap();
         let address_a = next_address(&dir_a.0, "").unwrap();
         assert!(address_a.starts_with("rhsis1q"), "{address_a}");
 
@@ -297,7 +323,7 @@ mod ftr03 {
 
         // Wallet yang dipulihkan dari frasa A melihat saldo yang sama, termasuk kembalian di cabang 1.
         let dir_restored = TempDir::new("restored");
-        wallet_restore(&dir_restored.0, mnemonic_a.phrase()).unwrap();
+        wallet_restore(&dir_restored.0, mnemonic_a.phrase(), "", &lock(3)).unwrap();
         assert_eq!(cli.balance(&dir_restored.0, "").unwrap(), expected_a);
 
         // Pasokan tetap sama dengan jadwal: transaksi hanya memindahkan koin, biaya masuk ke penambang.

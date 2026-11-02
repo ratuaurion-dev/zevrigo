@@ -6,6 +6,7 @@
 use core::fmt;
 
 use sha2::{Digest, Sha256, Sha512};
+use zeroize::Zeroize;
 
 const ENGLISH: &str = include_str!("english.txt");
 
@@ -233,6 +234,14 @@ impl fmt::Debug for Mnemonic {
     }
 }
 
+/// Entropi dan frasa dihapus dari memori saat frasa dibuang (DEC-27).
+impl Drop for Mnemonic {
+    fn drop(&mut self) {
+        self.entropy.zeroize();
+        self.phrase.zeroize();
+    }
+}
+
 /// Seed BIP39 64 byte, masukan kunci induk BIP32.
 ///
 /// [`fmt::Debug`] tidak pernah mencetak byte seed.
@@ -244,6 +253,13 @@ impl Seed {
     #[must_use]
     pub const fn as_bytes(&self) -> &[u8; SEED_LEN] {
         &self.0
+    }
+}
+
+/// Seed dihapus dari memori saat dibuang (DEC-27).
+impl Drop for Seed {
+    fn drop(&mut self) {
+        self.0.zeroize();
     }
 }
 

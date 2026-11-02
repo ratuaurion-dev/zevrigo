@@ -4,7 +4,8 @@
 //!
 //! Crate ini bukan konsensus: chain hanya menyimpan `kind` dan `payload` output. Penjumlahan skalar dan titik
 //! secp256k1, `sighash_v1`, dan BIP340 memakai MOD-02; SHA-256, HMAC-SHA512, dan PBKDF2 memakai `sha2`, `hmac`, dan
-//! `pbkdf2` (DEC-10 bagian 4).
+//! `pbkdf2` (DEC-10 bagian 4). Enkripsi frasa dengan password (Argon2id + XChaCha20-Poly1305) di [`vault`] (DEC-27);
+//! frasa, seed, dan kunci rahasia dihapus dari memori saat dibuang (`zeroize`).
 
 #![forbid(unsafe_code)]
 #![deny(
@@ -17,6 +18,7 @@ pub mod address;
 pub mod bip32;
 pub mod mnemonic;
 pub mod send;
+pub mod vault;
 
 pub use address::{AddressError, PAYLOAD_LEN, decode_address, encode_address};
 pub use bip32::{
@@ -30,6 +32,7 @@ pub use mnemonic::{
 pub use send::{
     Coin, Plan, SINGLE_KEY_WITNESS_SIZE, SendError, SendRequest, build_transaction, plan, sign_plan,
 };
+pub use vault::{KdfParams, NONCE_LEN, SALT_LEN, Sealed, VaultError, seal, unseal};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-09";

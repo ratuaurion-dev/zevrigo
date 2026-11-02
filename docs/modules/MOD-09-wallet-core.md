@@ -15,7 +15,7 @@ Menyediakan pustaka inti pengelolaan kunci, pemilihan UTXO, penyusunan, dan pena
 
 - Derivasi serta pengelolaan kunci publik/privat dan mode *watch-only*.
 - Pemilihan koin (*coin selection*), perhitungan biaya transaksi, penyusunan transaksi (transfer, MuSig2, kunci waktu), dan pembuatan tanda tangan.
-- Aturan lengkap: [spesifikasi-wallet-v0.1.md](../reference/spesifikasi-wallet-v0.1.md) (frasa BIP39 DEC-22, turunan BIP32 `m/44'/1'/0'/k/i`, alamat bech32m DEC-11, pemilihan koin). Dependensi eksternal: `sha2`, `hmac`, `pbkdf2` (DEC-10 bagian 4).
+- Aturan lengkap: [spesifikasi-wallet-v0.1.md](../reference/spesifikasi-wallet-v0.1.md) (frasa BIP39 DEC-22, turunan BIP32 `m/44'/1'/0'/k/i`, alamat bech32m DEC-11, pemilihan koin). Dependensi eksternal: `sha2`, `hmac`, `pbkdf2` (DEC-10 bagian 4); `argon2`, `chacha20poly1305`, `zeroize` (DEC-10 bagian 8, DEC-27).
 
 ## Bukan Tanggung Jawab
 
@@ -24,3 +24,4 @@ Menyediakan pustaka inti pengelolaan kunci, pemilihan UTXO, penyusunan, dan pena
 ## Task terkait
 - [TSK-M15](../tasks/TSK-M15-wallet-frasa-turunan-alamat.md) — 🟢 selesai (modul `mnemonic`, `bip32`, `address`)
 - [TSK-M16](../tasks/TSK-M16-wallet-kirim.md) — 🟢 selesai (modul `send`: `plan`, `sign_plan`, `build_transaction`)
+- [TSK-M37](../tasks/TSK-M37-enkripsi-wallet.md) — 🟢 selesai (modul `vault`: Argon2id + XChaCha20-Poly1305, DEC-27; frasa, seed, dan kunci dihapus dari memori)

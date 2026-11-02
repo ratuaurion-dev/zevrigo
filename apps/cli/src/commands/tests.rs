@@ -12,15 +12,17 @@ use homeostasis_rpc::{
     MempoolInfo, MempoolOutput, MempoolScan, MempoolSpend, NetworkName, Quanta, RpcBackend,
     RpcError, RpcServer, SendRawTransactionResult, SubmitBlockResult, UtxoInfo,
 };
-use homeostasis_wallet_core::{AddressError, SendError};
+use homeostasis_wallet_core::{AddressError, KdfParams, Mnemonic, SendError};
 use tokio::runtime::Runtime;
+use zeroize::Zeroizing;
 
 use super::{
-    Balance, Cli, CliError, Sent, format_balance, format_info, format_sent, next_address, run,
-    wallet_create, wallet_restore,
+    Balance, Cli, CliError, PasswordPrompt, Protection, Sent, check_new_password, format_balance,
+    format_info, format_sent, next_address, run, show_phrase, wallet_create, wallet_encrypt,
+    wallet_restore,
 };
 use crate::args::{Action, Config};
-use crate::wallet_file::{NextIndex, WalletFileError, load, wallet_path};
+use crate::wallet_file::{NextIndex, WalletFile, WalletFileError, create_new, load, wallet_path};
 
 const HSIS: u128 = 1_000_000_000_000_000_000;
 const W1: &str = concat!(
@@ -46,6 +48,26 @@ const T1_TX: &str = concat!(
     "34efd3f7d66cff1c5ba294d04803b2bd298b1ba5aae19dc09ba56f00d208bcda0d1e9ae93e1e68f9f298d75c4d86a649",
     "928be7d63a48765340a35ecd11acf3b31110d7b8eee5b491e1220be4d8a084e53632fd23f4f7fbd9d57157dd",
 );
+
+/// Password wallet uji.
+const PASSWORD: &str = "kata sandi uji";
+
+/// Argon2id ringan untuk uji (8 KiB, 1 putaran); CLI memakai `KdfParams::DEFAULT`.
+const LIGHT_KDF: KdfParams = KdfParams {
+    memory_kib: 8,
+    iterations: 1,
+    parallelism: 1,
+};
+
+/// Kunci file wallet uji dengan [`PASSWORD`]; `fill` membedakan salt dan nonce.
+fn lock(fill: u8) -> Protection<'static> {
+    Protection {
+        password: PASSWORD,
+        kdf: LIGHT_KDF,
+        salt: [fill; 16],
+        nonce: [fill; 24],
+    }
+}
 
 /// Kembalian T1: 8 HSIS − 6 HSIS − biaya 284.
 const T1_CHANGE: u128 = 2 * HSIS - 284;
@@ -278,14 +300,19 @@ impl Drop for Harness {
 #[test]
 fn create_restore_and_address_without_node() {
     let dir = TempDir::new("create");
-    let (mnemonic, path) = wallet_create(&dir.0, &[0_u8; 32]).unwrap();
+    let (mnemonic, path) = wallet_create(&dir.0, &[0_u8; 32], "", &lock(1)).unwrap();
     assert_eq!(mnemonic.phrase(), W1);
     assert_eq!(path, wallet_path(&dir.0));
     assert!(matches!(
-        wallet_create(&dir.0, &[1_u8; 32]),
+        wallet_create(&dir.0, &[1_u8; 32], "", &lock(1)),
         Err(CliError::File(WalletFileError::Exists { .. }))
     ));
-    assert_eq!(load(&path).unwrap().mnemonic, W1);
+    // File versi 2: frasa tidak tersimpan terbuka, hanya bisa dibuka dengan password.
+    let stored = load(&path).unwrap();
+    assert!(stored.is_encrypted());
+    assert_eq!(stored.mnemonic, None);
+    assert!(!std::fs::read_to_string(&path).unwrap().contains("abandon"));
+    assert_eq!(show_phrase(&dir.0, PASSWORD).unwrap().as_str(), W1);
 
     assert_eq!(next_address(&dir.0, "").unwrap(), W5);
     assert_eq!(next_address(&dir.0, "").unwrap(), W6);
@@ -296,26 +323,33 @@ fn create_restore_and_address_without_node() {
             change: 0
         }
     );
+    let bad_passphrase = TempDir::new("bad-passphrase");
     assert!(matches!(
-        next_address(&dir.0, "\u{e9}"),
+        wallet_create(&bad_passphrase.0, &[0_u8; 32], "\u{e9}", &lock(1)),
         Err(CliError::Mnemonic(_))
     ));
+    assert!(!wallet_path(&bad_passphrase.0).exists());
 
+    // Passphrase dipakai saat wallet dibuat; alamat sesudahnya dari kunci akun publik di file.
     let trezor = TempDir::new("trezor");
-    wallet_create(&trezor.0, &[0_u8; 32]).unwrap();
-    assert_eq!(next_address(&trezor.0, "TREZOR").unwrap(), W9);
+    wallet_create(&trezor.0, &[0_u8; 32], "TREZOR", &lock(2)).unwrap();
+    assert_eq!(next_address(&trezor.0, "").unwrap(), W9);
 
     let restored = TempDir::new("restore");
     let messy = W8_PHRASE.to_ascii_uppercase().replace(' ', "  ");
-    let path = wallet_restore(&restored.0, &messy).unwrap();
-    assert_eq!(load(&path).unwrap().mnemonic, W8_PHRASE);
+    let path = wallet_restore(&restored.0, &messy, "", &lock(3)).unwrap();
+    assert!(load(&path).unwrap().is_encrypted());
+    assert_eq!(
+        show_phrase(&restored.0, PASSWORD).unwrap().as_str(),
+        W8_PHRASE
+    );
     assert!(matches!(
-        wallet_restore(&restored.0, W8_PHRASE),
+        wallet_restore(&restored.0, W8_PHRASE, "", &lock(3)),
         Err(CliError::File(WalletFileError::Exists { .. }))
     ));
     let empty = TempDir::new("bad-phrase");
     assert!(matches!(
-        wallet_restore(&empty.0, "legal winner"),
+        wallet_restore(&empty.0, "legal winner", "", &lock(4)),
         Err(CliError::Mnemonic(_))
     ));
     assert!(!wallet_path(&empty.0).exists());
@@ -328,7 +362,7 @@ fn create_restore_and_address_without_node() {
 #[test]
 fn balance_and_send_match_vector_t1() {
     let dir = TempDir::new("send");
-    wallet_create(&dir.0, &[0_u8; 32]).unwrap();
+    wallet_create(&dir.0, &[0_u8; 32], "", &lock(1)).unwrap();
     let harness = Harness::start(Network::Regtest, t1_utxos(), None);
     let cli = harness.cli();
 
@@ -368,6 +402,7 @@ fn balance_and_send_match_vector_t1() {
         .send(
             &dir.0,
             "",
+            PASSWORD,
             RECIPIENT,
             Amount::from_quanta(SIX_HSIS),
             1,
@@ -417,11 +452,19 @@ fn balance_and_send_match_vector_t1() {
 #[test]
 fn send_errors_leave_wallet_unchanged() {
     let dir = TempDir::new("errors");
-    wallet_create(&dir.0, &[0_u8; 32]).unwrap();
+    wallet_create(&dir.0, &[0_u8; 32], "", &lock(1)).unwrap();
     let harness = Harness::start(Network::Regtest, t1_utxos(), None);
     let cli = harness.cli();
     let send = |to: &str, quanta: u128| {
-        cli.send(&dir.0, "", to, Amount::from_quanta(quanta), 1, &[0_u8; 32])
+        cli.send(
+            &dir.0,
+            "",
+            PASSWORD,
+            to,
+            Amount::from_quanta(quanta),
+            1,
+            &[0_u8; 32],
+        )
     };
     assert!(matches!(
         send(TESTNET_RECIPIENT, SIX_HSIS),
@@ -447,6 +490,7 @@ fn send_errors_leave_wallet_unchanged() {
         .send(
             &dir.0,
             "",
+            PASSWORD,
             RECIPIENT,
             Amount::from_quanta(SIX_HSIS),
             1,
@@ -473,32 +517,91 @@ fn run_dispatches_actions() {
         passphrase: String::new(),
         action,
     };
+    let given = |text: &'static str| {
+        move |_prompt: PasswordPrompt| -> Result<Zeroizing<String>, CliError> {
+            Ok(Zeroizing::new(text.to_owned()))
+        }
+    };
+    let never = || -> Result<[u8; 32], CliError> { unreachable!("tidak butuh angka acak") };
+    let no_password = |_prompt: PasswordPrompt| -> Result<Zeroizing<String>, CliError> {
+        unreachable!("tidak butuh password")
+    };
+
+    // wallet-create: password baru ditanya dua kali; entropi, salt, dan nonce dari tiga panggilan acak.
     let mut draws = 0_u32;
-    let output = run(&config(Action::WalletCreate), || {
-        draws = draws.saturating_add(1);
-        Ok([0_u8; 32])
-    })
+    let mut asked: Vec<PasswordPrompt> = Vec::new();
+    let output = run(
+        &config(Action::WalletCreate),
+        || {
+            draws = draws.saturating_add(1);
+            Ok([0_u8; 32])
+        },
+        |prompt| {
+            asked.push(prompt);
+            Ok(Zeroizing::new(PASSWORD.to_owned()))
+        },
+    )
     .unwrap();
-    assert_eq!(draws, 1);
+    assert_eq!(draws, 3);
+    assert_eq!(asked, vec![PasswordPrompt::New, PasswordPrompt::Confirm]);
     assert!(output.starts_with("wallet dibuat: "), "{output}");
     assert!(
-        output.ends_with(&format!(
-            "(24 kata, simpan baik-baik; file regtest tanpa enkripsi):\n{W1}\n"
-        )),
+        output.contains("\nfile wallet dikunci password (Argon2id + XChaCha20-Poly1305)\n"),
         "{output}"
     );
-    let never = || -> Result<[u8; 32], CliError> { unreachable!("address tidak butuh angka acak") };
+    assert!(output.ends_with(&format!(":\n{W1}\n")), "{output}");
+    let stored = load(&wallet_path(&dir.0)).unwrap();
+    let kdf = stored
+        .encrypted
+        .as_ref()
+        .map(|phrase| (phrase.memory_kib, phrase.iterations, phrase.parallelism));
+    assert_eq!(kdf, Some((65_536, 3, 1)));
+
+    // address tanpa password; wallet-show-phrase dengan password; wallet-encrypt ditolak untuk wallet versi 2.
     assert_eq!(
-        run(&config(Action::Address), never).unwrap(),
+        run(&config(Action::Address), never, no_password).unwrap(),
         format!("alamat: {W5}\npayload: {W5_XONLY}\n")
     );
+    assert_eq!(
+        run(&config(Action::WalletShowPhrase), never, given(PASSWORD)).unwrap(),
+        format!("frasa pemulihan (24 kata):\n{W1}\n")
+    );
+    assert!(matches!(
+        run(
+            &config(Action::WalletShowPhrase),
+            never,
+            given("password salah")
+        ),
+        Err(CliError::WrongPassword)
+    ));
+    assert!(matches!(
+        run(&config(Action::WalletEncrypt), never, no_password),
+        Err(CliError::AlreadyEncrypted)
+    ));
+
+    // Password baru tidak sama dengan ulangannya: wallet tidak dibuat.
+    let other = TempDir::new("run-other");
+    let other_config = Config {
+        datadir: Some(other.0.clone()),
+        ..config(Action::WalletCreate)
+    };
+    let mut answers = ["satu dua tiga", "satu dua empat"].into_iter();
+    assert!(matches!(
+        run(
+            &other_config,
+            || Ok([0_u8; 32]),
+            |_prompt| Ok(Zeroizing::new(answers.next().unwrap().to_owned()))
+        ),
+        Err(CliError::PasswordMismatch)
+    ));
+    assert!(!wallet_path(&other.0).exists());
 
     let missing = Config {
         datadir: None,
         ..config(Action::Balance)
     };
     assert!(matches!(
-        run(&missing, never),
+        run(&missing, never, no_password),
         Err(CliError::MissingDatadir)
     ));
 
@@ -510,7 +613,85 @@ fn run_dispatches_actions() {
         rpc_url: closed,
         ..config(Action::Info)
     };
-    assert!(matches!(run(&offline, never), Err(CliError::Rpc { .. })));
+    assert!(matches!(
+        run(&offline, never, no_password),
+        Err(CliError::Rpc { .. })
+    ));
+}
+
+#[test]
+fn encrypted_wallet_rules() {
+    assert!(matches!(
+        check_new_password("1234567", "1234567"),
+        Err(CliError::PasswordTooShort)
+    ));
+    assert!(matches!(
+        check_new_password("kata sandi", "kata sandI"),
+        Err(CliError::PasswordMismatch)
+    ));
+    assert!(check_new_password("12345678", "12345678").is_ok());
+    assert_eq!(PasswordPrompt::Unlock.text(), "password wallet: ");
+    assert_eq!(
+        PasswordPrompt::New.text(),
+        "password baru (minimal 8 karakter): "
+    );
+
+    // Wallet lama versi 1 (frasa terbuka) dikunci dengan wallet-encrypt; indeks berikutnya tetap.
+    let dir = TempDir::new("encrypt");
+    let path = wallet_path(&dir.0);
+    let mut old = WalletFile::new(&Mnemonic::parse(W1).unwrap());
+    old.next_index = NextIndex {
+        receive: 4,
+        change: 2,
+    };
+    create_new(&path, &old).unwrap();
+    assert_eq!(show_phrase(&dir.0, "").unwrap().as_str(), W1);
+    assert_eq!(wallet_encrypt(&dir.0, "", &lock(5)).unwrap(), path);
+    let stored = load(&path).unwrap();
+    assert!(stored.is_encrypted());
+    assert_eq!(
+        stored.next_index,
+        NextIndex {
+            receive: 4,
+            change: 2
+        }
+    );
+    assert!(!std::fs::read_to_string(&path).unwrap().contains("abandon"));
+    assert!(matches!(
+        wallet_encrypt(&dir.0, "", &lock(5)),
+        Err(CliError::AlreadyEncrypted)
+    ));
+    assert!(matches!(
+        show_phrase(&dir.0, "kata sandi lain"),
+        Err(CliError::WrongPassword)
+    ));
+    assert_eq!(show_phrase(&dir.0, PASSWORD).unwrap().as_str(), W1);
+
+    // Mengirim: password salah dan passphrase lain ditolak sebelum transaksi disusun.
+    let harness = Harness::start(Network::Regtest, t1_utxos(), None);
+    let cli = harness.cli();
+    let send = |passphrase: &str, password: &str| {
+        cli.send(
+            &dir.0,
+            passphrase,
+            password,
+            RECIPIENT,
+            Amount::from_quanta(SIX_HSIS),
+            1,
+            &[0_u8; 32],
+        )
+    };
+    assert!(matches!(
+        send("", "kata sandi lain"),
+        Err(CliError::WrongPassword)
+    ));
+    assert!(matches!(
+        send("TREZOR", PASSWORD),
+        Err(CliError::PassphraseMismatch)
+    ));
+    assert!(harness.node.sent.lock().unwrap().is_empty());
+    assert!(send("", PASSWORD).is_ok());
+    assert_eq!(harness.node.sent.lock().unwrap().len(), 1);
 }
 
 fn pending_output(
@@ -532,7 +713,7 @@ fn pending_output(
 #[test]
 fn balance_and_send_follow_pending_mempool() {
     let dir = TempDir::new("pending");
-    wallet_create(&dir.0, &[0_u8; 32]).unwrap();
+    wallet_create(&dir.0, &[0_u8; 32], "", &lock(1)).unwrap();
     // Transaksi dd membelanjakan 0/1 (3 HSIS) dengan kembalian 2 HSIS ke 1/0; transaksi cc mengirim 4 HSIS ke 0/0.
     // Output jenis 1 dengan payload wallet dan output ke payload lain tidak dihitung.
     let pending = MempoolScan {
@@ -579,6 +760,7 @@ fn balance_and_send_follow_pending_mempool() {
         cli.send(
             &dir.0,
             "",
+            PASSWORD,
             RECIPIENT,
             Amount::from_quanta(quanta),
             1,

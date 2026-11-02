@@ -14,10 +14,13 @@ homeostasis-primitives.workspace = true
 homeostasis-rpc.workspace = true
 # DEC-21: frasa, kunci, alamat, pemilihan koin, dan tanda tangan dari MOD-09.
 homeostasis-wallet-core.workspace = true
+# DEC-27: password wallet dibaca dari terminal tanpa tampil di layar; password dihapus dari memori sesudah dipakai.
+rpassword.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["rt"] }
+zeroize = { workspace = true, features = ["alloc"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread"] }

@@ -1,12 +1,12 @@
 # Spesifikasi Wallet Homeostasis Coin (HSIS) v0.1: frasa BIP39, turunan BIP32, alamat, pemilihan koin, pemindaian saldo
 
-> Diperbarui: 1 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S03 · Status: 🟢 v0.1
+> Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S03 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-wallet-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | Frasa BIP39 standar (DEC-22), turunan BIP32 dengan jalur `m/44'/1'/0'/k/i` untuk regtest dan testnet, kunci x-only, kunci akun publik untuk watch-only, alamat bech32m (DEC-11), pemilihan koin, pemindaian saldo, file wallet CLI regtest |
-| ⏳ Ditunda | Nomor SLIP-44 mainnet (`TODO(param)`), passphrase non-ASCII, enkripsi file wallet (wajib sebelum TSK-F06), filter blok kompak untuk wallet ringan, output jenis 1 di wallet |
+| ⏳ Ditunda | Nomor SLIP-44 mainnet (`TODO(param)`), passphrase non-ASCII, keychain sistem operasi (wallet desktop FTR-07), filter blok kompak untuk wallet ringan, output jenis 1 di wallet |
 | ➡️ Langkah berikutnya | TSK-M15 (frasa, turunan, alamat di MOD-09), TSK-M16 (penyusunan dan tanda tangan), TSK-M19 (CLI, DEC-21), lalu TSK-F03 |
 
 Wallet **bukan konsensus**. Chain hanya menyimpan `kind` dan `payload` output; semua isi dokumen ini bisa diubah lewat versi
@@ -118,10 +118,14 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 | Hal | Nilai |
 |---|---|
 | Lokasi | `<datadir>/regtest/wallet.json` |
-| Isi | `version` (1), `network` (`regtest`), `mnemonic`, `next_index` untuk `branch 0` dan `branch 1` |
-| Passphrase | Tidak disimpan; diminta lewat opsi setiap kali dibutuhkan |
+| Isi versi 2 (DEC-27, semua wallet baru) | `version` (2), `network` (`regtest`), `account` (kunci akun publik `m/44'/1'/0'`, hex 130 karakter, Bagian 3), `encrypted` (`kdf` `argon2id`, `memory_kib`, `iterations`, `parallelism`, `salt` hex 16 byte, `cipher` `xchacha20poly1305`, `nonce` hex 24 byte, `ciphertext` hex = frasa ternormalkan terenkripsi diikuti tag 16 byte), `next_index` untuk `branch 0` dan `branch 1` |
+| Isi versi 1 (lama) | `version` (1), `network`, `mnemonic` tanpa enkripsi, `next_index`. Tetap bisa dipakai; `wallet-encrypt` mengubahnya ke versi 2 dengan indeks yang sama |
+| Enkripsi (DEC-27, TSK-M37) | Kunci 32 byte = Argon2id versi 0x13 (password UTF-8, salt; bawaan 64 MiB, 3 putaran, 1 jalur; file dengan memori di atas 1 GiB, putaran di atas 64, atau jalur di atas 16 ditolak). Frasa dienkripsi XChaCha20-Poly1305 dengan AAD = `homeostasis wallet vault v1` ‖ `memory_kib` ‖ `iterations` ‖ `parallelism` (masing-masing `u32` big-endian) ‖ salt. Salt dan nonce dari `/dev/urandom` setiap kali file dikunci |
+| Password | Minimal 8 karakter, diketik dua kali saat membuat (`wallet-create`, `wallet-restore`, `wallet-encrypt`), dibaca tanpa tampil di layar. Hanya diminta saat kunci rahasia dibutuhkan: `send` dan `wallet-show-phrase`. `address` dan `balance` memakai `account` tanpa password. Untuk skrip regtest boleh lewat variabel lingkungan `HOMEOSTASIS_WALLET_PASSWORD` |
+| Passphrase | Tidak disimpan. Versi 2: dipakai saat wallet dibuat (menentukan `account`) dan saat `send` (wajib menghasilkan `account` yang sama, jika tidak ditolak); `address` dan `balance` tidak memakainya. Versi 1: diminta lewat opsi setiap kali dibutuhkan |
 | Izin file | `0600`, dibuat baru dan tidak menimpa file yang sudah ada |
-| Enkripsi | Tidak ada di v0.1, karena koin regtest tidak bernilai. **Wajib** sebelum testnet (TSK-F06) |
+| Memori | Frasa, seed, kunci rahasia, kunci turunan, memori kerja Argon2id, dan password dihapus dari memori sesudah dipakai (`zeroize`, upaya terbaik) |
+| Belum | Keychain sistem operasi dan ganti password (menyusul bersama wallet desktop FTR-07) |
 
 ---
 
@@ -134,6 +138,7 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 | Pemilihan koin, penyusunan, dan tanda tangan transaksi (sighash v1, DEC-13) | MOD-09 | TSK-M16 |
 | Perintah wallet CLI (buat, pulihkan, alamat, saldo, kirim) dan file wallet | MOD-12 (DEC-21) | TSK-M19 |
 | Saldo dan pemilihan koin dengan transaksi tertunda (`scan_mempool`) | MOD-08, MOD-11, MOD-12 | TSK-M36 |
+| Enkripsi frasa dengan password (modul `vault`), penghapusan rahasia dari memori, file wallet versi 2, `wallet-encrypt`, `wallet-show-phrase` | MOD-09, MOD-12 | TSK-M37 |
 | Kirim dan terima ujung ke ujung | MOD-17 | TSK-F03 |
 
 ---
@@ -145,3 +150,5 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 | DEC-10 bagian 4 | `sha2` 0.10.9, `hmac` 0.12.1, `pbkdf2` 0.12.2 khusus MOD-09 | 🟢 31 Oktober 2026 |
 | DEC-21 | MOD-12 CLI bergantung pada MOD-09 wallet-core | 🟢 31 Oktober 2026 |
 | DEC-22 | Frasa pemulihan BIP39 standar | 🟢 31 Oktober 2026 |
+| DEC-27 | File wallet dikunci password: Argon2id + XChaCha20-Poly1305; password hanya untuk membuat, memulihkan, mengirim, dan menampilkan frasa | 🟢 2 November 2026 |
+| DEC-10 bagian 8 | `argon2` 0.5.3, `chacha20poly1305` 0.10.1, `zeroize` 1.9.1 (MOD-09), `rpassword` 7.5.4 dan `zeroize` (MOD-12) | 🟢 2 November 2026 (konsekuensi DEC-27) |

@@ -38,6 +38,9 @@ fn parses_help_version_and_info() {
         "http://127.0.0.1:9"
     );
     assert!(USAGE.contains("wallet-restore --mnemonic"));
+    assert!(USAGE.contains("wallet-encrypt"));
+    assert!(USAGE.contains("wallet-show-phrase"));
+    assert!(USAGE.contains("HOMEOSTASIS_WALLET_PASSWORD"));
 }
 
 #[test]
@@ -64,6 +67,18 @@ fn parses_wallet_actions_with_options_in_any_order() {
     assert_eq!(address.action, Action::Address);
     assert_eq!(address.passphrase, "TREZOR");
     assert_eq!(run(&["--datadir", "d", "balance"]).action, Action::Balance);
+    assert_eq!(
+        run(&["wallet-encrypt", "--datadir", "d"]).action,
+        Action::WalletEncrypt
+    );
+    assert_eq!(
+        run(&["--datadir", "d", "wallet-show-phrase"]).action,
+        Action::WalletShowPhrase
+    );
+    assert_eq!(
+        format!("{:?}", Action::WalletShowPhrase),
+        "wallet-show-phrase"
+    );
 
     let send = run(&["send", "--to", ADDRESS, "--amount", "1.5", "--datadir", "d"]);
     assert_eq!(
