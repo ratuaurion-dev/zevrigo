@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -19,8 +20,8 @@ use homeostasis_rpc::{
 use homeostasis_storage::{ChainStore, MemoryStore, RedbStore};
 
 use super::{
-    Clock, HeadersOutcome, MAX_LOCATOR_IDS, Node, NodeError, block_rule, locator_heights,
-    mempool_reason,
+    Clock, HeadersOutcome, MAX_LOCATOR_IDS, Node, NodeError, NodeLimits, block_rule,
+    locator_heights, mempool_reason,
 };
 
 /// Cap waktu genesis regtest.
@@ -1063,4 +1064,249 @@ fn bad_headers_are_rejected_or_deferred() {
     }
     assert!(b.node.missing_blocks(16).unwrap().is_empty());
     assert_active(&b, &blocks);
+}
+
+/// Node `MemoryStore` dengan batas memori `limits`, jam di [`FAR`].
+fn open_limited(limits: NodeLimits) -> Fixture<MemoryStore> {
+    let now = Arc::new(AtomicU64::new(FAR));
+    let node = Node::open_with_limits(
+        MemoryStore::default(),
+        params(),
+        DEFAULT_MAX_BYTES,
+        clock(&now),
+        limits,
+    )
+    .unwrap();
+    Fixture { node, now }
+}
+
+fn set(ids: impl IntoIterator<Item = Hash32>) -> BTreeSet<Hash32> {
+    ids.into_iter().collect()
+}
+
+fn side_set(fx: &Fixture<MemoryStore>) -> BTreeSet<Hash32> {
+    set(fx.node.lock().unwrap().side.keys().copied())
+}
+
+fn header_set(fx: &Fixture<MemoryStore>) -> BTreeSet<Hash32> {
+    set(fx.node.lock().unwrap().headers.keys().copied())
+}
+
+fn invalid_set(fx: &Fixture<MemoryStore>) -> BTreeSet<Hash32> {
+    set(fx.node.lock().unwrap().invalid.keys().copied())
+}
+
+#[test]
+fn default_limits() {
+    assert_eq!(NodeLimits::default(), NodeLimits::DEFAULT);
+    assert_eq!(
+        NodeLimits::DEFAULT,
+        NodeLimits {
+            max_side_blocks: 10_000,
+            max_side_bytes: 67_108_864,
+            max_headers: 100_000,
+            max_invalid: 10_000,
+        }
+    );
+    let fx = open(MemoryStore::default());
+    assert_eq!(fx.node.lock().unwrap().limits, NodeLimits::DEFAULT);
+}
+
+#[test]
+fn side_blocks_are_trimmed_leaves_with_least_work_first() {
+    let fx = open_limited(NodeLimits {
+        max_side_blocks: 3,
+        ..NodeLimits::DEFAULT
+    });
+    let genesis = params().network_id();
+    let a = extend(&fx, genesis, 1, 3, 2);
+    // Lima cabang satu blok dari genesis (chainwork sama): yang lebih dulu diterima tetap, yang lebih akhir dibuang.
+    let forks: Vec<Block> = (5_u8..10)
+        .map(|owner| block_on(genesis, 1, owner, Vec::new(), 0))
+        .collect();
+    for fork in &forks {
+        assert_eq!(submit(&fx, fork).status, SubmitStatus::Accepted);
+        assert!(side_count(&fx) <= 3);
+    }
+    let first_three = set(forks[..3].iter().map(id_of));
+    assert_eq!(side_set(&fx), first_three);
+    // Blok yang dibuang dilupakan: dikirim lagi, diterima lagi lalu dibuang lagi; blok yang tersimpan tetap duplicate.
+    assert_eq!(submit(&fx, &forks[3]).status, SubmitStatus::Accepted);
+    assert_eq!(submit(&fx, &forks[0]).status, SubmitStatus::Duplicate);
+    assert_eq!(side_set(&fx), first_three);
+
+    // Cabang di atas fork pertama: fork pertama bukan daun, jadi daun paling ringan dan paling akhir yang dibuang.
+    let f2 = block_on(id_of(&forks[0]), 2, 5, Vec::new(), 0);
+    assert_eq!(submit(&fx, &f2).status, SubmitStatus::Accepted);
+    assert_eq!(
+        side_set(&fx),
+        set([id_of(&forks[0]), id_of(&forks[1]), id_of(&f2)])
+    );
+    let f3 = block_on(id_of(&f2), 3, 5, Vec::new(), 0);
+    assert_eq!(submit(&fx, &f3).status, SubmitStatus::Accepted);
+    assert_eq!(
+        side_set(&fx),
+        set([id_of(&forks[0]), id_of(&f2), id_of(&f3)])
+    );
+    assert_active(&fx, &a);
+
+    // Cabang menjadi lebih berat: reorg tetap berjalan, chain lama menjadi cabang dalam batas.
+    let f4 = block_on(id_of(&f3), 4, 5, Vec::new(), 0);
+    assert_eq!(submit(&fx, &f4).status, SubmitStatus::Accepted);
+    assert_active(&fx, &[forks[0].clone(), f2, f3, f4]);
+    assert_eq!(side_set(&fx), set(a.iter().map(id_of)));
+}
+
+#[test]
+fn side_blocks_are_trimmed_by_size() {
+    let genesis = params().network_id();
+    let forks: Vec<Block> = (5_u8..8)
+        .map(|owner| block_on(genesis, 1, owner, Vec::new(), 0))
+        .collect();
+    let size = forks[0].to_bytes().len();
+    assert!(forks.iter().all(|fork| fork.to_bytes().len() == size));
+    let fx = open_limited(NodeLimits {
+        max_side_bytes: 2 * size + size / 2,
+        ..NodeLimits::DEFAULT
+    });
+    extend(&fx, genesis, 1, 2, 2);
+    for fork in &forks {
+        assert_eq!(submit(&fx, fork).status, SubmitStatus::Accepted);
+    }
+    assert_eq!(side_set(&fx), set([id_of(&forks[0]), id_of(&forks[1])]));
+    let bytes: usize = fx
+        .node
+        .lock()
+        .unwrap()
+        .side
+        .values()
+        .map(|entry| entry.size)
+        .sum();
+    assert_eq!(bytes, 2 * size);
+}
+
+#[test]
+fn heavier_branch_being_synced_is_never_trimmed() {
+    let a = open(MemoryStore::default());
+    a.now.store(FAR, Ordering::SeqCst);
+    let genesis = params().network_id();
+    let long = extend(&a, genesis, 1, 5, 4);
+    let b = open_limited(NodeLimits {
+        max_side_blocks: 2,
+        ..NodeLimits::DEFAULT
+    });
+    let short = extend(&b, genesis, 1, 3, 2);
+    let headers: Vec<Header> = long.iter().map(|block| *block.header()).collect();
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 5,
+            last: Some(id_of(&long[4]))
+        }
+    );
+    // Cabang yang lebih berat diunduh blok demi blok: tiga blok cabang melebihi batas 2 tetapi tidak dibuang; cabang
+    // sampah yang datang kemudian yang dibuang.
+    for block in &long[..3] {
+        let receipt = b.node.receive_block(&block.to_bytes()).unwrap();
+        assert_eq!(receipt.result.status, SubmitStatus::Accepted);
+        assert!(!receipt.new_tip);
+    }
+    let junk = block_on(genesis, 1, 9, Vec::new(), 0);
+    assert_eq!(submit(&b, &junk).status, SubmitStatus::Accepted);
+    assert_eq!(side_set(&b), set(long[..3].iter().map(id_of)));
+
+    // Blok keempat membuat cabang lebih berat: reorg; chain lama dipangkas ke batas dari daunnya.
+    for block in &long[3..] {
+        assert!(b.node.receive_block(&block.to_bytes()).unwrap().new_tip);
+    }
+    assert_active(&b, &long);
+    assert_eq!(side_set(&b), set(short[..2].iter().map(id_of)));
+    assert!(b.node.missing_blocks(16).unwrap().is_empty());
+}
+
+#[test]
+fn header_index_is_bounded_and_keeps_heavier_headers() {
+    let a = open(MemoryStore::default());
+    a.now.store(FAR, Ordering::SeqCst);
+    let genesis = params().network_id();
+    let blocks = extend(&a, genesis, 1, 5, 2);
+    let headers: Vec<Header> = blocks.iter().map(|block| *block.header()).collect();
+    let ids: Vec<Hash32> = blocks.iter().map(id_of).collect();
+    let junk = *block_on(genesis, 1, 9, Vec::new(), 0).header();
+
+    // Indeks satu header: header sampah sama berat dengan header pertama chain, jadi tidak dibuang.
+    let one = open_limited(NodeLimits {
+        max_headers: 1,
+        ..NodeLimits::DEFAULT
+    });
+    assert_eq!(
+        one.node.accept_headers(&[junk]).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 1,
+            last: Some(block_id(&junk))
+        }
+    );
+    assert_eq!(
+        one.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Full { added: 0 }
+    );
+    assert_eq!(header_set(&one), set([block_id(&junk)]));
+
+    // Indeks tiga header: header sampah (chainwork 4) dibuang untuk header ketiga chain (chainwork 8); induk header
+    // baru tidak pernah dibuang, jadi header keempat menunggu.
+    let b = open_limited(NodeLimits {
+        max_headers: 3,
+        ..NodeLimits::DEFAULT
+    });
+    assert_eq!(
+        b.node.accept_headers(&[junk]).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 1,
+            last: Some(block_id(&junk))
+        }
+    );
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Full { added: 3 }
+    );
+    assert_eq!(header_set(&b), set(ids[..3].iter().copied()));
+
+    // Badan blok mengosongkan indeks; sinkronisasi header berlanjut sampai chain lengkap.
+    assert_eq!(b.node.missing_blocks(16).unwrap(), ids[..3].to_vec());
+    for block in &blocks[..3] {
+        assert!(b.node.receive_block(&block.to_bytes()).unwrap().new_tip);
+    }
+    assert!(header_set(&b).is_empty());
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 2,
+            last: Some(ids[4])
+        }
+    );
+    assert_eq!(b.node.missing_blocks(16).unwrap(), ids[3..].to_vec());
+    for block in &blocks[3..] {
+        assert!(b.node.receive_block(&block.to_bytes()).unwrap().new_tip);
+    }
+    assert_active(&b, &blocks);
+}
+
+#[test]
+fn invalid_block_records_are_bounded() {
+    let fx = open_limited(NodeLimits {
+        max_invalid: 2,
+        ..NodeLimits::DEFAULT
+    });
+    let genesis = params().network_id();
+    // Tinggi 2 langsung di atas genesis: V5, dicatat sebagai tidak sah.
+    let bad: Vec<Block> = (5_u8..8)
+        .map(|owner| block_on(genesis, 2, owner, Vec::new(), 0))
+        .collect();
+    for block in &bad {
+        assert_eq!(submit(&fx, block), rejected_block(block, "V5"));
+    }
+    assert_eq!(invalid_set(&fx), set([id_of(&bad[1]), id_of(&bad[2])]));
+    // Catatan tertua terlupa: blok itu diperiksa ulang dan tetap ditolak; kini catatan berikutnya yang terlupa.
+    assert_eq!(submit(&fx, &bad[0]), rejected_block(&bad[0], "V5"));
+    assert_eq!(invalid_set(&fx), set([id_of(&bad[2]), id_of(&bad[0])]));
 }

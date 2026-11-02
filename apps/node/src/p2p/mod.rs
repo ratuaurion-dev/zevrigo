@@ -364,7 +364,9 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
             HeadersOutcome::Accepted {
                 last: Some(last), ..
             } if headers.headers.len() >= MAX_HEADERS => self.request_headers(peer, Some(*last)),
-            HeadersOutcome::Accepted { .. } | HeadersOutcome::Deferred { .. } => {
+            HeadersOutcome::Accepted { .. }
+            | HeadersOutcome::Deferred { .. }
+            | HeadersOutcome::Full { .. } => {
                 self.fetch_bodies();
             }
             HeadersOutcome::Disconnected | HeadersOutcome::Invalid { .. } => {

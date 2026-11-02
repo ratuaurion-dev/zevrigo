@@ -9,7 +9,8 @@
 //! node melakukan reorg tanpa batas kedalaman: `undo_tip` sampai titik cabang, lalu setiap blok cabang diperiksa V9 dan
 //! V10 dan diterapkan. Jika satu blok cabang tidak sah, blok itu dan keturunannya ditandai tidak sah dan chain lama
 //! dipulihkan. Jika chainwork sama, chain yang lebih dulu diterima tetap aktif. Blok cabang disimpan di memori node
-//! (v0.1), bukan di penyimpanan; setelah node dibuka ulang, cabang diterima lagi dari rekan.
+//! (v0.1), bukan di penyimpanan; setelah node dibuka ulang, cabang diterima lagi dari rekan. Jumlah dan ukuran blok
+//! cabang, indeks header, dan catatan blok tidak sah dibatasi [`NodeLimits`] (TSK-M34).
 //!
 //! Blok yang induknya belum dikenal dilaporkan `orphan` dan tidak disimpan. Blok yang gagal V8 dilaporkan `deferred`
 //! dan tidak disimpan; pengirim boleh mengirim ulang.
@@ -18,7 +19,7 @@
 //! di submodul `sync`; [`Node::receive_block`] dan [`Node::receive_transaction`] melaporkan juga apakah ujung chain
 //! berubah atau transaksi baru masuk mempool, untuk siaran ke rekan.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Display;
 use std::sync::{Mutex, MutexGuard};
 
@@ -56,6 +57,36 @@ const TEMPLATE_RESERVE_BYTES: usize = 1_000;
 
 /// Jam lokal node dalam detik Unix, untuk aturan V8 dan cap waktu template. Disuntikkan agar test deterministik.
 pub type Clock = Box<dyn Fn() -> u64 + Send + Sync>;
+
+/// Batas memori node untuk data yang hanya disimpan di memori (Spesifikasi P2P v0.1 Bagian 9): blok cabang, indeks
+/// header tanpa badan blok, dan catatan blok tidak sah. Kebijakan node, bukan aturan konsensus.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct NodeLimits {
+    /// Jumlah blok cabang paling banyak.
+    pub max_side_blocks: usize,
+    /// Total ukuran encoding blok cabang paling banyak, dalam byte.
+    pub max_side_bytes: usize,
+    /// Jumlah header tanpa badan blok paling banyak.
+    pub max_headers: usize,
+    /// Jumlah catatan blok tidak sah paling banyak; catatan tertua dilupakan lebih dulu.
+    pub max_invalid: usize,
+}
+
+impl NodeLimits {
+    /// Batas bawaan: 10_000 blok cabang dan 64 MiB, 100_000 header (sekitar 20 MB), 10_000 catatan blok tidak sah.
+    pub const DEFAULT: Self = Self {
+        max_side_blocks: 10_000,
+        max_side_bytes: 64 * 1024 * 1024,
+        max_headers: 100_000,
+        max_invalid: 10_000,
+    };
+}
+
+impl Default for NodeLimits {
+    fn default() -> Self {
+        Self::DEFAULT
+    }
+}
 
 /// Galat saat membuka node di atas sebuah penyimpanan.
 #[derive(Debug, Error)]
@@ -265,6 +296,8 @@ struct SideBlock {
     block: Block,
     chainwork: U256,
     sequence: u64,
+    /// Ukuran encoding blok, untuk `NodeLimits::max_side_bytes`.
+    size: usize,
 }
 
 /// Header yang lolos V2, V3, dan V5 sampai V8 terhadap induknya, tetapi badan bloknya belum diterima (sinkronisasi
@@ -301,7 +334,10 @@ struct ChainState<S> {
     side: BTreeMap<Hash32, SideBlock>,
     headers: BTreeMap<Hash32, HeaderEntry>,
     invalid: BTreeMap<Hash32, &'static str>,
+    /// ID di `invalid` urut dicatat, untuk melupakan catatan tertua lebih dulu.
+    invalid_order: VecDeque<Hash32>,
     next_sequence: u64,
+    limits: NodeLimits,
 }
 
 impl<S> ChainState<S> {
@@ -400,12 +436,14 @@ impl<S> ChainState<S> {
         let sequence = self.next_sequence;
         // Sengaja saturating: 2^64 blok cabang tidak tercapai; jika pun tercapai, urutan tetap tidak turun.
         self.next_sequence = sequence.saturating_add(1);
+        let size = block.to_bytes().len();
         self.side.insert(
             id,
             SideBlock {
                 block,
                 chainwork,
                 sequence,
+                size,
             },
         );
     }
@@ -442,34 +480,116 @@ impl<S> ChainState<S> {
         }
     }
 
+    /// Mencatat blok `id` tidak sah dengan aturan `rule`. Jika catatan melebihi `NodeLimits::max_invalid`, catatan
+    /// tertua dilupakan; blok yang terlupa diperiksa ulang jika datang lagi.
+    fn note_invalid(&mut self, id: Hash32, rule: &'static str) {
+        if self.invalid.insert(id, rule).is_none() {
+            self.invalid_order.push_back(id);
+        }
+        while self.invalid.len() > self.limits.max_invalid {
+            let Some(oldest) = self.invalid_order.pop_front() else {
+                return;
+            };
+            self.invalid.remove(&oldest);
+        }
+    }
+
+    /// ID semua blok cabang dan header keturunan `roots` (tanpa `roots` sendiri), lewat satu peta induk ke anak.
+    fn descendants(&self, roots: &[Hash32]) -> Vec<Hash32> {
+        let mut children: BTreeMap<Hash32, Vec<Hash32>> = BTreeMap::new();
+        for (id, entry) in &self.side {
+            children
+                .entry(entry.block.header().prev_block_id())
+                .or_default()
+                .push(*id);
+        }
+        for (id, entry) in &self.headers {
+            children
+                .entry(entry.header.prev_block_id())
+                .or_default()
+                .push(*id);
+        }
+        let mut found = Vec::new();
+        let mut queue: Vec<Hash32> = roots.to_vec();
+        while let Some(parent) = queue.pop() {
+            if let Some(kids) = children.remove(&parent) {
+                found.extend(kids.iter().copied());
+                queue.extend(kids);
+            }
+        }
+        found
+    }
+
     /// Menandai blok `id` tidak sah, lalu membuang semua blok cabang dan header keturunannya dengan aturan
     /// [`INVALID_ANCESTOR_RULE`].
     fn mark_invalid(&mut self, id: Hash32, rule: &'static str) {
+        let descendants = self.descendants(&[id]);
         self.side.remove(&id);
         self.headers.remove(&id);
-        self.invalid.insert(id, rule);
+        self.note_invalid(id, rule);
+        for child in descendants {
+            self.side.remove(&child);
+            self.headers.remove(&child);
+            self.note_invalid(child, INVALID_ANCESTOR_RULE);
+        }
+    }
+
+    /// Blok cabang di jalur menuju header dengan chainwork terbanyak, jika chainwork header itu melebihi `tip_work`:
+    /// cabang yang sedang diunduh dan lebih berat daripada chain aktif.
+    fn protected_side(&self, tip_work: U256) -> BTreeSet<Hash32> {
+        let mut protected = BTreeSet::new();
+        let Some((best, work)) = self.best_header() else {
+            return protected;
+        };
+        if work <= tip_work {
+            return protected;
+        }
+        let mut cursor = best;
+        while let Some(entry) = self.headers.get(&cursor) {
+            cursor = entry.header.prev_block_id();
+        }
+        while let Some(entry) = self.side.get(&cursor) {
+            protected.insert(cursor);
+            cursor = entry.block.header().prev_block_id();
+        }
+        protected
+    }
+
+    /// Membuang blok cabang sampai jumlah dan ukurannya dalam `NodeLimits`. Yang dibuang selalu daun (blok cabang tanpa
+    /// anak cabang) dengan chainwork paling kecil, jika sama yang paling akhir diterima, sehingga setiap cabang yang
+    /// tersisa tetap utuh sampai chain aktif. Blok cabang di jalur menuju header yang lebih berat daripada chain aktif
+    /// tidak pernah dibuang, sehingga cabang itu selalu bisa disambungkan (tanpa batas kedalaman reorg).
+    fn trim_side(&mut self) -> Result<(), RpcError> {
+        let (_, tip) = self.tip()?;
+        let protected = self.protected_side(tip.chainwork);
         loop {
-            let invalid = &self.invalid;
-            let mut children: Vec<Hash32> = self
+            let bytes = self
+                .side
+                .values()
+                .fold(0_usize, |total, entry| total.saturating_add(entry.size));
+            if self.side.len() <= self.limits.max_side_blocks && bytes <= self.limits.max_side_bytes
+            {
+                return Ok(());
+            }
+            let parents: BTreeSet<Hash32> = self
+                .side
+                .values()
+                .map(|entry| entry.block.header().prev_block_id())
+                .collect();
+            let victim = self
                 .side
                 .iter()
-                .filter(|(_, entry)| invalid.contains_key(&entry.block.header().prev_block_id()))
-                .map(|(child, _)| *child)
-                .collect();
-            children.extend(
-                self.headers
-                    .iter()
-                    .filter(|(_, entry)| invalid.contains_key(&entry.header.prev_block_id()))
-                    .map(|(child, _)| *child),
-            );
-            if children.is_empty() {
-                return;
-            }
-            for child in children {
-                self.side.remove(&child);
-                self.headers.remove(&child);
-                self.invalid.insert(child, INVALID_ANCESTOR_RULE);
-            }
+                .filter(|(id, _)| !parents.contains(*id) && !protected.contains(*id))
+                .min_by(|(_, a), (_, b)| {
+                    a.chainwork
+                        .cmp(&b.chainwork)
+                        .then(b.sequence.cmp(&a.sequence))
+                })
+                .map(|(id, _)| *id);
+            let Some(victim) = victim else {
+                return Ok(());
+            };
+            self.side.remove(&victim);
         }
     }
 }
@@ -564,10 +684,26 @@ impl<S: ChainStore> Node<S> {
     /// [`NodeError::Genesis`] jika genesis jaringan belum tersedia (saat ini hanya regtest),
     /// [`NodeError::WrongGenesis`], [`NodeError::Store`], atau [`NodeError::Corrupt`].
     pub fn open(
+        store: S,
+        params: ChainParams,
+        mempool_max_bytes: usize,
+        clock: Clock,
+    ) -> Result<Self, NodeError> {
+        Self::open_with_limits(store, params, mempool_max_bytes, clock, NodeLimits::DEFAULT)
+    }
+
+    /// Seperti [`Node::open`], dengan batas memori `limits` untuk blok cabang, indeks header, dan catatan blok tidak
+    /// sah.
+    ///
+    /// # Errors
+    ///
+    /// Sama dengan [`Node::open`].
+    pub fn open_with_limits(
         mut store: S,
         params: ChainParams,
         mempool_max_bytes: usize,
         clock: Clock,
+        limits: NodeLimits,
     ) -> Result<Self, NodeError> {
         let genesis = regtest_genesis().map_err(|e| NodeError::Genesis {
             message: e.to_string(),
@@ -602,7 +738,9 @@ impl<S: ChainStore> Node<S> {
                 side: BTreeMap::new(),
                 headers: BTreeMap::new(),
                 invalid: BTreeMap::new(),
+                invalid_order: VecDeque::new(),
                 next_sequence: 0,
+                limits,
             }),
         })
     }
@@ -849,7 +987,7 @@ impl<S: ChainStore> Node<S> {
         }
         let prev = header.prev_block_id();
         if state.invalid.contains_key(&prev) {
-            state.invalid.insert(id, INVALID_ANCESTOR_RULE);
+            state.note_invalid(id, INVALID_ANCESTOR_RULE);
             return Ok(invalid(Some(id), INVALID_ANCESTOR_RULE));
         }
         let Some(parent) = state.parent_info(&prev)? else {
@@ -863,7 +1001,7 @@ impl<S: ChainStore> Node<S> {
         };
         if let Err(error) = check_header_context(&header, &context, &self.params) {
             let rule = block_rule(&error, "V6");
-            state.invalid.insert(id, rule);
+            state.note_invalid(id, rule);
             return Ok(invalid(Some(id), rule));
         }
         // V8: ditunda, bukan tidak sah.
@@ -880,7 +1018,7 @@ impl<S: ChainStore> Node<S> {
                     Ok(outcome(SubmitStatus::Accepted, id))
                 }
                 Connect::Invalid(rule) => {
-                    state.invalid.insert(id, rule);
+                    state.note_invalid(id, rule);
                     Ok(invalid(Some(id), rule))
                 }
             };
@@ -894,6 +1032,7 @@ impl<S: ChainStore> Node<S> {
         state.store_side(id, block, chainwork);
         state.headers.remove(&id);
         self.activate_best(state)?;
+        state.trim_side()?;
         if let Some(rule) = state.invalid.get(&id) {
             return Ok(invalid(Some(id), rule));
         }

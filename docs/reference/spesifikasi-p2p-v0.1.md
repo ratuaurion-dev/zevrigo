@@ -1,13 +1,13 @@
 # Spesifikasi P2P Homeostasis Coin (HSIS) v0.1: transport libp2p, 5 protokol, sinkronisasi header lalu blok, siaran blok dan transaksi
 
-> Diperbarui: 1 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S05 · Status: 🟢 v0.1
+> Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S05 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-p2p-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | rust-libp2p 0.57 (DEC-24): TCP, Noise, Yamux, request-response. 5 protokol dengan encoding kanonis sendiri, sinkronisasi header lalu blok, siaran blok dan transaksi, pemilihan chain berdasarkan chainwork, sanksi rekan |
 | ⏳ Ditunda | Penemuan rekan otomatis (Kademlia, mDNS, seed DNS), relay dan NAT, pembatasan bandwidth, perlindungan eclipse, blok kompak, pemangkasan (TSK-M23) |
-| ➡️ Langkah berikutnya | Semua task v0.1 selesai: TSK-M27, TSK-M14 (MOD-06), TSK-M28 (daemon), TSK-F04 (lima node, reorg dalam). Sebelum testnet: penemuan rekan, batas memori cabang, perlindungan eclipse |
+| ➡️ Langkah berikutnya | Semua task v0.1 selesai: TSK-M27, TSK-M14 (MOD-06), TSK-M28 (daemon), TSK-F04 (lima node, reorg dalam). Batas memori node (TSK-M34) selesai. Sebelum testnet: penemuan rekan, perlindungan eclipse |
 
 P2P **bukan konsensus**. Aturan di dokumen ini bisa diubah lewat versi protokol baru tanpa memecah chain. Semua blok dan
 transaksi yang diterima dari rekan tetap diperiksa penuh dengan MOD-04 (V1 sampai V10, T1 sampai T6).
@@ -166,8 +166,21 @@ ditulis lewat `--connect` juga bisa diblokir.
 - Perlindungan eclipse dan sybil minimal (batas koneksi, sanksi). Wajib ditinjau ulang sebelum mainnet.
 - Blok dikirim utuh ke setiap rekan; cukup untuk blok 100_000 byte setiap 120 detik, tetapi boros jika rekan banyak.
 - Ring (kode C dan assembly) masuk lewat Noise (DEC-24). Reproducible build (TSK-F10) wajib mengunci versi compiler C.
-- Blok cabang disimpan di memori node, tanpa batas jumlah, dan hilang saat node dibuka ulang (diterima lagi dari rekan
-  lewat sinkronisasi). Penyimpanan cabang di MOD-05 dan batas memori menyusul sebelum testnet.
+- Blok cabang, indeks header, dan catatan blok tidak sah disimpan di memori node dan hilang saat node dibuka ulang
+  (diterima lagi dari rekan lewat sinkronisasi). **Batas memori (TSK-M34, `NodeLimits`, kebijakan node, bukan
+  konsensus):**
+
+  | Data | Batas bawaan | Jika penuh |
+  |---|---|---|
+  | Blok cabang | 10_000 blok dan 64 MiB encoding | Dibuang daun (blok cabang tanpa anak cabang) dengan chainwork paling kecil, jika sama yang paling akhir diterima, sampai dalam batas. Blok cabang di jalur menuju header yang lebih berat daripada chain aktif tidak pernah dibuang, sehingga cabang yang sedang diunduh selalu bisa disambungkan |
+  | Indeks header tanpa badan blok | 100_000 header (sekitar 20 MB) | Header daun dengan chainwork paling kecil dibuang jika lebih ringan daripada header baru dan bukan induknya; jika tidak ada, pesan `Headers` berhenti tanpa sanksi (`Full`) dan sinkronisasi header berlanjut setelah badan blok diunduh |
+  | Catatan blok tidak sah | 10_000 ID | Catatan tertua dilupakan; blok itu diperiksa ulang jika datang lagi |
+
+  Blok yang dibuang dilupakan (bukan `duplicate` jika dikirim lagi). Pembuangan blok cabang dan header keturunan blok
+  tidak sah memakai satu peta induk ke anak, tidak berulang per tingkat.
+- **Batas yang tersisa:** cabang bersaing yang lebih dari 100_000 blok di bawah ujungnya belum lebih berat daripada chain
+  aktif tidak bisa disinkronkan lewat P2P, karena indeks header penuh sebelum cabang itu terbukti lebih berat. Aturan
+  konsensus tetap tanpa batas reorg; batas ini hilang setelah indeks header dan blok cabang disimpan di disk (TSK-M35).
 
 ---
 
@@ -177,6 +190,8 @@ ditulis lewat `--connect` juga bisa diblokir.
 |---|---|---|
 | Blok cabang (di memori node pada v0.1; MOD-05 tetap hanya chain aktif), pemilihan chain berdasarkan chainwork, reorg, blok yang induknya belum dikenal | MOD-11 | TSK-M27 |
 | Indeks header tanpa badan blok (untuk sinkronisasi header dulu) | MOD-11 | TSK-M28 |
+| Batas memori blok cabang, indeks header, dan catatan blok tidak sah (`NodeLimits`) | MOD-11 | TSK-M34 |
+| Indeks header dan blok cabang di disk (menghapus batas Bagian 9) | MOD-05, MOD-11 | TSK-M35 |
 | Swarm libp2p, 5 protokol, codec pesan, kunci rekan, batas koneksi, sanksi | MOD-06 | TSK-M14 |
 | Sinkronisasi header lalu blok, siaran, opsi daemon | MOD-11 | TSK-M28 |
 | 4 node atau lebih tetap sinkron, jaringan terpisah lalu tersambung (reorg dalam), node yang tertinggal mengejar | MOD-17 | TSK-F04 |

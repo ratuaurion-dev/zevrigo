@@ -5,6 +5,8 @@
 //! dan V5 sampai V8 dengan fungsi MOD-04; V4 (Merkle root) dan V9 sampai V10 diperiksa saat badan blok tiba lewat
 //! [`Node::receive_block`].
 
+use std::collections::BTreeSet;
+
 use homeostasis_consensus::{
     ParentContext, U256, check_future_timestamp, check_header_context, check_header_context_free,
 };
@@ -73,11 +75,45 @@ pub enum HeadersOutcome {
         /// Jumlah header baru sebelum header yang ditunda.
         added: usize,
     },
+    /// Indeks header penuh (`NodeLimits::max_headers`) dan tidak ada header yang lebih ringan untuk dibuang.
+    /// Pemrosesan berhenti tanpa sanksi; header sebelumnya tetap disimpan, dan sinkronisasi header berlanjut setelah
+    /// badan blok diunduh.
+    Full {
+        /// Jumlah header baru sebelum indeks penuh.
+        added: usize,
+    },
 }
 
 impl<S> ChainState<S> {
-    /// Menyimpan header di indeks header dengan nomor urut kedatangan berikutnya.
-    fn store_header(&mut self, id: Hash32, header: Header, chainwork: U256) {
+    /// Menyimpan header di indeks header dengan nomor urut kedatangan berikutnya. Jika indeks penuh
+    /// (`NodeLimits::max_headers`), header daun dengan chainwork paling kecil dibuang lebih dulu, asalkan chainwork-nya
+    /// lebih kecil daripada header baru dan bukan induk header baru (jika sama, yang paling akhir diterima). Jika tidak
+    /// ada, header baru tidak disimpan dan hasilnya `false`.
+    fn store_header(&mut self, id: Hash32, header: Header, chainwork: U256) -> bool {
+        if self.headers.len() >= self.limits.max_headers {
+            let prev = header.prev_block_id();
+            let parents: BTreeSet<Hash32> = self
+                .headers
+                .values()
+                .map(|entry| entry.header.prev_block_id())
+                .collect();
+            let victim = self
+                .headers
+                .iter()
+                .filter(|(other, entry)| {
+                    **other != prev && !parents.contains(*other) && entry.chainwork < chainwork
+                })
+                .min_by(|(_, a), (_, b)| {
+                    a.chainwork
+                        .cmp(&b.chainwork)
+                        .then(b.sequence.cmp(&a.sequence))
+                })
+                .map(|(other, _)| *other);
+            let Some(victim) = victim else {
+                return false;
+            };
+            self.headers.remove(&victim);
+        }
         let sequence = self.next_sequence;
         self.next_sequence = sequence.saturating_add(1);
         self.headers.insert(
@@ -88,6 +124,7 @@ impl<S> ChainState<S> {
                 sequence,
             },
         );
+        true
     }
 
     /// Data induk untuk header baru: seperti [`ChainState::parent_info`], tetapi induk dan leluhurnya juga boleh
@@ -122,7 +159,7 @@ impl<S> ChainState<S> {
     }
 
     /// Header dengan chainwork terbanyak; jika sama, yang lebih dulu diterima.
-    fn best_header(&self) -> Option<(Hash32, U256)> {
+    pub(super) fn best_header(&self) -> Option<(Hash32, U256)> {
         let mut best: Option<(Hash32, U256, u64)> = None;
         for (id, entry) in &self.headers {
             let better = best.is_none_or(|(_, work, sequence)| {
@@ -138,24 +175,29 @@ impl<S> ChainState<S> {
     /// Membuang header yang bloknya sudah dikenal atau tidak sah, lalu header yang induknya tidak sah (ditandai
     /// [`INVALID_ANCESTOR_RULE`]).
     fn prune_headers(&mut self) {
-        loop {
-            let mut stale: Vec<(Hash32, bool)> = Vec::new();
-            for (id, entry) in &self.headers {
-                if self.invalid.contains_key(id) || self.known(id) {
-                    stale.push((*id, false));
-                } else if self.invalid.contains_key(&entry.header.prev_block_id()) {
-                    stale.push((*id, true));
-                }
-            }
-            if stale.is_empty() {
-                return;
-            }
-            for (id, bad_parent) in stale {
-                self.headers.remove(&id);
-                if bad_parent {
-                    self.invalid.insert(id, INVALID_ANCESTOR_RULE);
-                }
-            }
+        let stale: Vec<Hash32> = self
+            .headers
+            .keys()
+            .filter(|id| self.invalid.contains_key(*id) || self.known(id))
+            .copied()
+            .collect();
+        for id in &stale {
+            self.headers.remove(id);
+        }
+        let orphaned: Vec<Hash32> = self
+            .headers
+            .iter()
+            .filter(|(_, entry)| self.invalid.contains_key(&entry.header.prev_block_id()))
+            .map(|(id, _)| *id)
+            .collect();
+        if orphaned.is_empty() {
+            return;
+        }
+        let mut dropped = self.descendants(&orphaned);
+        dropped.extend(orphaned);
+        for id in dropped {
+            self.headers.remove(&id);
+            self.note_invalid(id, INVALID_ANCESTOR_RULE);
         }
     }
 }
@@ -295,7 +337,9 @@ impl<S: ChainStore> Node<S> {
                 .chainwork
                 .checked_add(work)
                 .ok_or_else(|| internal("chainwork meluap"))?;
-            state.store_header(id, *header, chainwork);
+            if !state.store_header(id, *header, chainwork) {
+                return Ok(HeadersOutcome::Full { added });
+            }
             added = added.saturating_add(1);
         }
         Ok(HeadersOutcome::Accepted {
