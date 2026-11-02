@@ -1,30 +1,41 @@
 {
   "name": "homeostasis-explorer-web",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Antarmuka web explorer Homeostasis Coin (MOD-14, DEC-26)",
+  "description": "Antarmuka web explorer Homeostasis Coin (MOD-14, DEC-26): Next.js static export, Tailwind CSS, shadcn/ui",
   "license": "UNLICENSED",
-  "type": "module",
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev --hostname 127.0.0.1",
+    "dev:mock": "NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_USE_MOCK=1 next dev --hostname 127.0.0.1",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "build": "vite build",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
     "check": "npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.66.0",
+    "next": "16.4.4",
+    "qrcode": "1.5.4",
+    "radix-ui": "1.8.1",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "sonner": "2.0.8",
+    "tailwind-merge": "3.7.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.6",
+    "@types/qrcode": "1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vitejs/plugin-react": "6.1.2",
+    "postcss": "8.5.32",
+    "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
-    "vite": "8.3.5",
     "vitest": "5.0.5"
   }
 }

@@ -22,6 +22,8 @@ homeostasis-wallet-core.workspace = true
 # `fallible_uint`: u64 dan usize lewat konversi i64 yang diperiksa (galat jika di luar jangkauan), tanpa paket baru.
 rusqlite = { workspace = true, features = ["bundled", "fallible_uint"] }
 serde_json.workspace = true
+# DEC-10 bagian 4 (TSK-M38): SHA-256 untuk hash skrip inline halaman Next.js di kebijakan keamanan konten (`web`).
+sha2.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "time"] }
 tracing.workspace = true

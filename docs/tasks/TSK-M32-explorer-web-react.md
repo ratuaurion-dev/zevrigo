@@ -1,4 +1,5 @@
 # TSK-M32 · Aplikasi web React explorer · 🟢 selesai · Prioritas: Sedang
+> Diganti [TSK-M38](TSK-M38-explorer-web-nextjs.md): Next.js + Tailwind CSS + shadcn/ui (DEC-26 diubah 2 November 2026).
 - **Jenis:** task modul · **Modul:** MOD-14 (`apps/explorer/web`, TypeScript) · **Untuk:** antarmuka web explorer (DEC-26)
 - **Bergantung pada:** TSK-M31, TSK-S07, DEC-26, DEC-10 bagian 7 · **Memblokir:** TSK-M33
 - **Estimasi:** M · **Ditulis:** Quick (kode dan test), 2 November 2026

@@ -19,7 +19,7 @@ Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai ·
 | MOD-11 | `apps/node` | `homeostasis-node` (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) | 🟢 |
 | MOD-12 | `apps/cli` | `homeostasis-cli` (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) | 🟢 |
 | MOD-13 | `apps/miner` | `homeostasis-miner` (bin) | Penambang CPU | MOD-01, 03, 08 | 🟢 |
-| MOD-14 | `apps/explorer` | `homeostasis-explorer` (bin) | Indexer, API, dan antarmuka web React (DEC-26) | MOD-01, 02, 04, 08, 09 (DEC-25) | 🟡 |
+| MOD-14 | `apps/explorer` | `homeostasis-explorer` (bin) | Indexer, API, dan antarmuka web Next.js (DEC-26) | MOD-01, 02, 04, 08, 09 (DEC-25) | 🟡 |
 | MOD-15 | `apps/wallet` | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 | ⚪ |
 | MOD-16 | `apps/merchant` | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 | ⚪ |
 | MOD-17 | `tests/integration` | `homeostasis-integration-tests` | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, 13 (DEC-20), 12 (DEC-23), 14 (DEC-25) | 🟡 |

@@ -86,10 +86,10 @@ Butuh Node.js 22.12 atau lebih baru. Build sekali, lalu jalankan explorer dengan
 
 ```bash
 make web-check
-cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis --web-dir apps/explorer/web/dist
+cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis --web-dir apps/explorer/web/out
 ```
 
-Buka `http://127.0.0.1:28802/` di browser. Tampilan tersedia dalam Bahasa Indonesia dan English (tombol di kepala
-halaman), tanpa cookie, analitik, atau sumber dari luar. Untuk pengembangan, `npm run dev` di `apps/explorer/web`
-membuka server Vite di `http://127.0.0.1:5173/` yang meneruskan `/api` ke explorer. Aturan lengkap di
-[docs/reference/spesifikasi-explorer-web-v0.1.md](docs/reference/spesifikasi-explorer-web-v0.1.md).
+Buka `http://127.0.0.1:28802/` di browser. Tampilan (Next.js, Tailwind CSS, shadcn/ui) tersedia dalam Bahasa Indonesia
+dan English, mode terang dan gelap, pencarian Ctrl+K, tanpa cookie, analitik, atau sumber dari luar. Untuk melihat
+tampilan tanpa node, `npm run dev:mock` di `apps/explorer/web` membuka `http://127.0.0.1:3000/` dengan data tiruan.
+Aturan lengkap di [docs/reference/spesifikasi-explorer-web-v0.2.md](docs/reference/spesifikasi-explorer-web-v0.2.md).

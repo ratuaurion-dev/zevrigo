@@ -23,6 +23,7 @@ deps:
 
 check-all: fmt-check lint check-forbidden test
 
-# Antarmuka web explorer (DEC-26): paket dari package-lock.json tanpa skrip pasang, lalu typecheck, test, build.
+# Antarmuka web explorer (DEC-26): paket dari package-lock.json tanpa skrip pasang, lalu typecheck, test, dan
+# next build (static export ke apps/explorer/web/out).
 web-check:
 	cd apps/explorer/web && npm ci --ignore-scripts --no-audit --no-fund && npm run check

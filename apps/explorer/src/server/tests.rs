@@ -42,9 +42,10 @@ fn assert_security_headers(head: &str) {
     assert!(head.contains("x-content-type-options: nosniff"), "{head}");
     assert!(head.contains("referrer-policy: no-referrer"), "{head}");
     assert!(
-        head.contains("content-security-policy: default-src 'none'; script-src 'self';"),
+        head.contains("content-security-policy: default-src 'none'; script-src 'self'"),
         "{head}"
     );
+    assert!(head.contains("frame-ancestors 'none'"), "{head}");
     assert!(!head.contains("set-cookie"), "{head}");
 }
 
@@ -135,14 +136,20 @@ fn http_server_serves_web_files_and_api() {
         std::env::temp_dir().join(format!("homeostasis-q85-web-server-{}", std::process::id())),
     );
     let _ = std::fs::remove_dir_all(&site.0);
-    std::fs::create_dir_all(site.0.join("assets")).unwrap();
+    std::fs::create_dir_all(site.0.join("_next/static/chunks")).unwrap();
+    std::fs::create_dir_all(site.0.join("blocks")).unwrap();
+    std::fs::write(
+        site.0.join("blocks").join("index.html"),
+        "<!DOCTYPE html><script>self.__next_f=[]</script>",
+    )
+    .unwrap();
     std::fs::write(
         site.0.join("index.html"),
         "<!doctype html><div id=\"root\"></div>",
     )
     .unwrap();
     std::fs::write(
-        site.0.join("assets").join("index-a1b2c3.js"),
+        site.0.join("_next/static/chunks").join("a1b2c3.js"),
         "console.log(1)",
     )
     .unwrap();
@@ -164,7 +171,7 @@ fn http_server_serves_web_files_and_api() {
     );
     assert!(head.contains("cache-control: no-cache"), "{head}");
     assert_security_headers(&head);
-    let (status, head, body) = raw(addr, "GET", "/assets/index-a1b2c3.js");
+    let (status, head, body) = raw(addr, "GET", "/_next/static/chunks/a1b2c3.js");
     assert_eq!((status, body.as_str()), (200, "console.log(1)"));
     assert!(
         head.contains("content-type: text/javascript; charset=utf-8"),
@@ -174,7 +181,7 @@ fn http_server_serves_web_files_and_api() {
     assert_security_headers(&head);
     for path in [
         "/missing.js",
-        "/assets/../index.html",
+        "/blocks/../index.html",
         "/.hidden",
         "/block/1",
     ] {
@@ -184,6 +191,26 @@ fn http_server_serves_web_files_and_api() {
     }
     let (status, _, _) = raw(addr, "POST", "/");
     assert_eq!(status, 405);
+    let (status, head, body) = raw(addr, "HEAD", "/");
+    assert_eq!((status, body.as_str()), (200, ""));
+    assert!(
+        head.contains("content-type: text/html; charset=utf-8"),
+        "{head}"
+    );
+    assert_security_headers(&head);
+    // Halaman static export: `/blocks` dan `/blocks/` = `blocks/index.html`, hash skrip inline di CSP (huruf kecil).
+    for path in ["/blocks", "/blocks/"] {
+        let (status, head, body) = raw(addr, "GET", path);
+        assert_eq!(status, 200, "{path}");
+        assert_eq!(body, "<!DOCTYPE html><script>self.__next_f=[]</script>");
+        assert!(
+            head.contains(
+                "script-src 'self' 'sha256-mtnathcl7ffo76nj83kzxkslrqm9by73db09ryhwalo='; style-src"
+            ),
+            "{head}"
+        );
+        assert_security_headers(&head);
+    }
 
     // Jalur API tetap dilayani API, juga dengan folder web.
     let (status, head, body) = request(addr, "GET", "/api/v1/status");

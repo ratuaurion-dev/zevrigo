@@ -1,6 +1,7 @@
 //! Program explorer (Spesifikasi Explorer v0.1 Bagian 6): server HTTP axum di 127.0.0.1, sinkronisasi indeks dari node
 //! setiap 2 detik, dan berhenti bersih dengan SIGINT atau SIGTERM. Dengan `--web-dir`, jalur di luar `/api/` menyajikan
-//! antarmuka web (Spesifikasi Explorer Web v0.1 Bagian 7). Semua jawaban membawa kepala keamanan yang sama.
+//! antarmuka web (Spesifikasi Explorer Web v0.2 Bagian 7). Semua jawaban membawa kepala keamanan; halaman HTML
+//! mendapat kebijakan keamanan konten dengan hash skrip inline-nya ([`web::page_policy`]).
 //!
 //! Satu koneksi SQLite dijaga mutex. Permintaan HTTP dan langkah sinkronisasi dijalankan di `spawn_blocking`, sehingga
 //! akses SQLite dan RPC sinkron tidak menahan thread async. Tanpa cookie, analitik, atau log alamat IP, jalur, dan kata
@@ -134,7 +135,7 @@ struct App {
 }
 
 /// Router axum. Jalur `/api` dan `/api/…` diteruskan ke [`Shared::respond`]; jalur lain menyajikan file dari `web_dir`
-/// lewat [`web::serve`], atau `404` JSON API jika `web_dir` tidak ada.
+/// lewat [`web::serve`] (metode `GET` dan `HEAD`), atau `404` JSON API jika `web_dir` tidak ada.
 pub fn router(shared: Arc<Shared>, web_dir: Option<PathBuf>) -> Router {
     let app = App {
         shared,
@@ -148,8 +149,15 @@ fn is_api_path(path: &str) -> bool {
     path == "/api" || path.starts_with("/api/")
 }
 
-/// Jawaban HTTP dengan kepala keamanan explorer: `nosniff`, tanpa referrer, dan [`CONTENT_SECURITY_POLICY`].
-fn reply(status: u16, content_type: &'static str, cache: &'static str, body: Vec<u8>) -> Response {
+/// Jawaban HTTP dengan kepala keamanan explorer: `nosniff`, tanpa referrer, dan kebijakan keamanan konten `policy`
+/// ([`CONTENT_SECURITY_POLICY`], atau [`web::page_policy`] untuk halaman HTML).
+fn reply(
+    status: u16,
+    content_type: &'static str,
+    cache: &'static str,
+    policy: &str,
+    body: Vec<u8>,
+) -> Response {
     let status = StatusCode::from_u16(status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
     (
         status,
@@ -158,7 +166,7 @@ fn reply(status: u16, content_type: &'static str, cache: &'static str, body: Vec
             (header::CACHE_CONTROL, cache),
             (header::X_CONTENT_TYPE_OPTIONS, "nosniff"),
             (header::REFERRER_POLICY, "no-referrer"),
-            (header::CONTENT_SECURITY_POLICY, CONTENT_SECURITY_POLICY),
+            (header::CONTENT_SECURITY_POLICY, policy),
         ],
         body,
     )
@@ -173,11 +181,13 @@ async fn handle(State(app): State<Arc<App>>, method: Method, uri: Uri) -> Respon
         app.web_dir.clone()
     };
     if let Some(dir) = web_dir {
-        if method != Method::GET {
+        // HEAD dilayani seperti GET (prefetch Next.js); hyper tidak mengirim badan untuk HEAD.
+        if method != Method::GET && method != Method::HEAD {
             return reply(
                 405,
                 "text/plain; charset=utf-8",
                 "no-store",
+                CONTENT_SECURITY_POLICY,
                 b"method not allowed\n".to_vec(),
             );
         }
@@ -188,6 +198,7 @@ async fn handle(State(app): State<Arc<App>>, method: Method, uri: Uri) -> Respon
             answer.status,
             answer.content_type,
             answer.cache_control,
+            &answer.content_security_policy,
             answer.body,
         );
     }
@@ -202,6 +213,7 @@ async fn handle(State(app): State<Arc<App>>, method: Method, uri: Uri) -> Respon
         answer.status,
         "application/json",
         "no-store",
+        CONTENT_SECURITY_POLICY,
         answer.body.into_bytes(),
     )
 }

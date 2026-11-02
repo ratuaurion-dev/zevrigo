@@ -22,7 +22,7 @@ pub const USAGE: &str = concat!(
     "  --datadir <folder>  folder data; indeks disimpan di <folder>/regtest/explorer.sqlite\n",
     "  --rpc-url <url>     node JSON-RPC (bawaan regtest http://127.0.0.1:28801)\n",
     "  --http-port <port>  port API HTTP di 127.0.0.1 (bawaan regtest 28802; 0 = port bebas)\n",
-    "  --web-dir <folder>  antarmuka web hasil build apps/explorer/web (folder dist); tanpa opsi ini hanya API\n",
+    "  --web-dir <folder>  antarmuka web hasil build apps/explorer/web (folder out); tanpa opsi ini hanya API\n",
     "\n",
     "Setelah siap, alamat API dicetak ke stdout sebagai `http: http://<alamat>`; jalur API di /api/v1/.\n",
     "Log ditulis ke stderr. Explorer berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
@@ -50,7 +50,7 @@ pub struct Config {
     pub rpc_url: String,
     /// Port API HTTP di 127.0.0.1. `0` memilih port bebas.
     pub http_port: u16,
-    /// Folder hasil build antarmuka web (`apps/explorer/web/dist`). `None` berarti hanya API.
+    /// Folder hasil build antarmuka web (`apps/explorer/web/out`). `None` berarti hanya API.
     pub web_dir: Option<PathBuf>,
 }
 

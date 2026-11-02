@@ -2,6 +2,9 @@
 
 > Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S07 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-explorer-web-v0.1.md`
+>
+> ⚪ **Diganti** [spesifikasi-explorer-web-v0.2.md](spesifikasi-explorer-web-v0.2.md) (Next.js + Tailwind CSS + shadcn/ui,
+> DEC-26 diubah pencipta 2 November 2026, TSK-M38). Dokumen ini disimpan sebagai catatan versi Vite (TSK-M32).
 
 | Status | Ringkasan |
 |---|---|

@@ -46,7 +46,7 @@ fn parses_help_version_and_run() {
         parse_args(args(&[
             "--regtest",
             "--web-dir",
-            "apps/explorer/web/dist",
+            "apps/explorer/web/out",
             "--datadir",
             "data"
         ])),
@@ -55,7 +55,7 @@ fn parses_help_version_and_run() {
             datadir: PathBuf::from("data"),
             rpc_url: "http://127.0.0.1:28801".to_owned(),
             http_port: 28_802,
-            web_dir: Some(PathBuf::from("apps/explorer/web/dist")),
+            web_dir: Some(PathBuf::from("apps/explorer/web/out")),
         }))
     );
     assert_eq!(default_rpc_url(Network::Regtest), "http://127.0.0.1:28801");
