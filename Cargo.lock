@@ -1091,6 +1091,7 @@ dependencies = [
  "homeostasis-cli",
  "homeostasis-consensus",
  "homeostasis-crypto",
+ "homeostasis-explorer",
  "homeostasis-mempool",
  "homeostasis-merchant-core",
  "homeostasis-miner",
@@ -1101,6 +1102,7 @@ dependencies = [
  "homeostasis-rpc",
  "homeostasis-storage",
  "homeostasis-wallet-core",
+ "serde_json",
  "tokio",
 ]
 

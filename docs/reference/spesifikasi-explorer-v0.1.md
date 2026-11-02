@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | axum 0.8 + SQLite (DEC-25). Indexer membaca node lewat RPC v0.1, mundur sedalam apa pun saat reorg, memeriksa sendiri jumlah koin setiap blok. API JSON baca saja: status, blok, transaksi, alamat, pasokan, alokasi genesis, mempool, pencarian |
 | ⏳ Ditunda | Antarmuka web (React), paket Docker, batas laju, perkiraan daya tambang, peringatan konsentrasi tambang, detail transaksi mempool, testnet dan mainnet |
-| ➡️ Langkah berikutnya | TSK-F05 (uji ujung ke ujung dengan node dan miner sungguhan). TSK-M29 (indexer) dan TSK-M30 (API dan program) selesai |
+| ➡️ Langkah berikutnya | Antarmuka web dan paket Docker (sebelum TSK-F06). TSK-M29 (indexer), TSK-M30 (API dan program), dan TSK-F05 (uji ujung ke ujung) selesai |
 
 Explorer **bukan konsensus** dan tidak memvalidasi blok. Explorer memercayai node yang ditunjuknya untuk PoW dan tanda
 tangan; siapa pun bisa menjalankan node dan explorer sendiri (Dokumen Aplikasi Bagian 7). Jumlah koin diperiksa explorer

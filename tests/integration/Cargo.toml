@@ -18,12 +18,15 @@ homeostasis-storage.workspace = true
 homeostasis-wallet-core.workspace = true
 
 [dev-dependencies]
-# DEC-20 dan DEC-23: aplikasi hanya untuk uji ujung ke ujung (FTR-02, FTR-03, dan seterusnya), tidak pernah sebagai
-# dependensi biasa. Dirujuk lewat path, bukan [workspace.dependencies], agar daftar dependensi workspace tetap hanya
+# DEC-20, DEC-23, dan DEC-25 bagian 3: aplikasi hanya untuk uji ujung ke ujung (FTR-02 sampai FTR-05), tidak pernah
+# sebagai dependensi biasa. Dirujuk lewat path, bukan [workspace.dependencies], agar daftar dependensi workspace tetap hanya
 # berisi pustaka inti dan crate lain tidak bisa memakai aplikasi dengan `.workspace = true`.
 homeostasis-cli = { path = "../../apps/cli" }
+homeostasis-explorer = { path = "../../apps/explorer" }
 homeostasis-miner = { path = "../../apps/miner" }
 homeostasis-node = { path = "../../apps/node" }
+# Membaca jawaban JSON API explorer (FTR-05).
+serde_json.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "sync"] }
 
 [lints]

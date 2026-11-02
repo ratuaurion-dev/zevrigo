@@ -3,7 +3,7 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `homeostasis-explorer` (bin)
-- **Status:** 🟡 indexer (TSK-M29), API, dan program (TSK-M30) selesai; uji ujung ke ujung menunggu TSK-F05
+- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), dan uji ujung ke ujung (TSK-F05) selesai; antarmuka web menyusul
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08`, `MOD-09` (DEC-25); pustaka `axum` dan `rusqlite` (DEC-10 bagian 6)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
@@ -31,4 +31,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-S06](../reference/spesifikasi-explorer-v0.1.md) — 🟢 spesifikasi v0.1
 - [TSK-M29](../tasks/TSK-M29-explorer-indexer.md) — 🟢 selesai (indexer, pemeriksaan I1–I4, query)
 - [TSK-M30](../tasks/TSK-M30-explorer-api.md) — 🟢 selesai (API axum, adaptor RPC, program `homeostasis-explorer`)
-- TSK-F05 (FTR-05, uji ujung ke ujung) — 🟡 siap
+- [TSK-F05](../tasks/TSK-F05-explorer-minimal.md) — 🟢 selesai (FTR-05, uji ujung ke ujung di MOD-17)
