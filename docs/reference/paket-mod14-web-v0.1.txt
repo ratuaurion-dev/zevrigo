@@ -1,0 +1,92 @@
+# Paket npm di apps/explorer/web/package-lock.json (antarmuka web explorer, DEC-26, TSK-M32)
+# Dibuat skrip gerbang Q86 dari package-lock.json. Kolom: nama versi | lisensi | browser (ikut ke berkas build) atau
+# alat (build dan uji saja) | skrip pasang (npm ci --ignore-scripts: tidak pernah dijalankan) | opsional per platform.
+# jumlah: 88, ke browser: 3, lisensi ditolak: 0
+@jridgewell/resolve-uri 3.1.2 | MIT | alat | - | -
+@jridgewell/sourcemap-codec 1.6.0 | MIT | alat | - | -
+@jridgewell/trace-mapping 0.3.31 | MIT | alat | - | -
+@oxc-project/types 0.156.0 | MIT | alat | - | -
+@rolldown/binding-android-arm-eabi 1.2.16 | MIT | alat | - | opsional android,arm
+@rolldown/binding-android-arm64 1.2.16 | MIT | alat | - | opsional android,arm64
+@rolldown/binding-darwin-arm64 1.2.16 | MIT | alat | - | opsional darwin,arm64
+@rolldown/binding-darwin-x64 1.2.16 | MIT | alat | - | opsional darwin,x64
+@rolldown/binding-freebsd-x64 1.2.16 | MIT | alat | - | opsional freebsd,x64
+@rolldown/binding-linux-arm-gnueabihf 1.2.16 | MIT | alat | - | opsional linux,arm
+@rolldown/binding-linux-arm64-gnu 1.2.16 | MIT | alat | - | opsional linux,arm64
+@rolldown/binding-linux-arm64-musl 1.2.16 | MIT | alat | - | opsional linux,arm64
+@rolldown/binding-linux-ppc64-gnu 1.2.16 | MIT | alat | - | opsional linux,ppc64
+@rolldown/binding-linux-s390x-gnu 1.2.16 | MIT | alat | - | opsional linux,s390x
+@rolldown/binding-linux-x64-gnu 1.2.16 | MIT | alat | - | opsional linux,x64
+@rolldown/binding-linux-x64-musl 1.2.16 | MIT | alat | - | opsional linux,x64
+@rolldown/binding-openharmony-arm64 1.2.16 | MIT | alat | - | opsional openharmony,arm64
+@rolldown/binding-win32-arm64-msvc 1.2.16 | MIT | alat | - | opsional win32,arm64
+@rolldown/binding-win32-x64-msvc 1.2.16 | MIT | alat | - | opsional win32,x64
+@rolldown/pluginutils 1.0.1 | MIT | alat | - | -
+@types/chai 5.2.3 | MIT | alat | - | -
+@types/deep-eql 4.0.2 | MIT | alat | - | -
+@types/estree 1.0.10 | MIT | alat | - | -
+@types/react 19.3.0 | MIT | alat | - | -
+@types/react-dom 19.3.0 | MIT | alat | - | -
+@typescript/typescript-aix-ppc64 7.0.2 | Apache-2.0 | alat | - | opsional aix,ppc64
+@typescript/typescript-darwin-arm64 7.0.2 | Apache-2.0 | alat | - | opsional darwin,arm64
+@typescript/typescript-darwin-x64 7.0.2 | Apache-2.0 | alat | - | opsional darwin,x64
+@typescript/typescript-freebsd-arm64 7.0.2 | Apache-2.0 | alat | - | opsional freebsd,arm64
+@typescript/typescript-freebsd-x64 7.0.2 | Apache-2.0 | alat | - | opsional freebsd,x64
+@typescript/typescript-linux-arm 7.0.2 | Apache-2.0 | alat | - | opsional linux,arm
+@typescript/typescript-linux-arm64 7.0.2 | Apache-2.0 | alat | - | opsional linux,arm64
+@typescript/typescript-linux-loong64 7.0.2 | Apache-2.0 | alat | - | opsional linux,loong64
+@typescript/typescript-linux-mips64el 7.0.2 | Apache-2.0 | alat | - | opsional linux,mips64el
+@typescript/typescript-linux-ppc64 7.0.2 | Apache-2.0 | alat | - | opsional linux,ppc64
+@typescript/typescript-linux-riscv64 7.0.2 | Apache-2.0 | alat | - | opsional linux,riscv64
+@typescript/typescript-linux-s390x 7.0.2 | Apache-2.0 | alat | - | opsional linux,s390x
+@typescript/typescript-linux-x64 7.0.2 | Apache-2.0 | alat | - | opsional linux,x64
+@typescript/typescript-netbsd-arm64 7.0.2 | Apache-2.0 | alat | - | opsional netbsd,arm64
+@typescript/typescript-netbsd-x64 7.0.2 | Apache-2.0 | alat | - | opsional netbsd,x64
+@typescript/typescript-openbsd-arm64 7.0.2 | Apache-2.0 | alat | - | opsional openbsd,arm64
+@typescript/typescript-openbsd-x64 7.0.2 | Apache-2.0 | alat | - | opsional openbsd,x64
+@typescript/typescript-sunos-x64 7.0.2 | Apache-2.0 | alat | - | opsional sunos,x64
+@typescript/typescript-win32-arm64 7.0.2 | Apache-2.0 | alat | - | opsional win32,arm64
+@typescript/typescript-win32-x64 7.0.2 | Apache-2.0 | alat | - | opsional win32,x64
+@vitejs/plugin-react 6.1.2 | MIT | alat | - | -
+@vitest/mocker 5.0.5 | MIT | alat | - | -
+@vitest/spy 5.0.5 | MIT | alat | - | -
+assertion-error 2.0.1 | MIT | alat | - | -
+chai 6.3.0 | MIT | alat | - | -
+csstype 3.2.3 | MIT | alat | - | -
+detect-libc 2.1.2 | Apache-2.0 | alat | - | -
+es-module-lexer 2.3.2 | MIT | alat | - | -
+estree-walker 3.0.3 | MIT | alat | - | -
+expect-type 1.4.0 | Apache-2.0 | alat | - | -
+fdir 6.5.0 | MIT | alat | - | -
+fsevents 2.3.3 | MIT | alat | skrip pasang (tidak dijalankan) | opsional darwin
+lightningcss 1.33.0 | MPL-2.0 | alat | - | -
+lightningcss-android-arm64 1.33.0 | MPL-2.0 | alat | - | opsional android,arm64
+lightningcss-darwin-arm64 1.33.0 | MPL-2.0 | alat | - | opsional darwin,arm64
+lightningcss-darwin-x64 1.33.0 | MPL-2.0 | alat | - | opsional darwin,x64
+lightningcss-freebsd-x64 1.33.0 | MPL-2.0 | alat | - | opsional freebsd,x64
+lightningcss-linux-arm-gnueabihf 1.33.0 | MPL-2.0 | alat | - | opsional linux,arm
+lightningcss-linux-arm64-gnu 1.33.0 | MPL-2.0 | alat | - | opsional linux,arm64
+lightningcss-linux-arm64-musl 1.33.0 | MPL-2.0 | alat | - | opsional linux,arm64
+lightningcss-linux-x64-gnu 1.33.0 | MPL-2.0 | alat | - | opsional linux,x64
+lightningcss-linux-x64-musl 1.33.0 | MPL-2.0 | alat | - | opsional linux,x64
+lightningcss-win32-arm64-msvc 1.33.0 | MPL-2.0 | alat | - | opsional win32,arm64
+lightningcss-win32-x64-msvc 1.33.0 | MPL-2.0 | alat | - | opsional win32,x64
+magic-string 1.4.5 | MIT | alat | - | -
+nanoid 3.3.20 | MIT | alat | - | -
+obug 3.0.0 | MIT | alat | - | -
+picocolors 1.1.1 | ISC | alat | - | -
+picomatch 4.0.7 | MIT | alat | - | -
+postcss 8.5.32 | MIT | alat | - | -
+react 19.3.1 | MIT | browser | - | -
+react-dom 19.3.1 | MIT | browser | - | -
+rolldown 1.2.16 | MIT | alat | - | -
+scheduler 0.28.0 | MIT | browser | - | -
+source-map-js 1.2.2 | BSD-3-Clause | alat | - | -
+std-env 4.3.0 | MIT | alat | - | -
+tinybench 6.2.3 | MIT | alat | - | -
+tinyexec 1.3.1 | MIT | alat | - | -
+tinyglobby 0.2.17 | MIT | alat | - | -
+typescript 7.0.2 | Apache-2.0 | alat | - | -
+vite 8.3.5 | MIT | alat | - | -
+vitest 5.0.5 | MIT | alat | - | -
+why-is-node-running 3.2.1 | MIT | alat | - | -

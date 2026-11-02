@@ -111,7 +111,7 @@ make test        # cargo test --workspace
 make test-slow   # cargo test --workspace --release -- --ignored
 make check-forbidden  # gagal jika ada f32/f64 atau kata kunci unsafe di kode proyek
 make check-all   # fmt-check + lint + check-forbidden + test
-make web-check   # antarmuka web explorer (mulai TSK-M32): npm ci --ignore-scripts, typecheck, test, build (Node.js >= 22.12, DEC-26)
+make web-check   # antarmuka web explorer: npm ci --ignore-scripts, typecheck, test, build (Node.js >= 22.12, DEC-26)
 ```
 
 ## Larangan mutlak: `unsafe` dan floating point

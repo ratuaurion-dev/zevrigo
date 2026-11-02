@@ -4,11 +4,11 @@
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal) |
-| 🟡 Siap dikerjakan | TSK-M32 (aplikasi web React explorer, DEC-26); TSK-M23 (pruning) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.1), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M32, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal) |
+| 🟡 Siap dikerjakan | TSK-M33 (paket Docker explorer); TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | — (DEC-01 tetap terbuka untuk testnet) |
-| ➡️ Langkah berikutnya | TSK-M32 antarmuka web explorer (pemakaian pertama npm), lalu TSK-M33 paket Docker |
+| ➡️ Langkah berikutnya | Pilihan pencipta: TSK-M33 paket Docker, DEC-01 (PoW mainnet, membuka FTR-06 testnet), atau FTR-07 wallet desktop |
 
 ## Tiga jenis task
 
@@ -67,8 +67,8 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M29 | MOD-14 | Indexer SQLite: skema, sinkronisasi lewat RPC, reorg tanpa batas, pemeriksaan I1–I4, query (Spesifikasi Explorer Bagian 2 sampai 4) | TSK-S06, DEC-25 | 🟢 selesai ([kartu](TSK-M29-explorer-indexer.md)) |
 | TSK-M30 | MOD-14 | API HTTP axum `GET /api/v1/…`, program `homeostasis-explorer` (opsi, sinyal, stdout `http:`) (Spesifikasi Explorer Bagian 5 dan 6) | TSK-M29 | 🟢 selesai ([kartu](TSK-M30-explorer-api.md)) |
 | TSK-M31 | MOD-14 | Opsi `--web-dir`, penyajian file web yang aman, kepala keamanan (Spesifikasi Explorer Web Bagian 7) | TSK-M30, TSK-S07 | 🟢 selesai ([kartu](TSK-M31-explorer-web-dir.md)) |
-| TSK-M32 | MOD-14 (`web/`) | Aplikasi web React: halaman, dua bahasa, format jumlah, uji vitest, `make web-check`, pemakaian pertama npm (Spesifikasi Explorer Web Bagian 1 sampai 6, 8) | TSK-M31, DEC-26 | 🟡 siap |
-| TSK-M33 | MOD-14 | Paket Docker: node + explorer + web | TSK-M32 | ⚪ |
+| TSK-M32 | MOD-14 (`web/`) | Aplikasi web React: halaman, dua bahasa, format jumlah, uji vitest, `make web-check`, pemakaian pertama npm (Spesifikasi Explorer Web Bagian 1 sampai 6, 8) | TSK-M31, DEC-26 | 🟢 selesai ([kartu](TSK-M32-explorer-web-react.md)) |
+| TSK-M33 | MOD-14 | Paket Docker: node + explorer + web | TSK-M32 | 🟡 siap |
 | TSK-M25 | MOD-01 | `enum Network { Mainnet, Testnet, Regtest }` di `params` (Spesifikasi Validasi Bagian 11) | TSK-S02 | 🟢 selesai ([kartu](TSK-M25-primitives-network.md)) |
 
 ## Backlog: task fitur (TSK-F)

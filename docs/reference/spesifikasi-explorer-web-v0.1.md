@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | React + TypeScript + Vite (DEC-26), aplikasi statis di `apps/explorer/web` yang membaca API v0.1 di origin yang sama. Bahasa Indonesia (bawaan) dan English. Jumlah koin selalu `bigint`. Tanpa cookie, analitik, font, atau skrip dari luar |
 | ⏳ Ditunda | Paket Docker (node + explorer + web), grafik, perkiraan daya tambang, peringatan konsentrasi tambang, mode gelap |
-| ➡️ Langkah berikutnya | TSK-M32 (aplikasi web, pemakaian pertama npm). TSK-M31 (penyajian web di program explorer) selesai bersama spesifikasi ini |
+| ➡️ Langkah berikutnya | TSK-M33 paket Docker. TSK-M31 (penyajian `--web-dir`) dan TSK-M32 (aplikasi web) selesai |
 
 Antarmuka web hanya **menampilkan** isi API explorer (Spesifikasi Explorer v0.1 Bagian 5). Tidak ada logika chain,
 pemeriksaan, atau kunci di browser. Siapa pun yang menjalankan node dan explorer sendiri mendapat tampilan yang sama.
@@ -135,9 +135,12 @@ Jalur memakai hash (`#/…`), sehingga server cukup menyajikan file yang ada tan
 | `@types/react`, `@types/react-dom` | 19.3.0 | MIT | Tipe |
 
 - Versi persis dikunci saat pemakaian pertama (TSK-M32) di `package.json` dan `package-lock.json` (di-commit).
-- Gerbang pemakaian pertama: semua paket dari `registry.npmjs.org` dengan `integrity` sha512, lisensi permisif, tanpa
-  paket di luar pohon dependensi paket di atas; daftar paket, lisensi, dan ada tidaknya skrip pasang ditulis ke
-  `docs/reference/paket-mod14-web-v0.1.txt`.
+- Gerbang pemakaian pertama: semua paket dari `registry.npmjs.org` dengan `integrity` sha512; paket yang ikut ke
+  browser hanya `react`, `react-dom`, dan `scheduler`, semuanya MIT; daftar paket, lisensi, dan ada tidaknya skrip
+  pasang ditulis ke `docs/reference/paket-mod14-web-v0.1.txt`.
+- **Lisensi.** Paket yang ikut ke browser wajib permisif (daftar Q78/Q82/Q83 ditambah BlueOak-1.0.0). Alat build dan uji
+  (`dev` di package-lock) boleh juga MPL-2.0 (misalnya `lightningcss`, pengolah CSS Vite) dan CC-BY-4.0 (data), karena
+  tidak ikut ke berkas build dan tidak diubah. Lisensi lain menghentikan gerbang.
 - Paket dipasang dengan `npm ci --ignore-scripts`: skrip pasang paket tidak pernah dijalankan.
 - Hanya `react` dan `react-dom` yang ikut ke berkas build; lainnya hanya alat build dan uji.
 

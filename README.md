@@ -74,3 +74,17 @@ Explorer membaca chain dari node lewat RPC, menyimpan indeks di `~/.homeostasis/
 sendiri jumlah koin setiap blok, lalu melayani API JSON baca saja di `http://127.0.0.1:28802/api/v1/` (misalnya
 `/status`, `/blocks`, `/block/<tinggi>`, `/tx/<txid>`, `/address/<alamat>`, `/supply`, `/allocation`). Jumlah koin
 selalu string desimal quanta. Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
+
+### Antarmuka web explorer
+
+Butuh Node.js 22.12 atau lebih baru. Build sekali, lalu jalankan explorer dengan `--web-dir`:
+
+```bash
+make web-check
+cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis --web-dir apps/explorer/web/dist
+```
+
+Buka `http://127.0.0.1:28802/` di browser. Tampilan tersedia dalam Bahasa Indonesia dan English (tombol di kepala
+halaman), tanpa cookie, analitik, atau sumber dari luar. Untuk pengembangan, `npm run dev` di `apps/explorer/web`
+membuka server Vite di `http://127.0.0.1:5173/` yang meneruskan `/api` ke explorer. Aturan lengkap di
+[docs/reference/spesifikasi-explorer-web-v0.1.md](docs/reference/spesifikasi-explorer-web-v0.1.md).

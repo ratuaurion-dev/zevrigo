@@ -3,7 +3,7 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `homeostasis-explorer` (bin)
-- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), dan penyajian web `--web-dir` (TSK-M31) selesai; aplikasi web React (TSK-M32) berikutnya
+- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), dan penyajian web `--web-dir` (TSK-M31), dan aplikasi web React (TSK-M32) selesai; paket Docker (TSK-M33) berikutnya
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08`, `MOD-09` (DEC-25); pustaka `axum` dan `rusqlite` (DEC-10 bagian 6)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
@@ -36,4 +36,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-F05](../tasks/TSK-F05-explorer-minimal.md) — 🟢 selesai (FTR-05, uji ujung ke ujung di MOD-17)
 - [TSK-S07](../reference/spesifikasi-explorer-web-v0.1.md) — 🟢 spesifikasi antarmuka web v0.1
 - [TSK-M31](../tasks/TSK-M31-explorer-web-dir.md) — 🟢 selesai (opsi `--web-dir`, penyajian file aman, kepala keamanan)
-- TSK-M32 (aplikasi web React) — 🟡 siap
+- [TSK-M32](../tasks/TSK-M32-explorer-web-react.md) — 🟢 selesai (aplikasi web React di `web/`, dua bahasa, pemakaian pertama npm)
