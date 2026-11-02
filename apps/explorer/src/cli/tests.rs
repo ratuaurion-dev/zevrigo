@@ -16,6 +16,7 @@ fn run_config(datadir: &str, rpc_url: &str, http_port: u16) -> Command {
         datadir: PathBuf::from(datadir),
         rpc_url: rpc_url.to_owned(),
         http_port,
+        web_dir: None,
     })
 }
 
@@ -41,6 +42,22 @@ fn parses_help_version_and_run() {
         ])),
         Ok(run_config("data", "http://127.0.0.1:5000", 0))
     );
+    assert_eq!(
+        parse_args(args(&[
+            "--regtest",
+            "--web-dir",
+            "apps/explorer/web/dist",
+            "--datadir",
+            "data"
+        ])),
+        Ok(Command::Run(Config {
+            network: Network::Regtest,
+            datadir: PathBuf::from("data"),
+            rpc_url: "http://127.0.0.1:28801".to_owned(),
+            http_port: 28_802,
+            web_dir: Some(PathBuf::from("apps/explorer/web/dist")),
+        }))
+    );
     assert_eq!(default_rpc_url(Network::Regtest), "http://127.0.0.1:28801");
     assert_eq!(default_http_port(Network::Regtest), 28_802);
     assert_eq!(default_http_port(Network::Testnet), 18_802);
@@ -57,11 +74,12 @@ fn parses_help_version_and_run() {
     assert!(USAGE.contains("MOD-14"));
     assert!(USAGE.contains("--rpc-url"));
     assert!(USAGE.contains("--http-port"));
+    assert!(USAGE.contains("--web-dir <folder>"));
 }
 
 #[test]
 fn rejects_bad_arguments() {
-    let cases: [(&[&str], ArgError); 12] = [
+    let cases: [(&[&str], ArgError); 14] = [
         (&["--datadir", "x"], ArgError::MissingNetwork),
         (&["--regtest"], ArgError::MissingDatadir),
         (
@@ -100,6 +118,22 @@ fn rejects_bad_arguments() {
                 "b",
             ],
             ArgError::Duplicate("--rpc-url"),
+        ),
+        (
+            &["--regtest", "--datadir", "x", "--web-dir"],
+            ArgError::MissingValue("--web-dir"),
+        ),
+        (
+            &[
+                "--regtest",
+                "--datadir",
+                "x",
+                "--web-dir",
+                "a",
+                "--web-dir",
+                "b",
+            ],
+            ArgError::Duplicate("--web-dir"),
         ),
         (&["--regtest", "--version"], ArgError::Exclusive),
         (

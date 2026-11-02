@@ -1,5 +1,6 @@
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use homeostasis_consensus::regtest_network_id;
@@ -15,8 +16,8 @@ use crate::index::Indexer;
 use crate::rpc_source::RpcSource;
 use crate::test_support::{Chain, FakeNode, genesis_output, out, spend};
 
-/// Satu permintaan HTTP/1.1 mentah; mengembalikan status, kepala jawaban (huruf kecil), dan badan JSON.
-fn request(addr: SocketAddr, method: &str, path: &str) -> (u16, String, Value) {
+/// Satu permintaan HTTP/1.1 mentah; mengembalikan status, kepala jawaban (huruf kecil), dan badan teks.
+fn raw(addr: SocketAddr, method: &str, path: &str) -> (u16, String, String) {
     let mut stream = TcpStream::connect(addr).unwrap();
     write!(
         stream,
@@ -27,11 +28,33 @@ fn request(addr: SocketAddr, method: &str, path: &str) -> (u16, String, Value) {
     stream.read_to_string(&mut text).unwrap();
     let (head, body) = text.split_once("\r\n\r\n").unwrap();
     let status = head.split(' ').nth(1).unwrap().parse().unwrap();
-    (
-        status,
-        head.to_ascii_lowercase(),
-        serde_json::from_str(body).unwrap(),
-    )
+    (status, head.to_ascii_lowercase(), body.to_owned())
+}
+
+/// Seperti [`raw`], dengan badan JSON.
+fn request(addr: SocketAddr, method: &str, path: &str) -> (u16, String, Value) {
+    let (status, head, body) = raw(addr, method, path);
+    (status, head, serde_json::from_str(&body).unwrap())
+}
+
+/// Kepala keamanan yang wajib ada di setiap jawaban.
+fn assert_security_headers(head: &str) {
+    assert!(head.contains("x-content-type-options: nosniff"), "{head}");
+    assert!(head.contains("referrer-policy: no-referrer"), "{head}");
+    assert!(
+        head.contains("content-security-policy: default-src 'none'; script-src 'self';"),
+        "{head}"
+    );
+    assert!(!head.contains("set-cookie"), "{head}");
+}
+
+/// Folder web sementara, dihapus saat selesai.
+struct Site(PathBuf);
+
+impl Drop for Site {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
 }
 
 #[test]
@@ -60,14 +83,15 @@ fn http_server_answers_and_syncs_from_node() {
         .block_on(TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))))
         .unwrap();
     let addr = listener.local_addr().unwrap();
-    let app = router(Arc::clone(&shared));
+    let app = router(Arc::clone(&shared), None);
     let server = rt.spawn(async move { axum::serve(listener, app).await });
 
     // Sebelum sinkronisasi: genesis belum terindeks.
     let (status, head, body) = request(addr, "GET", "/api/v1/supply");
     assert_eq!((status, body["error"].as_str()), (503, Some("not_ready")));
     assert!(head.contains("content-type: application/json"), "{head}");
-    assert!(!head.contains("set-cookie"), "{head}");
+    assert!(head.contains("cache-control: no-store"), "{head}");
+    assert_security_headers(&head);
     let (status, _, body) = request(addr, "GET", "/api/v1/status");
     assert_eq!((status, body["indexed_height"].clone()), (200, Value::Null));
 
@@ -101,5 +125,79 @@ fn http_server_answers_and_syncs_from_node() {
     assert_eq!(body["indexed_height"], 2);
     assert!(body["last_error"].is_string());
     assert_eq!(body["index_error"], Value::Null);
+    server.abort();
+}
+
+#[test]
+fn http_server_serves_web_files_and_api() {
+    let rt = Runtime::new().unwrap();
+    let site = Site(
+        std::env::temp_dir().join(format!("homeostasis-q85-web-server-{}", std::process::id())),
+    );
+    let _ = std::fs::remove_dir_all(&site.0);
+    std::fs::create_dir_all(site.0.join("assets")).unwrap();
+    std::fs::write(
+        site.0.join("index.html"),
+        "<!doctype html><div id=\"root\"></div>",
+    )
+    .unwrap();
+    std::fs::write(
+        site.0.join("assets").join("index-a1b2c3.js"),
+        "console.log(1)",
+    )
+    .unwrap();
+    let index = Indexer::open_in_memory(regtest_network_id().unwrap()).unwrap();
+    let shared = Arc::new(Shared::new(index, Network::Regtest));
+    let listener = rt
+        .block_on(TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))))
+        .unwrap();
+    let addr = listener.local_addr().unwrap();
+    let app = router(shared, Some(site.0.clone()));
+    let server = rt.spawn(async move { axum::serve(listener, app).await });
+
+    let (status, head, body) = raw(addr, "GET", "/");
+    assert_eq!(status, 200);
+    assert_eq!(body, "<!doctype html><div id=\"root\"></div>");
+    assert!(
+        head.contains("content-type: text/html; charset=utf-8"),
+        "{head}"
+    );
+    assert!(head.contains("cache-control: no-cache"), "{head}");
+    assert_security_headers(&head);
+    let (status, head, body) = raw(addr, "GET", "/assets/index-a1b2c3.js");
+    assert_eq!((status, body.as_str()), (200, "console.log(1)"));
+    assert!(
+        head.contains("content-type: text/javascript; charset=utf-8"),
+        "{head}"
+    );
+    assert!(head.contains("immutable"), "{head}");
+    assert_security_headers(&head);
+    for path in [
+        "/missing.js",
+        "/assets/../index.html",
+        "/.hidden",
+        "/block/1",
+    ] {
+        let (status, head, body) = raw(addr, "GET", path);
+        assert_eq!((status, body.as_str()), (404, "not found\n"), "{path}");
+        assert_security_headers(&head);
+    }
+    let (status, _, _) = raw(addr, "POST", "/");
+    assert_eq!(status, 405);
+
+    // Jalur API tetap dilayani API, juga dengan folder web.
+    let (status, head, body) = request(addr, "GET", "/api/v1/status");
+    assert_eq!((status, body["indexed_height"].clone()), (200, Value::Null));
+    assert!(head.contains("content-type: application/json"), "{head}");
+    assert_security_headers(&head);
+    let (status, _, body) = request(addr, "GET", "/api/v1/blocks");
+    assert_eq!((status, body["error"].as_str()), (503, Some("not_ready")));
+    let (status, _, body) = request(addr, "GET", "/api");
+    assert_eq!((status, body["error"].as_str()), (404, Some("not_found")));
+    let (status, _, body) = request(addr, "POST", "/api/v1/status");
+    assert_eq!(
+        (status, body["error"].as_str()),
+        (405, Some("method_not_allowed"))
+    );
     server.abort();
 }

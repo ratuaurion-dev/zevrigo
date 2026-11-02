@@ -1,5 +1,6 @@
 //! Program explorer (Spesifikasi Explorer v0.1 Bagian 6): server HTTP axum di 127.0.0.1, sinkronisasi indeks dari node
-//! setiap 2 detik, dan berhenti bersih dengan SIGINT atau SIGTERM.
+//! setiap 2 detik, dan berhenti bersih dengan SIGINT atau SIGTERM. Dengan `--web-dir`, jalur di luar `/api/` menyajikan
+//! antarmuka web (Spesifikasi Explorer Web v0.1 Bagian 7). Semua jawaban membawa kepala keamanan yang sama.
 //!
 //! Satu koneksi SQLite dijaga mutex. Permintaan HTTP dan langkah sinkronisasi dijalankan di `spawn_blocking`, sehingga
 //! akses SQLite dan RPC sinkron tidak menahan thread async. Tanpa cookie, analitik, atau log alamat IP, jalur, dan kata
@@ -7,6 +8,7 @@
 
 use std::future::Future;
 use std::net::{Ipv4Addr, SocketAddr};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -26,6 +28,7 @@ use crate::api::{ApiResponse, SyncStatus, respond};
 use crate::cli::{Config, db_path};
 use crate::index::{IndexError, Indexer};
 use crate::rpc_source::RpcSource;
+use crate::web::{self, CONTENT_SECURITY_POLICY, INDEX_FILE, WebResponse};
 
 /// Selang langkah sinkronisasi (2 detik).
 pub const SYNC_INTERVAL: Duration = Duration::from_secs(2);
@@ -48,6 +51,9 @@ pub enum ExplorerError {
     /// Klien RPC tidak bisa dibuat (URL tidak sah).
     #[error("klien RPC gagal dibuat: {0}")]
     Rpc(String),
+    /// Folder `--web-dir` tidak berisi `index.html`.
+    #[error("folder web tidak berisi index.html: {0}")]
+    WebDir(String),
 }
 
 /// Isi explorer yang dibagi server HTTP dan sinkronisasi: indeks dan keadaan sinkronisasi terakhir.
@@ -121,26 +127,83 @@ impl Shared {
     }
 }
 
-/// Router axum: semua jalur dan metode diteruskan ke [`Shared::respond`].
-pub fn router(shared: Arc<Shared>) -> Router {
-    Router::new().fallback(handle).with_state(shared)
+/// Isi router: data explorer dan folder antarmuka web (jika ada).
+struct App {
+    shared: Arc<Shared>,
+    web_dir: Option<Arc<PathBuf>>,
 }
 
-async fn handle(State(shared): State<Arc<Shared>>, method: Method, uri: Uri) -> Response {
-    let method = method.as_str().to_owned();
+/// Router axum. Jalur `/api` dan `/api/…` diteruskan ke [`Shared::respond`]; jalur lain menyajikan file dari `web_dir`
+/// lewat [`web::serve`], atau `404` JSON API jika `web_dir` tidak ada.
+pub fn router(shared: Arc<Shared>, web_dir: Option<PathBuf>) -> Router {
+    let app = App {
+        shared,
+        web_dir: web_dir.map(Arc::new),
+    };
+    Router::new().fallback(handle).with_state(Arc::new(app))
+}
+
+/// Jalur API: `/api` atau diawali `/api/`.
+fn is_api_path(path: &str) -> bool {
+    path == "/api" || path.starts_with("/api/")
+}
+
+/// Jawaban HTTP dengan kepala keamanan explorer: `nosniff`, tanpa referrer, dan [`CONTENT_SECURITY_POLICY`].
+fn reply(status: u16, content_type: &'static str, cache: &'static str, body: Vec<u8>) -> Response {
+    let status = StatusCode::from_u16(status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+    (
+        status,
+        [
+            (header::CONTENT_TYPE, content_type),
+            (header::CACHE_CONTROL, cache),
+            (header::X_CONTENT_TYPE_OPTIONS, "nosniff"),
+            (header::REFERRER_POLICY, "no-referrer"),
+            (header::CONTENT_SECURITY_POLICY, CONTENT_SECURITY_POLICY),
+        ],
+        body,
+    )
+        .into_response()
+}
+
+async fn handle(State(app): State<Arc<App>>, method: Method, uri: Uri) -> Response {
     let path = uri.path().to_owned();
+    let web_dir = if is_api_path(&path) {
+        None
+    } else {
+        app.web_dir.clone()
+    };
+    if let Some(dir) = web_dir {
+        if method != Method::GET {
+            return reply(
+                405,
+                "text/plain; charset=utf-8",
+                "no-store",
+                b"method not allowed\n".to_vec(),
+            );
+        }
+        let answer = tokio::task::spawn_blocking(move || web::serve(&dir, &path))
+            .await
+            .unwrap_or_else(|_| WebResponse::internal());
+        return reply(
+            answer.status,
+            answer.content_type,
+            answer.cache_control,
+            answer.body,
+        );
+    }
+    let shared = Arc::clone(&app.shared);
+    let method = method.as_str().to_owned();
     let query = uri.query().map(str::to_owned);
     let answer =
         tokio::task::spawn_blocking(move || shared.respond(&method, &path, query.as_deref()))
             .await
             .unwrap_or_else(|_| ApiResponse::internal());
-    let status = StatusCode::from_u16(answer.status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
-    (
-        status,
-        [(header::CONTENT_TYPE, "application/json")],
-        answer.body,
+    reply(
+        answer.status,
+        "application/json",
+        "no-store",
+        answer.body.into_bytes(),
     )
-        .into_response()
 }
 
 async fn sync_loop(shared: Arc<Shared>, source: Arc<RpcSource>) {
@@ -204,7 +267,7 @@ async fn serve(indexer: Indexer, config: &Config) -> Result<(), ExplorerError> {
     tracing::info!(%local, rpc = %config.rpc_url, "explorer berjalan");
     println!("http: http://{local}");
     let sync = tokio::spawn(sync_loop(Arc::clone(&shared), source));
-    let served = axum::serve(listener, router(shared))
+    let served = axum::serve(listener, router(shared, config.web_dir.clone()))
         .with_graceful_shutdown(shutdown)
         .await;
     sync.abort();
@@ -216,8 +279,16 @@ async fn serve(indexer: Indexer, config: &Config) -> Result<(), ExplorerError> {
 ///
 /// # Errors
 ///
-/// [`ExplorerError`] jika folder data, indeks, runtime, sinyal, klien RPC, atau port HTTP gagal.
+/// [`ExplorerError`] jika folder web tidak berisi `index.html`, atau folder data, indeks, runtime, sinyal, klien RPC,
+/// atau port HTTP gagal.
 pub fn run(config: &Config) -> Result<(), ExplorerError> {
+    let missing_index = config
+        .web_dir
+        .as_ref()
+        .filter(|dir| !dir.join(INDEX_FILE).is_file());
+    if let Some(dir) = missing_index {
+        return Err(ExplorerError::WebDir(dir.display().to_string()));
+    }
     let path = db_path(config);
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;

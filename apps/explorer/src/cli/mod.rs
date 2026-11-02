@@ -14,7 +14,7 @@ pub const USAGE: &str = concat!(
     "homeostasis-explorer (MOD-14): indexer dan API explorer Homeostasis Coin\n",
     "\n",
     "Pemakaian:\n",
-    "  homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-port <port>]\n",
+    "  homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>]\n",
     "  homeostasis-explorer --help | --version\n",
     "\n",
     "Opsi:\n",
@@ -22,6 +22,7 @@ pub const USAGE: &str = concat!(
     "  --datadir <folder>  folder data; indeks disimpan di <folder>/regtest/explorer.sqlite\n",
     "  --rpc-url <url>     node JSON-RPC (bawaan regtest http://127.0.0.1:28801)\n",
     "  --http-port <port>  port API HTTP di 127.0.0.1 (bawaan regtest 28802; 0 = port bebas)\n",
+    "  --web-dir <folder>  antarmuka web hasil build apps/explorer/web (folder dist); tanpa opsi ini hanya API\n",
     "\n",
     "Setelah siap, alamat API dicetak ke stdout sebagai `http: http://<alamat>`; jalur API di /api/v1/.\n",
     "Log ditulis ke stderr. Explorer berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
@@ -49,6 +50,8 @@ pub struct Config {
     pub rpc_url: String,
     /// Port API HTTP di 127.0.0.1. `0` memilih port bebas.
     pub http_port: u16,
+    /// Folder hasil build antarmuka web (`apps/explorer/web/dist`). `None` berarti hanya API.
+    pub web_dir: Option<PathBuf>,
 }
 
 /// Argumen tidak sah. Biner keluar dengan kode 2.
@@ -143,6 +146,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut datadir: Option<PathBuf> = None;
     let mut rpc_url: Option<String> = None;
     let mut http_port: Option<u16> = None;
+    let mut web_dir: Option<PathBuf> = None;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -176,6 +180,12 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
                     .map_err(|_| ArgError::InvalidPort(value.clone()))?;
                 http_port = Some(port);
             }
+            "--web-dir" => {
+                if web_dir.is_some() {
+                    return Err(ArgError::Duplicate("--web-dir"));
+                }
+                web_dir = Some(PathBuf::from(value_of(&mut iter, "--web-dir")?));
+            }
             "--help" | "-h" | "--version" => return Err(ArgError::Exclusive),
             _ => return Err(ArgError::Unknown(arg)),
         }
@@ -189,6 +199,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         datadir,
         rpc_url: rpc_url.unwrap_or_else(|| default_rpc_url(Network::Regtest)),
         http_port: http_port.unwrap_or(default_http_port(Network::Regtest)),
+        web_dir,
     }))
 }
 

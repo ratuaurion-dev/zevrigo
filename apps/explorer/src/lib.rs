@@ -6,6 +6,7 @@
 //! - [`query`]: bacaan indeks (blok, transaksi, alamat, pasokan, alokasi genesis, mempool).
 //! - [`api`]: API HTTP baca saja sebagai fungsi murni.
 //! - [`cli`] dan [`server`]: argumen, server axum, sinkronisasi berkala, dan program `homeostasis-explorer`.
+//! - [`web`]: penyajian file antarmuka web (hasil build `apps/explorer/web`) dan kebijakan keamanan konten.
 //!
 //! Explorer bukan konsensus: blok dari node tidak divalidasi ulang, tetapi block_id, txid, input, dan jumlah koin
 //! setiap blok diperiksa sendiri, sehingga pasokan dan alokasi genesis bisa diperiksa tanpa percaya pada pencipta.
@@ -20,6 +21,7 @@ pub mod query;
 pub mod rpc_source;
 pub mod server;
 pub mod source;
+pub mod web;
 
 pub use api::{ApiResponse, NodeView, SyncStatus, respond};
 pub use cli::{
@@ -34,6 +36,7 @@ pub use query::{
 pub use rpc_source::RpcSource;
 pub use server::{ExplorerError, SYNC_INTERVAL, Shared, init_logging, router, run};
 pub use source::{ChainSource, SourceBlock, SourceError};
+pub use web::{CONTENT_SECURITY_POLICY, INDEX_FILE, WebResponse};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-14";
