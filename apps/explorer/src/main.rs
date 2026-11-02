@@ -1,29 +1,37 @@
-//! MOD-14: Indexer dan API explorer Homeostasis Coin (`homeostasis-explorer`).
+//! MOD-14: Program explorer Homeostasis Coin (`homeostasis-explorer`).
 
 #![forbid(unsafe_code)]
 
 use std::process::ExitCode;
 
+use homeostasis_explorer::{Command, USAGE, init_logging, parse_args, run};
+
 const BIN_NAME: &str = "homeostasis-explorer";
-const MODULE_ID: &str = "MOD-14";
 
 fn main() -> ExitCode {
-    let mut args = std::env::args().skip(1);
-    match (args.next().as_deref(), args.next()) {
-        (None, None) | (Some("--help"), None) => {
-            println!("{BIN_NAME} ({MODULE_ID}): kerangka R0, belum berfungsi");
+    match parse_args(std::env::args().skip(1)) {
+        Ok(Command::Help) => {
+            println!("{USAGE}");
             ExitCode::SUCCESS
         }
-        (Some("--version"), None) => {
+        Ok(Command::Version) => {
             println!("{BIN_NAME} {}", env!("CARGO_PKG_VERSION"));
             ExitCode::SUCCESS
         }
-        (Some(arg), None) => {
-            eprintln!("{BIN_NAME}: argumen tidak dikenali: {arg}");
-            ExitCode::from(2)
+        Ok(Command::Run(config)) => {
+            init_logging();
+            match run(&config) {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(error) => {
+                    eprintln!("{BIN_NAME}: {error}");
+                    ExitCode::FAILURE
+                }
+            }
         }
-        (Some(_), Some(_)) | (None, Some(_)) => {
-            eprintln!("{BIN_NAME}: argumen tidak valid (gunakan --help atau --version)");
+        Err(error) => {
+            eprintln!("{BIN_NAME}: {error}");
+            eprintln!();
+            eprintln!("{USAGE}");
             ExitCode::from(2)
         }
     }

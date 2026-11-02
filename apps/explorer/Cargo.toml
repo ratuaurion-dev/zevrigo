@@ -10,15 +10,22 @@ name = "homeostasis-explorer"
 path = "src/main.rs"
 
 [dependencies]
-# DEC-25 bagian 2: MOD-01, 02, 04, 08, 09 (MOD-09 dipakai mulai TSK-M30). MOD-05 tidak dipakai.
+# DEC-10 bagian 6: API HTTP. Hanya `http1` dan `tokio`; Json, Query, dan fitur bawaan lain tidak dipakai.
+axum = { workspace = true, features = ["http1", "tokio"] }
+# DEC-25 bagian 2: MOD-01, 02, 04, 08, 09. MOD-05 tidak dipakai.
 homeostasis-consensus.workspace = true
 homeostasis-crypto.workspace = true
 homeostasis-primitives.workspace = true
 homeostasis-rpc.workspace = true
+homeostasis-wallet-core.workspace = true
 # DEC-10 bagian 6: SQLite 3.54.1 ikut dikompilasi (fitur `bundled`); fitur bawaan rusqlite tidak dipakai.
 # `fallible_uint`: u64 dan usize lewat konversi i64 yang diperiksa (galat jika di luar jangkauan), tanpa paket baru.
 rusqlite = { workspace = true, features = ["bundled", "fallible_uint"] }
+serde_json.workspace = true
 thiserror.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "time"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 [lints]
 workspace = true

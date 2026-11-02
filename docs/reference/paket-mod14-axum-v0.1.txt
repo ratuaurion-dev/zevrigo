@@ -1,0 +1,9 @@
+# Paket baru di Cargo.lock karena MOD-14 (axum 0.8.9, TSK-M30)
+# Dibuat skrip gerbang Q83 dari Cargo.lock dan source registry crates.io. Kolom: nama versi | lisensi |
+# build script | baris unsafe di luar komentar (src/) | status lisensi (ok = permisif menurut daftar Q78/Q82/Q83).
+# Paket yang hanya untuk target lain (misalnya wasm32) ikut tercatat karena Cargo.lock berlaku untuk semua target.
+# jumlah: 4, lisensi ditolak: 0
+axum 0.8.9 | MIT | tidak | 0 | ok
+axum-core 0.5.6 | MIT | tidak | 0 | ok
+matchit 0.8.4 | MIT AND BSD-3-Clause | tidak | 6 | ok
+mime 0.3.17 | MIT OR Apache-2.0 | tidak | 0 | ok

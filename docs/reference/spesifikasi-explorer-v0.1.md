@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | axum 0.8 + SQLite (DEC-25). Indexer membaca node lewat RPC v0.1, mundur sedalam apa pun saat reorg, memeriksa sendiri jumlah koin setiap blok. API JSON baca saja: status, blok, transaksi, alamat, pasokan, alokasi genesis, mempool, pencarian |
 | ⏳ Ditunda | Antarmuka web (React), paket Docker, batas laju, perkiraan daya tambang, peringatan konsentrasi tambang, detail transaksi mempool, testnet dan mainnet |
-| ➡️ Langkah berikutnya | TSK-M30 (API dan program), lalu TSK-F05 (uji ujung ke ujung). TSK-M29 (indexer) selesai |
+| ➡️ Langkah berikutnya | TSK-F05 (uji ujung ke ujung dengan node dan miner sungguhan). TSK-M29 (indexer) dan TSK-M30 (API dan program) selesai |
 
 Explorer **bukan konsensus** dan tidak memvalidasi blok. Explorer memercayai node yang ditunjuknya untuk PoW dan tanda
 tangan; siapa pun bisa menjalankan node dan explorer sendiri (Dokumen Aplikasi Bagian 7). Jumlah koin diperiksa explorer
@@ -22,7 +22,7 @@ sendiri dengan rumus MOD-04 (Bagian 4), sehingga pasokan dan alokasi genesis bis
 | Program | `homeostasis-explorer` (MOD-14, `apps/explorer`): pustaka `homeostasis_explorer` dan biner tipis |
 | Sumber data | Node mana pun lewat JSON-RPC v0.1: `get_chain_info`, `get_block_hash`, `get_block`, `get_mempool`. Tanpa metode RPC baru |
 | Penyimpanan indeks | SQLite lewat `rusqlite` 0.41.1 (fitur `bundled`, SQLite 3.54.1 ikut dikompilasi; fitur `fallible_uint` untuk konversi `u64` yang diperiksa), satu file `<datadir>/<jaringan>/explorer.sqlite` |
-| HTTP | `axum` 0.8.9 (fitur `http1`, `json`, `query`, `tokio`), hanya `GET`, JSON UTF-8 |
+| HTTP | `axum` 0.8.9 (fitur `http1` dan `tokio` saja; JSON disusun dengan `serde_json`, query string dibaca sendiri), hanya `GET`, JSON UTF-8 |
 | Dependensi modul | MOD-01 (tipe), MOD-02 (txid, block_id), MOD-04 (subsidy dan jadwal pasokan), MOD-08 (klien RPC dan encoding nilai), MOD-09 (alamat bech32m). Tanpa MOD-05 |
 | Jaringan | regtest saja di v0.1; testnet dan mainnet bersama TSK-F06 |
 
@@ -94,18 +94,19 @@ karakter, nonce string desimal. Alamat bech32m regtest (`rhsis1…`, DEC-11). Ju
 
 | Jalur | Isi jawaban |
 |---|---|
-| `/status` | `network`, `indexed_height`, `indexed_block_id`, `node_height`, `node_best_block_id`, `chainwork` (ujung node), `mempool_count`, `index_error` (string atau `null`) |
-| `/blocks?before=<h>` | paling banyak 20 blok dengan tinggi `< h` (bawaan: semua), terbaru dulu: `height`, `block_id`, `timestamp`, `size`, `tx_count`, `confirmations` |
+| `/status` | `network`, `indexed_height`, `indexed_block_id`, `node_height`, `node_best_block_id`, `chainwork` (ujung node), `mempool_count`, `index_error` (galat yang menghentikan indexer, string atau `null`), `last_error` (galat langkah sinkronisasi terakhir, misalnya node tidak bisa dihubungi, string atau `null`) |
+| `/blocks?before=<h>` | `{"blocks": […]}`, paling banyak 20 blok dengan tinggi `< h` (bawaan: semua), terbaru dulu: `height`, `block_id`, `timestamp`, `size`, `tx_count`, `confirmations` |
 | `/block/<kunci>` | kunci = tinggi desimal atau `block_id` hex. Header lengkap, `size`, `subsidy`, `fees`, `confirmations`, `txids`, `next_block_id` (atau `null`) |
 | `/tx/<txid>` | `txid`, `block_id`, `height`, `position`, `size`, `is_coinbase`, `fee`, `confirmations`; `inputs` (`txid`, `index`, `amount`, `kind`, `payload`, `address`); `outputs` (`index`, `amount`, `kind`, `payload`, `address`, `spent_by` = `{txid, input, height}` atau `null`) |
 | `/address/<alamat>?page=<n>` (halaman mulai 0) | `address`, `kind`, `payload`, `balance` (Σ output belum dibelanjakan), `received`, `sent`, `utxo_count`, `tx_count`, `page`, `page_size` (= 25), `txs` (terbaru dulu: `txid`, `height`, `confirmations`, `received`, `sent`) |
 | `/supply` | `height`, `mined_total` (Σ subsidy di indeks), `scheduled_mined_total` (jadwal MOD-04 di tinggi itu), `matches_schedule`, `genesis_allocation`, `total_supply` (= alokasi genesis + `mined_total`), `fees_total`, `next_subsidy`, `tip_target`, `average_block_seconds` (rata-rata bilangan bulat 100 blok terakhir) |
 | `/allocation?page=<n>` | Halaman alokasi genesis (Dokumen Aplikasi Bagian 7): `genesis_block_id`, `allocated` (Σ output coinbase genesis), `outputs` (setiap output genesis dengan `address` dan `spent_by`), `unspent` (Σ output genesis yang belum dibelanjakan), `addresses` (setiap alamat penerima alokasi dengan isi sama seperti `/address`, halaman `n`) |
 | `/mempool` | `count`, `txids` (RPC v0.1 hanya memberi txid; isi transaksi mempool ditunda) |
-| `/search/<q>` | `{"kind": "block" \| "tx" \| "address", "key": …}`: desimal = tinggi; hex 64 = `block_id`, lalu `txid`; `rhsis1…` = alamat |
+| `/search/<q>` | `{"kind": "block" \| "tx" \| "address", "key": …}`: desimal = tinggi; hex 64 = `block_id`, lalu `txid`; `rhsis1…` = alamat. `key` untuk blok selalu `block_id` |
 
 Galat: `400 {"error": "bad_request"}` (kunci, hex, alamat, atau `page` tidak sah), `404 {"error": "not_found"}` (untuk
-`/tx` ditambah `"in_mempool": true` jika txid ada di mempool), `503 {"error": "not_ready"}` sebelum genesis terindeks.
+`/tx` ditambah `"in_mempool": true` jika txid ada di mempool), `503 {"error": "not_ready"}` sebelum genesis terindeks, `405 {"error": "method_not_allowed"}`, dan
+`500 {"error": "internal"}` jika indeks tidak bisa dibaca. Pencarian hex yang tidak ditemukan juga memuat `in_mempool`.
 
 ---
 

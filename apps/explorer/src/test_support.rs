@@ -1,11 +1,19 @@
 //! Chain buatan untuk test MOD-14: blok dengan coinbase tepat jadwal pasokan, tanpa PoW dan tanpa tanda tangan sah
-//! (explorer tidak memeriksa keduanya), dan sumber data palsu dengan gangguan yang bisa dipilih.
+//! (explorer tidak memeriksa keduanya), sumber data palsu dengan gangguan yang bisa dipilih, dan node tiruan di
+//! belakang server RPC sungguhan.
 
-use homeostasis_consensus::{block_subsidy, regtest_genesis};
+use std::sync::Mutex;
+
+use homeostasis_consensus::{block_subsidy, regtest_genesis, total_supply_after};
 use homeostasis_crypto::{block_id, block_merkle_root, txid};
 use homeostasis_primitives::{
-    Amount, Block, BlockHeight, Encode, Hash32, Header, Input, Output, OutputKind, Transaction,
-    Witness,
+    Amount, Block, BlockHeight, Encode, Hash32, Header, Input, Network, Output, OutputKind,
+    Transaction, Witness,
+};
+use homeostasis_rpc::{
+    BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, MempoolInfo,
+    NetworkName, Quanta, RpcBackend, RpcError, SendRawTransactionResult, SubmitBlockResult,
+    UtxoInfo,
 };
 
 use crate::source::{ChainSource, SourceBlock, SourceError};
@@ -232,5 +240,99 @@ impl ChainSource for FakeSource<'_> {
     fn mempool(&self) -> Result<Vec<Hash32>, SourceError> {
         self.online()?;
         Ok(self.mempool.clone())
+    }
+}
+
+/// Node tiruan di atas [`Chain`]: hanya `get_chain_info`, `get_block_hash`, `get_block`, dan `get_mempool` yang
+/// berisi. Chainwork = tinggi + 1 (byte terakhir).
+pub(crate) struct FakeNode {
+    chain: Mutex<Chain>,
+    mempool: Mutex<Vec<Hash32>>,
+}
+
+impl FakeNode {
+    pub(crate) fn new(chain: Chain) -> Self {
+        Self {
+            chain: Mutex::new(chain),
+            mempool: Mutex::new(Vec::new()),
+        }
+    }
+
+    pub(crate) fn set_chain(&self, chain: Chain) {
+        *self.chain.lock().unwrap() = chain;
+    }
+
+    pub(crate) fn set_mempool(&self, txids: Vec<Hash32>) {
+        *self.mempool.lock().unwrap() = txids;
+    }
+}
+
+impl RpcBackend for FakeNode {
+    fn chain_info(&self) -> Result<ChainInfo, RpcError> {
+        let chain = self.chain.lock().unwrap();
+        let height = chain.height();
+        let mut chainwork = [0_u8; 32];
+        chainwork[24..].copy_from_slice(&(height + 1).to_be_bytes());
+        Ok(ChainInfo {
+            network: NetworkName::new(Network::Regtest),
+            height,
+            best_block_id: Hex32::from(chain.id(height)),
+            chainwork: Hex32::new(chainwork),
+            next_target: CompactHex::new(LIMIT),
+            median_time_past: T0,
+            mined_total: Quanta::new(chain.mined_total()),
+            total_supply: Quanta::new(total_supply_after(chain.mined_total()).unwrap()),
+            mempool_count: u64::try_from(self.mempool.lock().unwrap().len()).unwrap(),
+        })
+    }
+
+    fn block_hash(&self, height: u64) -> Result<Hex32, RpcError> {
+        let chain = self.chain.lock().unwrap();
+        let index = usize::try_from(height).unwrap();
+        chain
+            .blocks
+            .get(index)
+            .map(|block| Hex32::from(id_of(block)))
+            .ok_or(RpcError::NotFound)
+    }
+
+    fn block(&self, block_id: Hex32) -> Result<BlockInfo, RpcError> {
+        let chain = self.chain.lock().unwrap();
+        let id = block_id.to_hash32();
+        let block = chain
+            .blocks
+            .iter()
+            .find(|block| id_of(block) == id)
+            .ok_or(RpcError::NotFound)?;
+        let txids: Vec<Hash32> = block.txs().iter().map(txid).collect();
+        Ok(BlockInfo::from_block(block, id, &txids))
+    }
+
+    fn block_template(&self, _params: &GetBlockTemplateParams) -> Result<BlockTemplate, RpcError> {
+        Err(RpcError::NotFound)
+    }
+
+    fn submit_block(&self, _block: &[u8]) -> Result<SubmitBlockResult, RpcError> {
+        Err(RpcError::NotFound)
+    }
+
+    fn send_raw_transaction(&self, _tx: &[u8]) -> Result<SendRawTransactionResult, RpcError> {
+        Err(RpcError::InvalidEncoding)
+    }
+
+    fn mempool(&self) -> Result<MempoolInfo, RpcError> {
+        let txids = self
+            .mempool
+            .lock()
+            .unwrap()
+            .iter()
+            .copied()
+            .map(Hex32::from)
+            .collect();
+        Ok(MempoolInfo { txids })
+    }
+
+    fn scan_utxos(&self, _payloads: &[Hex32]) -> Result<Vec<UtxoInfo>, RpcError> {
+        Ok(Vec::new())
     }
 }

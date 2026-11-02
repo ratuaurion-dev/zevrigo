@@ -61,3 +61,16 @@ cargo run -p homeostasis-cli -- --datadir ~/.homeostasis send --to <alamat rhsis
 Wallet disimpan di `~/.homeostasis/regtest/wallet.json` (izin `0600`, tanpa enkripsi; hanya untuk regtest). Simpan
 frasa 24 kata yang dicetak `wallet-create`. `address` juga mencetak payload hex yang bisa dipakai untuk `--payout`
 miner, sehingga hadiah tambang masuk ke wallet. Aturan lengkap di [docs/reference/spesifikasi-wallet-v0.1.md](docs/reference/spesifikasi-wallet-v0.1.md).
+
+## Explorer regtest
+
+Dengan node berjalan, di terminal lain:
+
+```bash
+cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis
+```
+
+Explorer membaca chain dari node lewat RPC, menyimpan indeks di `~/.homeostasis/regtest/explorer.sqlite`, memeriksa
+sendiri jumlah koin setiap blok, lalu melayani API JSON baca saja di `http://127.0.0.1:28802/api/v1/` (misalnya
+`/status`, `/blocks`, `/block/<tinggi>`, `/tx/<txid>`, `/address/<alamat>`, `/supply`, `/allocation`). Jumlah koin
+selalu string desimal quanta. Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
