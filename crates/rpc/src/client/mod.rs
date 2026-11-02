@@ -13,13 +13,14 @@ use crate::transport::MAX_REQUEST_BYTES;
 use crate::types::{
     BlockInfo, BlockTemplate, ChainInfo, GetBlockHashParams, GetBlockParams,
     GetBlockTemplateParams, METHOD_GET_BLOCK, METHOD_GET_BLOCK_HASH, METHOD_GET_BLOCK_TEMPLATE,
-    METHOD_GET_CHAIN_INFO, METHOD_GET_MEMPOOL, METHOD_SCAN_UTXOS, METHOD_SEND_RAW_TRANSACTION,
-    METHOD_SUBMIT_BLOCK, MempoolInfo, PayloadList, ScanUtxosParams, SendRawTransactionParams,
-    SendRawTransactionResult, SubmitBlockParams, SubmitBlockResult, UtxoInfo,
+    METHOD_GET_CHAIN_INFO, METHOD_GET_MEMPOOL, METHOD_SCAN_MEMPOOL, METHOD_SCAN_UTXOS,
+    METHOD_SEND_RAW_TRANSACTION, METHOD_SUBMIT_BLOCK, MempoolInfo, MempoolScan, PayloadList,
+    ScanMempoolParams, ScanUtxosParams, SendRawTransactionParams, SendRawTransactionResult,
+    SubmitBlockParams, SubmitBlockResult, UtxoInfo,
 };
 use crate::value::{Hex32, HexBytes, KindNumber};
 
-/// Klien untuk 8 metode RPC v0.1. Parameter selalu dikirim berdasarkan nama.
+/// Klien untuk 9 metode RPC v0.1. Parameter selalu dikirim berdasarkan nama.
 pub struct RpcClient {
     inner: HttpClient,
 }
@@ -149,6 +150,19 @@ impl RpcClient {
             .map_err(|e| ClientError::Custom(e.to_string()))?;
         let params = object(&ScanUtxosParams { payloads })?;
         self.call(METHOD_SCAN_UTXOS, params).await
+    }
+
+    /// `scan_mempool` untuk 1 sampai 64 payload.
+    ///
+    /// # Errors
+    ///
+    /// [`ClientError::Custom`] jika jumlah payload di luar 1 sampai 64 (tidak dikirim), [`ClientError::Call`]
+    /// berisi kode error server, atau error transport.
+    pub async fn scan_mempool(&self, payloads: &[Hex32]) -> Result<MempoolScan, ClientError> {
+        let payloads = PayloadList::try_from(payloads.to_vec())
+            .map_err(|e| ClientError::Custom(e.to_string()))?;
+        let params = object(&ScanMempoolParams { payloads })?;
+        self.call(METHOD_SCAN_MEMPOOL, params).await
     }
 
     /// Memanggil `method` dengan parameter JSON apa adanya (objek atau array), untuk alat diagnosis dan test.

@@ -1,11 +1,11 @@
-# Spesifikasi RPC Homeostasis Coin (HSIS) v0.1: 8 metode JSON-RPC untuk node regtest (FTR-01 sampai FTR-03)
+# Spesifikasi RPC Homeostasis Coin (HSIS) v0.1: 9 metode JSON-RPC untuk node regtest (FTR-01 sampai FTR-03)
 
-> Diperbarui: 31 Oktober 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S04 · Status: 🟢 v0.1
+> Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S04 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-rpc-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Dikunci | Transpor JSON-RPC 2.0 lewat HTTP, aturan encoding nilai, 8 metode, kode error |
+| 🟢 Dikunci | Transpor JSON-RPC 2.0 lewat HTTP, aturan encoding nilai, 9 metode (`scan_mempool` ditambah 2 November 2026, TSK-M36), kode error |
 | ⏳ Ditunda | Autentikasi untuk testnet/mainnet, metode wallet dan explorer (FTR-05, FTR-07), pesan P2P (TSK-S05) |
 | ➡️ Langkah berikutnya | TSK-M12 (tipe dan klien/server di MOD-08), TSK-M26 (iterasi set UTXO di MOD-05), TSK-M13, TSK-M18 |
 
@@ -113,7 +113,21 @@ Parameter: `payloads`, daftar 1 sampai 64 hash 32 byte. Hasil: daftar UTXO di uj
 | `confirmations` | `tinggi ujung − height + 1` |
 | `spendable_at` | tinggi blok paling awal yang boleh membelanjakannya: `height + 100` untuk coinbase, `height + 1` untuk lainnya (kunci waktu kondisi tidak terlihat dari output) |
 
-Butuh iterasi set UTXO di MOD-05 (TSK-M26). Output yang sedang dibelanjakan transaksi di mempool tetap ditampilkan.
+Butuh iterasi set UTXO di MOD-05 (TSK-M26). Output yang sedang dibelanjakan transaksi di mempool tetap ditampilkan;
+lihat `scan_mempool`.
+
+### 3.9 `scan_mempool`
+Parameter: `payloads`, daftar 1 sampai 64 hash 32 byte (sama dengan `scan_utxos`). Hasil: transaksi tertunda di mempool
+yang menyentuh payload itu:
+| Field | Isi |
+|---|---|
+| `spent` | UTXO di ujung chain aktif yang `payload`-nya ada di daftar dan sedang dibelanjakan transaksi di mempool: `txid`, `index` (outpoint), `spent_by` (txid transaksi mempool), urut `(txid, index)` |
+| `outputs` | Output transaksi di mempool yang `payload`-nya ada di daftar: `txid`, `index`, `amount`, `kind`, `payload`, urut `(txid, index)` |
+
+Dipakai wallet untuk saldo tertunda dan agar koin yang sedang dibelanjakan tidak dipilih lagi (TSK-M36). Mempool v0.1
+tidak menerima transaksi yang membelanjakan output transaksi lain di mempool, jadi output tertunda belum bisa
+dibelanjakan. `scan_utxos` dan `scan_mempool` adalah dua panggilan terpisah; jika blok baru masuk di antaranya, wallet
+cukup memanggil ulang.
 
 ---
 
@@ -134,6 +148,6 @@ Butuh iterasi set UTXO di MOD-05 (TSK-M26). Output yang sedang dibelanjakan tran
 |---|---|
 | FTR-01 node regtest | `get_chain_info`, `get_block_hash`, `get_block`, `submit_block` |
 | FTR-02 menambang | `get_block_template`, `submit_block` |
-| FTR-03 kirim dan terima lewat CLI | `scan_utxos`, `send_raw_transaction`, `get_mempool` |
+| FTR-03 kirim dan terima lewat CLI | `scan_utxos`, `scan_mempool`, `send_raw_transaction`, `get_mempool` |
 
 Wallet CLI (TSK-M19) menyusun dan menandatangani transaksi sendiri (MOD-09). Node tidak pernah menerima kunci privat.

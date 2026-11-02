@@ -1,5 +1,5 @@
 //! Logika chain node (TSK-M18 bagian A, TSK-M27): chain aktif di atas [`ChainStore`], blok cabang, pemilihan chain
-//! berdasarkan chainwork, reorg, mempool, dan implementasi [`RpcBackend`] untuk 8 metode Spesifikasi RPC v0.1.
+//! berdasarkan chainwork, reorg, mempool, dan implementasi [`RpcBackend`] untuk 9 metode Spesifikasi RPC v0.1.
 //!
 //! Aturan konsensus tidak ditulis di sini. Blok diperiksa dengan fungsi MOD-04 berurutan V1 sampai V10
 //! (Spesifikasi Validasi Bagian 9), transaksi dengan mempool MOD-07 (T1 sampai T6).
@@ -38,8 +38,8 @@ use homeostasis_primitives::{
 };
 use homeostasis_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, HexBytes,
-    MempoolInfo, NetworkName, Quanta, RpcBackend, RpcError, SendRawTransactionResult,
-    SubmitBlockResult, SubmitStatus, UtxoInfo,
+    KindNumber, MempoolInfo, MempoolOutput, MempoolScan, MempoolSpend, NetworkName, Quanta,
+    RpcBackend, RpcError, SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
 use homeostasis_storage::{ChainStore, StoreError};
 use thiserror::Error;
@@ -1197,6 +1197,40 @@ impl<S: ChainStore + Send + 'static> RpcBackend for Node<S> {
                     .ok_or_else(|| internal("tinggi UTXO di atas ujung chain"))
             })
             .collect()
+    }
+
+    fn scan_mempool(&self, payloads: &[Hex32]) -> Result<MempoolScan, RpcError> {
+        let wanted: BTreeSet<[u8; 32]> = payloads.iter().map(|payload| *payload.bytes()).collect();
+        let list: Vec<[u8; 32]> = wanted.iter().copied().collect();
+        let state = self.lock()?;
+        let utxos = state.store.utxos_by_payloads(&list).map_err(internal)?;
+        let mut spent: Vec<MempoolSpend> = utxos
+            .iter()
+            .filter_map(|(outpoint, _)| {
+                state.mempool.spender(outpoint).map(|by| MempoolSpend {
+                    txid: Hex32::from(outpoint.txid()),
+                    index: outpoint.index(),
+                    spent_by: Hex32::from(by),
+                })
+            })
+            .collect();
+        spent.sort_by_key(|spend| (spend.txid, spend.index));
+        let mut outputs = Vec::new();
+        for entry in state.mempool.in_arrival_order() {
+            for (index, output) in (0_u32..).zip(entry.tx().body().outputs()) {
+                if wanted.contains(output.payload()) {
+                    outputs.push(MempoolOutput {
+                        txid: Hex32::from(entry.txid()),
+                        index,
+                        amount: Quanta::new(output.amount()),
+                        kind: KindNumber::new(output.kind()),
+                        payload: Hex32::new(*output.payload()),
+                    });
+                }
+            }
+        }
+        outputs.sort_by_key(|output| (output.txid, output.index));
+        Ok(MempoolScan { spent, outputs })
     }
 }
 

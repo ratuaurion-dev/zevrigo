@@ -59,7 +59,8 @@ fn crate_root_reexports_are_accessible() {
             "submit_block",
             "send_raw_transaction",
             "get_mempool",
-            "scan_utxos"
+            "scan_utxos",
+            "scan_mempool"
         ]
     );
     assert_eq!(crate::MAX_SCAN_PAYLOADS, 64);

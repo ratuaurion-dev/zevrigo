@@ -12,8 +12,8 @@ use homeostasis_primitives::{
 };
 use homeostasis_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, MempoolInfo,
-    NetworkName, Quanta, RpcBackend, RpcError, SendRawTransactionResult, SubmitBlockResult,
-    UtxoInfo,
+    MempoolScan, NetworkName, Quanta, RpcBackend, RpcError, SendRawTransactionResult,
+    SubmitBlockResult, UtxoInfo,
 };
 
 use crate::source::{ChainSource, SourceBlock, SourceError};
@@ -334,5 +334,9 @@ impl RpcBackend for FakeNode {
 
     fn scan_utxos(&self, _payloads: &[Hex32]) -> Result<Vec<UtxoInfo>, RpcError> {
         Ok(Vec::new())
+    }
+
+    fn scan_mempool(&self, _payloads: &[Hex32]) -> Result<MempoolScan, RpcError> {
+        Ok(MempoolScan::default())
     }
 }

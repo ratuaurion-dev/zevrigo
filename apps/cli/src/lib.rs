@@ -18,7 +18,7 @@ pub use commands::{
     Balance, Cli, CliError, Sent, format_balance, format_info, format_sent, next_address,
     os_random, run, wallet_create, wallet_restore,
 };
-pub use scan::{Found, GAP_LIMIT, ScanResult, scan_wallet};
+pub use scan::{Found, GAP_LIMIT, ScanResult, scan_wallet, wallet_payloads};
 pub use wallet_file::{NextIndex, WalletFile, WalletFileError, wallet_path};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.

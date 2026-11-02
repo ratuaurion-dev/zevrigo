@@ -6,7 +6,7 @@ use homeostasis_primitives::{Amount, OutputKind};
 use homeostasis_rpc::{Hex32, KindNumber, Quanta, UtxoInfo};
 use homeostasis_wallet_core::{CHANGE_BRANCH, ExtendedPubKey, RECEIVE_BRANCH};
 
-use super::{GAP_LIMIT, scan_wallet};
+use super::{GAP_LIMIT, scan_wallet, wallet_payloads};
 use crate::wallet_file::NextIndex;
 
 const W4: &str = concat!(
@@ -168,4 +168,27 @@ fn lookup_error_stops_scan() {
     });
     assert_eq!(result, Err("node mati"));
     assert_eq!(calls, 1);
+}
+
+#[test]
+fn wallet_payloads_cover_used_indices_and_gap() {
+    let next = NextIndex {
+        receive: 2,
+        change: 1,
+    };
+    let payloads = wallet_payloads(&account(), next);
+    let expected: Vec<Hex32> = (0..2 + GAP_LIMIT)
+        .map(|index| Hex32::new(payload(RECEIVE_BRANCH, index)))
+        .chain((0..1 + GAP_LIMIT).map(|index| Hex32::new(payload(CHANGE_BRANCH, index))))
+        .collect();
+    assert_eq!(payloads, expected);
+    assert_eq!(payloads.len(), 43);
+    // Batas akhir sama dengan pemindaian saldo: indeks terpakai yang ditemukan pemindaian ikut tercakup.
+    let mut fake = Fake::new(&[(RECEIVE_BRANCH, 19, OutputKind::SingleKey)]);
+    let result = scan_wallet(&account(), NextIndex::default(), |p| fake.lookup(p)).unwrap();
+    let covered = wallet_payloads(&account(), result.next_index);
+    assert!(covered.contains(&Hex32::new(payload(RECEIVE_BRANCH, 19))));
+    assert!(covered.contains(&Hex32::new(payload(RECEIVE_BRANCH, 39))));
+    assert!(!covered.contains(&Hex32::new(payload(RECEIVE_BRANCH, 40))));
+    assert_eq!(covered.len(), 60);
 }

@@ -4,6 +4,9 @@
 //! mulai indeks 0 sampai 20 indeks berturut-turut di atas indeks terpakai tertinggi tanpa UTXO. Indeks terpakai
 //! adalah gabungan `next_index` di file wallet dan indeks yang punya UTXO. Pencarian ke node dilakukan lewat
 //! `lookup`, paling banyak 64 payload sekali panggil (`scan_utxos`).
+//!
+//! [`wallet_payloads`] menurunkan semua payload sampai batas yang sama, untuk mencari transaksi tertunda di mempool
+//! (`scan_mempool`).
 
 use std::collections::BTreeMap;
 
@@ -65,6 +68,29 @@ pub fn scan_wallet<E>(
         found,
         next_index: NextIndex { receive, change },
     })
+}
+
+/// Payload kedua cabang dari indeks 0 sampai `GAP_LIMIT` indeks di atas `next_index` (batas akhir pemindaian
+/// [`scan_wallet`] bila `next_index` adalah hasilnya), cabang penerimaan dulu, lalu kembalian. Indeks yang turunannya
+/// tidak sah dilewati.
+#[must_use]
+pub fn wallet_payloads(account: &ExtendedPubKey, next_index: NextIndex) -> Vec<Hex32> {
+    let mut payloads = Vec::new();
+    for (branch, used) in [
+        (RECEIVE_BRANCH, next_index.receive),
+        (CHANGE_BRANCH, next_index.change),
+    ] {
+        let Ok(branch_key) = account.derive_child(branch) else {
+            continue;
+        };
+        let limit = used.min(HARDENED).saturating_add(GAP_LIMIT).min(HARDENED);
+        for index in 0..limit {
+            if let Ok(child) = branch_key.derive_child(index) {
+                payloads.push(Hex32::new(child.x_only()));
+            }
+        }
+    }
+    payloads
 }
 
 /// Memindai satu cabang dan mengembalikan indeks berikutnya yang belum terpakai.

@@ -23,3 +23,4 @@ Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan 
 
 ## Task terkait
 - [TSK-M19](../tasks/TSK-M19-cli-wallet.md) — 🟢 selesai (pustaka `homeostasis_cli`: `args`, `wallet_file`, `scan`, `commands`)
+- [TSK-M36](../tasks/TSK-M36-saldo-tertunda.md) — 🟢 selesai (saldo dan pemilihan koin dengan transaksi tertunda)

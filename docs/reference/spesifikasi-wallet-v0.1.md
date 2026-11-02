@@ -104,6 +104,11 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
   tertinggi (gap limit 20), lalu memanggil `scan_utxos` per 64 payload.
 - Keterbatasan v0.1: `scan_utxos` hanya melihat UTXO yang masih ada, jadi riwayat alamat yang sudah kosong tidak terlihat.
   Karena itu indeks terpakai disimpan di file wallet agar alamat tidak dipakai ulang.
+- **Transaksi tertunda (TSK-M36):** sesudah `scan_utxos`, wallet memanggil `scan_mempool` untuk semua payload kedua
+  cabang sampai batas pemindaian (indeks terpakai + 20), per 64 payload. UTXO wallet yang sedang dibelanjakan di mempool
+  dihitung `keluar tertunda` (bukan `bisa dipakai`) dan tidak dipilih saat mengirim; output jenis 0 ke alamat wallet
+  (kiriman masuk dan kembalian) dihitung `masuk tertunda`. `saldo setelah tertunda masuk blok` = saldo − keluar tertunda
+  + masuk tertunda. Output tertunda belum bisa dibelanjakan (mempool v0.1 tanpa rantai transaksi tertunda).
 - Filter blok kompak (gaya BIP158) untuk wallet ringan ditunda ke TSK-F07/F08.
 
 ---
@@ -128,6 +133,7 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 | Daftar kata, frasa, seed, turunan BIP32, kunci akun publik, alamat bech32m (encode dan decode) | MOD-09 | TSK-M15 |
 | Pemilihan koin, penyusunan, dan tanda tangan transaksi (sighash v1, DEC-13) | MOD-09 | TSK-M16 |
 | Perintah wallet CLI (buat, pulihkan, alamat, saldo, kirim) dan file wallet | MOD-12 (DEC-21) | TSK-M19 |
+| Saldo dan pemilihan koin dengan transaksi tertunda (`scan_mempool`) | MOD-08, MOD-11, MOD-12 | TSK-M36 |
 | Kirim dan terima ujung ke ujung | MOD-17 | TSK-F03 |
 
 ---

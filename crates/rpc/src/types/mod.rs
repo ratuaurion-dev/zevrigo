@@ -1,4 +1,4 @@
-//! Nama metode, parameter request, dan hasil 8 metode RPC (Spesifikasi RPC v0.1 Bagian 3).
+//! Nama metode, parameter request, dan hasil 9 metode RPC (Spesifikasi RPC v0.1 Bagian 3).
 //!
 //! Parameter dikirim berdasarkan nama (objek JSON); field yang tidak dikenal ditolak. Hasil tidak menolak field
 //! tambahan agar klien lama tetap bisa membaca hasil versi berikutnya.
@@ -30,9 +30,11 @@ pub const METHOD_SEND_RAW_TRANSACTION: &str = "send_raw_transaction";
 pub const METHOD_GET_MEMPOOL: &str = "get_mempool";
 /// Nama metode `scan_utxos`.
 pub const METHOD_SCAN_UTXOS: &str = "scan_utxos";
+/// Nama metode `scan_mempool`.
+pub const METHOD_SCAN_MEMPOOL: &str = "scan_mempool";
 
-/// Kedelapan metode RPC v0.1, urut seperti di spesifikasi.
-pub const METHODS: [&str; 8] = [
+/// Kesembilan metode RPC v0.1, urut seperti di spesifikasi.
+pub const METHODS: [&str; 9] = [
     METHOD_GET_CHAIN_INFO,
     METHOD_GET_BLOCK_HASH,
     METHOD_GET_BLOCK,
@@ -41,9 +43,10 @@ pub const METHODS: [&str; 8] = [
     METHOD_SEND_RAW_TRANSACTION,
     METHOD_GET_MEMPOOL,
     METHOD_SCAN_UTXOS,
+    METHOD_SCAN_MEMPOOL,
 ];
 
-/// Jumlah payload maksimum untuk `scan_utxos`.
+/// Jumlah payload maksimum untuk `scan_utxos` dan `scan_mempool`.
 pub const MAX_SCAN_PAYLOADS: usize = 64;
 
 /// Parameter `get_block_hash`.
@@ -88,7 +91,7 @@ pub struct SendRawTransactionParams {
     pub hex: HexBytes,
 }
 
-/// Daftar 1 sampai [`MAX_SCAN_PAYLOADS`] payload untuk `scan_utxos`.
+/// Daftar 1 sampai [`MAX_SCAN_PAYLOADS`] payload untuk `scan_utxos` dan `scan_mempool`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "Vec<Hex32>", into = "Vec<Hex32>")]
 pub struct PayloadList(Vec<Hex32>);
@@ -125,6 +128,14 @@ impl From<PayloadList> for Vec<Hex32> {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ScanUtxosParams {
+    /// Payload yang dicari.
+    pub payloads: PayloadList,
+}
+
+/// Parameter `scan_mempool`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ScanMempoolParams {
     /// Payload yang dicari.
     pub payloads: PayloadList,
 }
@@ -286,6 +297,41 @@ pub struct UtxoInfo {
     /// Tinggi blok paling awal yang boleh membelanjakannya: `height + 100` untuk coinbase, `height + 1` untuk
     /// lainnya. Kunci waktu kondisi tidak terlihat dari output.
     pub spendable_at: u64,
+}
+
+/// UTXO di ujung chain aktif milik salah satu payload yang dicari, yang sudah dibelanjakan transaksi di mempool.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MempoolSpend {
+    /// Txid outpoint.
+    pub txid: Hex32,
+    /// Indeks output outpoint.
+    pub index: u32,
+    /// Txid transaksi mempool yang membelanjakannya.
+    pub spent_by: Hex32,
+}
+
+/// Output transaksi di mempool ke salah satu payload yang dicari.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MempoolOutput {
+    /// Txid transaksi mempool.
+    pub txid: Hex32,
+    /// Indeks output.
+    pub index: u32,
+    /// Jumlah koin output.
+    pub amount: Quanta,
+    /// Jenis output.
+    pub kind: KindNumber,
+    /// Payload output.
+    pub payload: Hex32,
+}
+
+/// Hasil `scan_mempool`: transaksi tertunda yang menyentuh payload yang dicari.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MempoolScan {
+    /// UTXO yang sedang dibelanjakan, urut `(txid, index)`.
+    pub spent: Vec<MempoolSpend>,
+    /// Output tertunda, urut `(txid, index)`.
+    pub outputs: Vec<MempoolOutput>,
 }
 
 impl UtxoInfo {

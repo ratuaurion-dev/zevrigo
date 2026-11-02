@@ -17,9 +17,9 @@ pub use error::{RejectData, RpcError};
 pub use server::{RpcBackend, RpcServer, ServerError, rpc_module};
 pub use types::{
     BlockInfo, BlockTemplate, ChainInfo, GetBlockHashParams, GetBlockParams,
-    GetBlockTemplateParams, MAX_SCAN_PAYLOADS, METHODS, MempoolInfo, PayloadList, ScanUtxosParams,
-    SendRawTransactionParams, SendRawTransactionResult, SubmitBlockParams, SubmitBlockResult,
-    SubmitStatus, UtxoInfo,
+    GetBlockTemplateParams, MAX_SCAN_PAYLOADS, METHODS, MempoolInfo, MempoolOutput, MempoolScan,
+    MempoolSpend, PayloadList, ScanMempoolParams, ScanUtxosParams, SendRawTransactionParams,
+    SendRawTransactionResult, SubmitBlockParams, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
 pub use value::{
     CompactHex, DecimalU64, Hex32, HexBytes, KindNumber, NetworkName, Quanta, ValueError,

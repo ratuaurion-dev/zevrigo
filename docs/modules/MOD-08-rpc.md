@@ -22,3 +22,4 @@ Menyediakan definisi tipe pesan serta klien dan server JSON-RPC antara daemon no
 
 ## Task terkait
 - [TSK-M12](../tasks/TSK-M12-rpc.md) — 🟢 selesai
+- [TSK-M36](../tasks/TSK-M36-saldo-tertunda.md) — 🟢 selesai (metode ke-9 `scan_mempool`)

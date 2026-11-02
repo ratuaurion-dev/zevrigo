@@ -1,13 +1,18 @@
 //! Aksi CLI: ringkasan chain dan perintah wallet regtest (TSK-M19, DEC-21).
 //!
 //! `wallet-create`, `wallet-restore`, dan `address` berjalan tanpa node. `info`, `balance`, dan `send` memanggil
-//! node lewat RPC (MOD-08) dengan runtime tokio satu thread. Frasa, kunci, alamat, pemilihan koin, dan tanda tangan
+//! node lewat RPC (MOD-08) dengan runtime tokio satu thread. `balance` dan `send` memperhitungkan transaksi tertunda
+//! di mempool node (`scan_mempool`, TSK-M36): UTXO yang sedang dibelanjakan tidak dihitung bisa dipakai dan tidak
+//! dipilih lagi, output tertunda ke wallet dilaporkan sebagai masuk tertunda. Frasa, kunci, alamat, pemilihan koin, dan tanda tangan
 //! seluruhnya dari MOD-09. Entropi frasa dan `aux_rand` tanda tangan diberikan pemanggil.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use homeostasis_primitives::{Amount, Encode, Network, OutPoint, OutputKind};
-use homeostasis_rpc::{ChainInfo, Hex32, RpcClient, reject_reason};
+use homeostasis_rpc::{
+    ChainInfo, Hex32, MAX_SCAN_PAYLOADS, MempoolOutput, MempoolScan, RpcClient, reject_reason,
+};
 use homeostasis_wallet_core::{
     AddressError, Bip32Error, CHANGE_BRANCH, Coin, ExtendedPrivKey, ExtendedPubKey, HARDENED,
     Mnemonic, MnemonicError, RECEIVE_BRANCH, SendError, SendRequest, account_key,
@@ -17,7 +22,7 @@ use thiserror::Error;
 use tokio::runtime::Runtime;
 
 use crate::args::{Action, Config};
-use crate::scan::{ScanResult, scan_wallet};
+use crate::scan::{ScanResult, scan_wallet, wallet_payloads};
 use crate::wallet_file::{self, WalletFile, WalletFileError};
 
 /// Galat menjalankan aksi. Biner keluar dengan kode 1.
@@ -77,18 +82,24 @@ fn rpc_error(error: impl core::fmt::Display) -> CliError {
     }
 }
 
-/// Saldo wallet di ujung chain.
+/// Saldo wallet di ujung chain, beserta transaksi tertunda di mempool.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Balance {
     /// Tinggi ujung chain.
     pub tip_height: u64,
-    /// Jumlah semua UTXO milik wallet.
+    /// Jumlah semua UTXO milik wallet di chain (`bisa dipakai` + `belum matang` + `keluar tertunda`).
     pub total: Amount,
-    /// Bagian yang boleh dibelanjakan di blok berikutnya.
+    /// Bagian yang boleh dibelanjakan di blok berikutnya dan belum dibelanjakan transaksi di mempool.
     pub spendable: Amount,
     /// Bagian yang belum matang (coinbase di bawah 100 konfirmasi).
     pub immature: Amount,
-    /// Jumlah UTXO milik wallet.
+    /// UTXO wallet yang sedang dibelanjakan transaksi di mempool.
+    pub pending_spent: Amount,
+    /// Output transaksi di mempool ke alamat wallet (termasuk kembalian).
+    pub pending_received: Amount,
+    /// Saldo setelah semua transaksi tertunda masuk blok: `total − pending_spent + pending_received`.
+    pub after_pending: Amount,
+    /// Jumlah UTXO milik wallet di chain.
     pub utxos: usize,
 }
 
@@ -107,6 +118,14 @@ pub struct Sent {
     pub inputs: usize,
     /// Ukuran transaksi dalam byte.
     pub size: usize,
+}
+
+/// Transaksi tertunda di mempool node yang menyentuh wallet.
+struct Pending {
+    /// Outpoint UTXO wallet yang sedang dibelanjakan.
+    spent: BTreeSet<(Hex32, u32)>,
+    /// Output tertunda jenis 0 ke alamat wallet.
+    outputs: Vec<MempoolOutput>,
 }
 
 /// Wallet yang sudah dibuka: path file, isi file, dan kunci akun `m/44'/1'/0'`.
@@ -256,7 +275,36 @@ impl Cli {
         Ok(result)
     }
 
-    /// `balance`: saldo wallet dari node.
+    /// Transaksi tertunda di mempool node yang menyentuh alamat wallet sampai batas pemindaian `scanned`: outpoint
+    /// UTXO wallet yang sedang dibelanjakan, dan output tertunda jenis 0 ke alamat wallet.
+    fn pending(&self, wallet: &OpenWallet, scanned: &ScanResult) -> Result<Pending, CliError> {
+        let payloads = wallet_payloads(&wallet.public, scanned.next_index);
+        let mut scan = MempoolScan::default();
+        for chunk in payloads.chunks(MAX_SCAN_PAYLOADS) {
+            let part = self
+                .runtime
+                .block_on(self.client.scan_mempool(chunk))
+                .map_err(rpc_error)?;
+            scan.spent.extend(part.spent);
+            scan.outputs.extend(part.outputs);
+        }
+        let mine: BTreeSet<Hex32> = payloads.into_iter().collect();
+        let spent = scan
+            .spent
+            .iter()
+            .map(|spend| (spend.txid, spend.index))
+            .collect();
+        let outputs = scan
+            .outputs
+            .into_iter()
+            .filter(|output| {
+                output.kind.kind() == OutputKind::SingleKey && mine.contains(&output.payload)
+            })
+            .collect();
+        Ok(Pending { spent, outputs })
+    }
+
+    /// `balance`: saldo wallet dari node, termasuk transaksi tertunda di mempool.
     ///
     /// # Errors
     ///
@@ -265,6 +313,7 @@ impl Cli {
         let info = self.regtest_info()?;
         let mut wallet = open_wallet(datadir, passphrase)?;
         let scanned = self.scan(&mut wallet)?;
+        let pending = self.pending(&wallet, &scanned)?;
         // Sengaja saturating: pada tinggi u64::MAX semua UTXO dianggap sudah bisa dipakai.
         let limit = info.height.saturating_add(1);
         let overflow = || CliError::Send(SendError::AmountOverflow);
@@ -273,22 +322,42 @@ impl Cli {
             total: Amount::ZERO,
             spendable: Amount::ZERO,
             immature: Amount::ZERO,
+            pending_spent: Amount::ZERO,
+            pending_received: Amount::ZERO,
+            after_pending: Amount::ZERO,
             utxos: scanned.found.len(),
         };
         for found in &scanned.found {
             let amount = found.utxo.amount.amount();
             balance.total = balance.total.checked_add(amount).ok_or_else(overflow)?;
-            if found.utxo.spendable_at <= limit {
+            if pending.spent.contains(&(found.utxo.txid, found.utxo.index)) {
+                balance.pending_spent = balance
+                    .pending_spent
+                    .checked_add(amount)
+                    .ok_or_else(overflow)?;
+            } else if found.utxo.spendable_at <= limit {
                 balance.spendable = balance.spendable.checked_add(amount).ok_or_else(overflow)?;
             } else {
                 balance.immature = balance.immature.checked_add(amount).ok_or_else(overflow)?;
             }
         }
+        for output in &pending.outputs {
+            balance.pending_received = balance
+                .pending_received
+                .checked_add(output.amount.amount())
+                .ok_or_else(overflow)?;
+        }
+        balance.after_pending = balance
+            .total
+            .checked_sub(balance.pending_spent)
+            .and_then(|rest| rest.checked_add(balance.pending_received))
+            .ok_or_else(overflow)?;
         Ok(balance)
     }
 
-    /// `send`: memilih koin, menandatangani dengan `aux_rand`, lalu mengirim ke mempool node. Indeks kembalian di
-    /// file wallet dinaikkan jika transaksi memakai output kembalian.
+    /// `send`: memilih koin, menandatangani dengan `aux_rand`, lalu mengirim ke mempool node. UTXO yang sedang
+    /// dibelanjakan transaksi di mempool tidak dipilih. Indeks kembalian di file wallet dinaikkan jika transaksi
+    /// memakai output kembalian.
     ///
     /// # Errors
     ///
@@ -312,9 +381,11 @@ impl Cli {
             .to_hash32();
         let mut wallet = open_wallet(datadir, passphrase)?;
         let scanned = self.scan(&mut wallet)?;
+        let pending = self.pending(&wallet, &scanned)?;
         let coins: Vec<Coin> = scanned
             .found
             .iter()
+            .filter(|found| !pending.spent.contains(&(found.utxo.txid, found.utxo.index)))
             .map(|found| {
                 Coin::new(
                     OutPoint::new(found.utxo.txid.to_hash32(), found.utxo.index),
@@ -380,8 +451,15 @@ pub fn format_info(info: &ChainInfo) -> String {
 #[must_use]
 pub fn format_balance(balance: &Balance) -> String {
     format!(
-        "tinggi ujung: {}\nsaldo: {}\nbisa dipakai: {}\nbelum matang: {}\nutxo: {}\n",
-        balance.tip_height, balance.total, balance.spendable, balance.immature, balance.utxos,
+        "tinggi ujung: {}\nsaldo: {}\nbisa dipakai: {}\nbelum matang: {}\nkeluar tertunda: {}\nmasuk tertunda: {}\nsaldo setelah tertunda masuk blok: {}\nutxo: {}\n",
+        balance.tip_height,
+        balance.total,
+        balance.spendable,
+        balance.immature,
+        balance.pending_spent,
+        balance.pending_received,
+        balance.after_pending,
+        balance.utxos,
     )
 }
 

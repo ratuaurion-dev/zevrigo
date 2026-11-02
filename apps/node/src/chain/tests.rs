@@ -14,8 +14,8 @@ use homeostasis_primitives::{
     OutputKind, Transaction, Witness,
 };
 use homeostasis_rpc::{
-    GetBlockTemplateParams, Hex32, KindNumber, RpcBackend, RpcError, SendRawTransactionResult,
-    SubmitBlockResult, SubmitStatus,
+    GetBlockTemplateParams, Hex32, KindNumber, MempoolOutput, MempoolScan, MempoolSpend, Quanta,
+    RpcBackend, RpcError, SendRawTransactionResult, SubmitBlockResult, SubmitStatus,
 };
 use homeostasis_storage::{ChainStore, MemoryStore, RedbStore};
 
@@ -1309,4 +1309,66 @@ fn invalid_block_records_are_bounded() {
     // Catatan tertua terlupa: blok itu diperiksa ulang dan tetap ditolak; kini catatan berikutnya yang terlupa.
     assert_eq!(submit(&fx, &bad[0]), rejected_block(&bad[0], "V5"));
     assert_eq!(invalid_set(&fx), set([id_of(&bad[2]), id_of(&bad[0])]));
+}
+
+#[test]
+fn scan_mempool_reports_pending_spends_and_outputs() {
+    let fx = open(MemoryStore::default());
+    fx.now.store(FAR, Ordering::SeqCst);
+    let blocks = extend(&fx, params().network_id(), 1, 99, 2);
+    let owner = Hex32::new(key(1));
+    let receiver = Hex32::new(key(3));
+    let stranger = Hex32::new(key(9));
+    assert_eq!(
+        fx.node.scan_mempool(&[owner, receiver]).unwrap(),
+        MempoolScan::default()
+    );
+
+    let tx = spend_genesis(1, G - 1_000);
+    let id = Hex32::from(txid(&tx));
+    assert_eq!(
+        fx.node.send_raw_transaction(&tx.to_bytes()).unwrap().txid,
+        id
+    );
+    let genesis = regtest_genesis().unwrap();
+    let genesis_txid = Hex32::from(txid(genesis.txs().first().unwrap()));
+    let expected = MempoolScan {
+        spent: vec![MempoolSpend {
+            txid: genesis_txid,
+            index: 0,
+            spent_by: id,
+        }],
+        outputs: vec![MempoolOutput {
+            txid: id,
+            index: 0,
+            amount: Quanta::new(Amount::from_quanta(G - 1_000)),
+            kind: KindNumber::new(OutputKind::SingleKey),
+            payload: receiver,
+        }],
+    };
+    assert_eq!(
+        fx.node.scan_mempool(&[receiver, owner, receiver]).unwrap(),
+        expected
+    );
+    // Hanya payload yang diminta: pemilik alokasi melihat UTXO-nya dibelanjakan, penerima melihat output tertunda.
+    let only_owner = fx.node.scan_mempool(&[owner]).unwrap();
+    assert_eq!(only_owner.spent, expected.spent);
+    assert!(only_owner.outputs.is_empty());
+    let only_receiver = fx.node.scan_mempool(&[receiver]).unwrap();
+    assert!(only_receiver.spent.is_empty());
+    assert_eq!(only_receiver.outputs, expected.outputs);
+    assert_eq!(
+        fx.node.scan_mempool(&[stranger]).unwrap(),
+        MempoolScan::default()
+    );
+
+    // Setelah transaksi masuk blok, tidak ada lagi yang tertunda.
+    let tip = id_of(blocks.last().unwrap());
+    let block = block_on(tip, 100, 2, vec![tx], 1_000);
+    assert_eq!(submit(&fx, &block).status, SubmitStatus::Accepted);
+    assert_eq!(
+        fx.node.scan_mempool(&[owner, receiver]).unwrap(),
+        MempoolScan::default()
+    );
+    assert_eq!(fx.node.scan_utxos(&[receiver]).unwrap().len(), 1);
 }

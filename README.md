@@ -60,7 +60,9 @@ cargo run -p homeostasis-cli -- --datadir ~/.homeostasis send --to <alamat rhsis
 
 Wallet disimpan di `~/.homeostasis/regtest/wallet.json` (izin `0600`, tanpa enkripsi; hanya untuk regtest). Simpan
 frasa 24 kata yang dicetak `wallet-create`. `address` juga mencetak payload hex yang bisa dipakai untuk `--payout`
-miner, sehingga hadiah tambang masuk ke wallet. Aturan lengkap di [docs/reference/spesifikasi-wallet-v0.1.md](docs/reference/spesifikasi-wallet-v0.1.md).
+miner, sehingga hadiah tambang masuk ke wallet. `balance` juga menampilkan transaksi yang masih menunggu di mempool
+(`keluar tertunda`, `masuk tertunda`, dan saldo setelah semuanya masuk blok), dan `send` tidak memilih koin yang sedang
+dibelanjakan. Aturan lengkap di [docs/reference/spesifikasi-wallet-v0.1.md](docs/reference/spesifikasi-wallet-v0.1.md).
 
 ## Explorer regtest
 

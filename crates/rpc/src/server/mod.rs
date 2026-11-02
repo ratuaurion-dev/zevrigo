@@ -18,13 +18,14 @@ use crate::transport::MAX_REQUEST_BYTES;
 use crate::types::{
     BlockInfo, BlockTemplate, ChainInfo, GetBlockHashParams, GetBlockParams,
     GetBlockTemplateParams, METHOD_GET_BLOCK, METHOD_GET_BLOCK_HASH, METHOD_GET_BLOCK_TEMPLATE,
-    METHOD_GET_CHAIN_INFO, METHOD_GET_MEMPOOL, METHOD_SCAN_UTXOS, METHOD_SEND_RAW_TRANSACTION,
-    METHOD_SUBMIT_BLOCK, MempoolInfo, ScanUtxosParams, SendRawTransactionParams,
-    SendRawTransactionResult, SubmitBlockParams, SubmitBlockResult, UtxoInfo,
+    METHOD_GET_CHAIN_INFO, METHOD_GET_MEMPOOL, METHOD_SCAN_MEMPOOL, METHOD_SCAN_UTXOS,
+    METHOD_SEND_RAW_TRANSACTION, METHOD_SUBMIT_BLOCK, MempoolInfo, MempoolScan, ScanMempoolParams,
+    ScanUtxosParams, SendRawTransactionParams, SendRawTransactionResult, SubmitBlockParams,
+    SubmitBlockResult, UtxoInfo,
 };
 use crate::value::Hex32;
 
-/// Sumber data node untuk 8 metode RPC. Setiap metode dipanggil dengan parameter yang sudah lolos aturan encoding.
+/// Sumber data node untuk 9 metode RPC. Setiap metode dipanggil dengan parameter yang sudah lolos aturan encoding.
 pub trait RpcBackend: Send + Sync + 'static {
     /// `get_chain_info`: ringkasan ujung chain aktif.
     ///
@@ -82,6 +83,14 @@ pub trait RpcBackend: Send + Sync + 'static {
     ///
     /// [`RpcError::Internal`] jika set UTXO tidak bisa dibaca.
     fn scan_utxos(&self, payloads: &[Hex32]) -> Result<Vec<UtxoInfo>, RpcError>;
+
+    /// `scan_mempool`: untuk 1 sampai 64 payload, UTXO di ujung chain aktif yang dibelanjakan transaksi mempool dan
+    /// output transaksi mempool ke payload itu, masing-masing urut `(txid, index)`.
+    ///
+    /// # Errors
+    ///
+    /// [`RpcError::Internal`] jika set UTXO atau mempool tidak bisa dibaca.
+    fn scan_mempool(&self, payloads: &[Hex32]) -> Result<MempoolScan, RpcError>;
 }
 
 /// Error saat menyiapkan atau menjalankan server RPC.
@@ -132,7 +141,7 @@ fn no_params(params: &Params<'_>) -> Result<(), ErrorObjectOwned> {
     }
 }
 
-/// Menyusun modul berisi 8 metode RPC v0.1 di atas `backend`.
+/// Menyusun modul berisi 9 metode RPC v0.1 di atas `backend`.
 ///
 /// # Errors
 ///
@@ -216,6 +225,17 @@ pub fn rpc_module<B: RpcBackend>(backend: Arc<B>) -> Result<RpcModule<B>, Server
                 let p: ScanUtxosParams = named(&params)?;
                 backend
                     .scan_utxos(p.payloads.as_slice())
+                    .map_err(ErrorObjectOwned::from)
+            },
+        )
+        .map_err(register)?;
+    module
+        .register_method(
+            METHOD_SCAN_MEMPOOL,
+            |params, backend, _| -> Result<MempoolScan, ErrorObjectOwned> {
+                let p: ScanMempoolParams = named(&params)?;
+                backend
+                    .scan_mempool(p.payloads.as_slice())
                     .map_err(ErrorObjectOwned::from)
             },
         )

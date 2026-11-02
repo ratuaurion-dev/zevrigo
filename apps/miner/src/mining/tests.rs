@@ -7,8 +7,8 @@ use homeostasis_primitives::{
 };
 use homeostasis_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, HexBytes,
-    KindNumber, MempoolInfo, Quanta, RpcBackend, RpcError, RpcServer, SendRawTransactionResult,
-    SubmitBlockResult, SubmitStatus, UtxoInfo,
+    KindNumber, MempoolInfo, MempoolScan, Quanta, RpcBackend, RpcError, RpcServer,
+    SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
 use tokio::runtime::Runtime;
 
@@ -159,6 +159,10 @@ impl RpcBackend for MockNode {
 
     fn scan_utxos(&self, _payloads: &[Hex32]) -> Result<Vec<UtxoInfo>, RpcError> {
         Ok(Vec::new())
+    }
+
+    fn scan_mempool(&self, _payloads: &[Hex32]) -> Result<MempoolScan, RpcError> {
+        Ok(MempoolScan::default())
     }
 }
 

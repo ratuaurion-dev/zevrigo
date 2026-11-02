@@ -21,8 +21,8 @@ use homeostasis_network::{
 };
 use homeostasis_primitives::{Block, BlockHeight, Decode, Encode, Hash32, Transaction};
 use homeostasis_rpc::{
-    BlockInfo, BlockTemplate, ChainInfo, GetBlockTemplateParams, Hex32, MempoolInfo, RpcBackend,
-    RpcError, SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
+    BlockInfo, BlockTemplate, ChainInfo, GetBlockTemplateParams, Hex32, MempoolInfo, MempoolScan,
+    RpcBackend, RpcError, SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
 use homeostasis_storage::ChainStore;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
@@ -103,6 +103,10 @@ impl<S: ChainStore + Send + 'static> RpcBackend for Relay<S> {
 
     fn scan_utxos(&self, payloads: &[Hex32]) -> Result<Vec<UtxoInfo>, RpcError> {
         self.node.scan_utxos(payloads)
+    }
+
+    fn scan_mempool(&self, payloads: &[Hex32]) -> Result<MempoolScan, RpcError> {
+        self.node.scan_mempool(payloads)
     }
 }
 

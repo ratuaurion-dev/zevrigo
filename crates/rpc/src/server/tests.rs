@@ -15,8 +15,8 @@ use crate::error::{
     NOT_FOUND, RpcError,
 };
 use crate::types::{
-    BlockInfo, BlockTemplate, ChainInfo, GetBlockTemplateParams, MempoolInfo,
-    SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
+    BlockInfo, BlockTemplate, ChainInfo, GetBlockTemplateParams, MempoolInfo, MempoolOutput,
+    MempoolScan, MempoolSpend, SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
 use crate::value::{CompactHex, DecimalU64, Hex32, HexBytes, KindNumber, NetworkName, Quanta};
 
@@ -143,6 +143,34 @@ impl RpcBackend for Mock {
             })
             .collect())
     }
+
+    fn scan_mempool(&self, payloads: &[Hex32]) -> Result<MempoolScan, RpcError> {
+        Ok(mempool_scan(payloads))
+    }
+}
+
+/// Hasil `scan_mempool` tiruan: satu UTXO dibelanjakan dan satu output tertunda per payload.
+fn mempool_scan(payloads: &[Hex32]) -> MempoolScan {
+    MempoolScan {
+        spent: payloads
+            .iter()
+            .map(|payload| MempoolSpend {
+                txid: *payload,
+                index: 1,
+                spent_by: h(0x0a),
+            })
+            .collect(),
+        outputs: payloads
+            .iter()
+            .map(|payload| MempoolOutput {
+                txid: h(0x0a),
+                index: 0,
+                amount: Quanta::new(Amount::from_quanta(7)),
+                kind: KindNumber::new(OutputKind::SingleKey),
+                payload: *payload,
+            })
+            .collect(),
+    }
 }
 
 async fn start() -> (RpcServer, RpcClient) {
@@ -198,6 +226,32 @@ async fn round_trip_all_methods() {
     let payloads: Vec<Hex32> = utxos.iter().map(|u| u.payload).collect();
     assert_eq!(payloads, vec![h(0x21), h(0x22)]);
     assert!(client.scan_utxos(&[]).await.is_err());
+
+    assert_eq!(
+        client
+            .scan_mempool(&[h(0x21), h(0x22)])
+            .await
+            .expect("scan mempool"),
+        mempool_scan(&[h(0x21), h(0x22)])
+    );
+    let raw = client
+        .raw_request("scan_mempool", json!({ "payloads": ["21".repeat(32)] }))
+        .await
+        .expect("scan mempool mentah");
+    assert_eq!(
+        raw,
+        json!({
+            "spent": [{"txid": "21".repeat(32), "index": 1, "spent_by": "0a".repeat(32)}],
+            "outputs": [{
+                "txid": "0a".repeat(32),
+                "index": 0,
+                "amount": "7",
+                "kind": 0,
+                "payload": "21".repeat(32)
+            }]
+        })
+    );
+    assert!(client.scan_mempool(&[]).await.is_err());
 
     assert!(
         client
@@ -258,6 +312,8 @@ async fn invalid_params_and_unknown_method_are_rejected() {
         ("send_raw_transaction", json!({})),
         ("scan_utxos", json!({"payloads": []})),
         ("scan_utxos", json!({ "payloads": too_many })),
+        ("scan_mempool", json!({"payloads": []})),
+        ("scan_mempool", json!({"payloads": [payload], "x": 1})),
         ("get_chain_info", json!({"x": 1})),
         ("get_mempool", json!([1])),
     ];

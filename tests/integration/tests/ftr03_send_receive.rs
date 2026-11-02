@@ -3,8 +3,9 @@
 //! Node (MOD-11, `RedbStore` di memori), server RPC (MOD-08), miner (MOD-13), dan perintah wallet CLI (MOD-12, DEC-23)
 //! berjalan di satu proses lewat RPC HTTP sungguhan. Selesai bila (Dokumen fitur FTR-03): wallet CLI membuat alamat,
 //! menerima coinbase yang sudah matang (100 blok), mengirim ke wallet lain, dan transaksi terkonfirmasi. Node
-//! memeriksa setiap transaksi dengan aturan T1 sampai T6 (MOD-04). Jam node disuntikkan, maju 120 detik per blok,
-//! sehingga target tetap `pow_limit` dan hasilnya deterministik.
+//! memeriksa setiap transaksi dengan aturan T1 sampai T6 (MOD-04). Selama transaksi menunggu di mempool, saldo kedua
+//! wallet memperhitungkannya (`scan_mempool`, TSK-M36). Jam node disuntikkan, maju 120 detik per blok, sehingga
+//! target tetap `pow_limit` dan hasilnya deterministik.
 
 #![forbid(unsafe_code)]
 
@@ -152,6 +153,9 @@ mod ftr03 {
                 total: subsidies(&schedule, 1, 99),
                 spendable: Amount::ZERO,
                 immature: subsidies(&schedule, 1, 99),
+                pending_spent: Amount::ZERO,
+                pending_received: Amount::ZERO,
+                after_pending: subsidies(&schedule, 1, 99),
                 utxos: 99,
             }
         );
@@ -188,6 +192,30 @@ mod ftr03 {
             vec![sent_ab.txid]
         );
 
+        // Selama transaksi menunggu di mempool: dua coinbase A sedang dibelanjakan, kembalian A dan kiriman ke B
+        // tercatat masuk tertunda, dan koin yang sedang dibelanjakan tidak dipilih lagi.
+        let pending_a = cli.balance(&dir_a.0, "").unwrap();
+        assert_eq!(pending_a.total, balance_a.total);
+        assert_eq!(pending_a.spendable, Amount::ZERO);
+        assert_eq!(pending_a.pending_spent, mature);
+        assert_eq!(pending_a.pending_received, change_a);
+        assert_eq!(
+            pending_a.after_pending,
+            balance_a
+                .total
+                .checked_sub(mature)
+                .and_then(|rest| rest.checked_add(change_a))
+                .unwrap()
+        );
+        let pending_b = cli.balance(&dir_b.0, "").unwrap();
+        assert_eq!(pending_b.total, Amount::ZERO);
+        assert_eq!(pending_b.pending_received, quanta(A_TO_B));
+        assert_eq!(pending_b.after_pending, quanta(A_TO_B));
+        assert!(matches!(
+            send(&cli, &dir_a.0, &address_b, A_TO_B, 3),
+            Err(CliError::Send(SendError::InsufficientFunds { .. }))
+        ));
+
         // Blok 102 ditambang ke kunci lain, agar saldo kedua wallet hanya berubah karena transaksi.
         let miner_other = miner(&url, key(9));
         assert_eq!(miner_other.run(1, |_| {}).unwrap(), 1);
@@ -207,6 +235,9 @@ mod ftr03 {
                 total: quanta(A_TO_B),
                 spendable: quanta(A_TO_B),
                 immature: Amount::ZERO,
+                pending_spent: Amount::ZERO,
+                pending_received: Amount::ZERO,
+                after_pending: quanta(A_TO_B),
                 utxos: 1,
             }
         );
@@ -240,6 +271,9 @@ mod ftr03 {
                 total: change_b,
                 spendable: change_b,
                 immature: Amount::ZERO,
+                pending_spent: Amount::ZERO,
+                pending_received: Amount::ZERO,
+                after_pending: change_b,
                 utxos: 1,
             }
         );
@@ -248,11 +282,15 @@ mod ftr03 {
             .and_then(|sum| sum.checked_add(quanta(B_TO_A)))
             .unwrap();
         let immature_a = subsidies(&schedule, 5, 101);
+        let total_a = spendable_a.checked_add(immature_a).unwrap();
         let expected_a = Balance {
             tip_height: 103,
-            total: spendable_a.checked_add(immature_a).unwrap(),
+            total: total_a,
             spendable: spendable_a,
             immature: immature_a,
+            pending_spent: Amount::ZERO,
+            pending_received: Amount::ZERO,
+            after_pending: total_a,
             utxos: 101,
         };
         assert_eq!(cli.balance(&dir_a.0, "").unwrap(), expected_a);

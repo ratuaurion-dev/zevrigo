@@ -9,8 +9,8 @@ use std::sync::{Arc, Mutex};
 use homeostasis_primitives::{Amount, Network, OutputKind};
 use homeostasis_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, KindNumber,
-    MempoolInfo, NetworkName, Quanta, RpcBackend, RpcError, RpcServer, SendRawTransactionResult,
-    SubmitBlockResult, UtxoInfo,
+    MempoolInfo, MempoolOutput, MempoolScan, MempoolSpend, NetworkName, Quanta, RpcBackend,
+    RpcError, RpcServer, SendRawTransactionResult, SubmitBlockResult, UtxoInfo,
 };
 use homeostasis_wallet_core::{AddressError, SendError};
 use tokio::runtime::Runtime;
@@ -54,7 +54,10 @@ const EIGHT_HSIS: u128 = 8 * HSIS;
 const SEVEN_HSIS: u128 = 7 * HSIS;
 const SIX_HSIS: u128 = 6 * HSIS;
 const FIVE_HSIS: u128 = 5 * HSIS;
+const EIGHTEEN_HSIS: u128 = 18 * HSIS;
+const FOUR_HSIS: u128 = 4 * HSIS;
 const THREE_HSIS: u128 = 3 * HSIS;
+const TWO_HSIS: u128 = 2 * HSIS;
 const HUNDRED_HSIS: u128 = 100 * HSIS;
 
 fn decode_hex(hex: &str) -> Vec<u8> {
@@ -122,10 +125,12 @@ fn t1_utxos() -> Vec<UtxoInfo> {
     ]
 }
 
-/// Node tiruan: tinggi ujung 150, `network_id` 5a × 32, UTXO tetap, mencatat transaksi yang dikirim.
+/// Node tiruan: tinggi ujung 150, `network_id` 5a × 32, UTXO dan transaksi tertunda tetap, mencatat transaksi yang
+/// dikirim.
 struct MockNode {
     network: Network,
     utxos: Vec<UtxoInfo>,
+    pending: MempoolScan,
     reject: Option<String>,
     sent: Mutex<Vec<Vec<u8>>>,
 }
@@ -191,6 +196,30 @@ impl RpcBackend for MockNode {
         out.sort_by_key(|utxo| (utxo.txid, utxo.index));
         Ok(out)
     }
+
+    fn scan_mempool(&self, payloads: &[Hex32]) -> Result<MempoolScan, RpcError> {
+        let owned = |txid: Hex32, index: u32| {
+            self.utxos.iter().any(|utxo| {
+                utxo.txid == txid && utxo.index == index && payloads.contains(&utxo.payload)
+            })
+        };
+        Ok(MempoolScan {
+            spent: self
+                .pending
+                .spent
+                .iter()
+                .filter(|spend| owned(spend.txid, spend.index))
+                .cloned()
+                .collect(),
+            outputs: self
+                .pending
+                .outputs
+                .iter()
+                .filter(|output| payloads.contains(&output.payload))
+                .cloned()
+                .collect(),
+        })
+    }
 }
 
 /// Node tiruan di runtime terpisah, dengan klien CLI yang terhubung ke sana.
@@ -203,10 +232,20 @@ struct Harness {
 
 impl Harness {
     fn start(network: Network, utxos: Vec<UtxoInfo>, reject: Option<&str>) -> Self {
+        Self::launch(network, utxos, MempoolScan::default(), reject)
+    }
+
+    fn launch(
+        network: Network,
+        utxos: Vec<UtxoInfo>,
+        pending: MempoolScan,
+        reject: Option<&str>,
+    ) -> Self {
         let server_rt = Runtime::new().unwrap();
         let node = Arc::new(MockNode {
             network,
             utxos,
+            pending,
             reject: reject.map(str::to_owned),
             sent: Mutex::new(Vec::new()),
         });
@@ -301,12 +340,19 @@ fn balance_and_send_match_vector_t1() {
             total: Amount::from_quanta(FIFTEEN_HSIS),
             spendable: Amount::from_quanta(EIGHT_HSIS),
             immature: Amount::from_quanta(SEVEN_HSIS),
+            pending_spent: Amount::ZERO,
+            pending_received: Amount::ZERO,
+            after_pending: Amount::from_quanta(FIFTEEN_HSIS),
             utxos: 3,
         }
     );
     assert_eq!(
         format_balance(&balance),
-        "tinggi ujung: 150\nsaldo: 15 HSIS\nbisa dipakai: 8 HSIS\nbelum matang: 7 HSIS\nutxo: 3\n"
+        concat!(
+            "tinggi ujung: 150\nsaldo: 15 HSIS\nbisa dipakai: 8 HSIS\nbelum matang: 7 HSIS\n",
+            "keluar tertunda: 0 HSIS\nmasuk tertunda: 0 HSIS\nsaldo setelah tertunda masuk blok: 15 HSIS\n",
+            "utxo: 3\n"
+        )
     );
     // Pemindaian menemukan 0/0, 0/1, dan 1/0, sehingga indeks berikutnya ikut naik.
     let path = wallet_path(&dir.0);
@@ -465,4 +511,92 @@ fn run_dispatches_actions() {
         ..config(Action::Info)
     };
     assert!(matches!(run(&offline, never), Err(CliError::Rpc { .. })));
+}
+
+fn pending_output(
+    fill: u8,
+    index: u32,
+    quanta: u128,
+    kind: OutputKind,
+    payload: &str,
+) -> MempoolOutput {
+    MempoolOutput {
+        txid: Hex32::new([fill; 32]),
+        index,
+        amount: Quanta::new(Amount::from_quanta(quanta)),
+        kind: KindNumber::new(kind),
+        payload: hex32(payload),
+    }
+}
+
+#[test]
+fn balance_and_send_follow_pending_mempool() {
+    let dir = TempDir::new("pending");
+    wallet_create(&dir.0, &[0_u8; 32]).unwrap();
+    // Transaksi dd membelanjakan 0/1 (3 HSIS) dengan kembalian 2 HSIS ke 1/0; transaksi cc mengirim 4 HSIS ke 0/0.
+    // Output jenis 1 dengan payload wallet dan output ke payload lain tidak dihitung.
+    let pending = MempoolScan {
+        spent: vec![MempoolSpend {
+            txid: Hex32::new([0xb2; 32]),
+            index: 1,
+            spent_by: Hex32::new([0xdd; 32]),
+        }],
+        outputs: vec![
+            pending_output(0xcc, 0, FOUR_HSIS, OutputKind::SingleKey, W5_XONLY),
+            pending_output(0xcc, 1, HUNDRED_HSIS, OutputKind::ConditionHash, W5_XONLY),
+            pending_output(0xdd, 0, HSIS, OutputKind::SingleKey, &"ee".repeat(32)),
+            pending_output(0xdd, 1, TWO_HSIS, OutputKind::SingleKey, W7_XONLY),
+        ],
+    };
+    let harness = Harness::launch(Network::Regtest, t1_utxos(), pending, None);
+    let cli = harness.cli();
+
+    let balance = cli.balance(&dir.0, "").unwrap();
+    assert_eq!(
+        balance,
+        Balance {
+            tip_height: 150,
+            total: Amount::from_quanta(FIFTEEN_HSIS),
+            spendable: Amount::from_quanta(FIVE_HSIS),
+            immature: Amount::from_quanta(SEVEN_HSIS),
+            pending_spent: Amount::from_quanta(THREE_HSIS),
+            pending_received: Amount::from_quanta(SIX_HSIS),
+            after_pending: Amount::from_quanta(EIGHTEEN_HSIS),
+            utxos: 3,
+        }
+    );
+    assert_eq!(
+        format_balance(&balance),
+        concat!(
+            "tinggi ujung: 150\nsaldo: 15 HSIS\nbisa dipakai: 5 HSIS\nbelum matang: 7 HSIS\n",
+            "keluar tertunda: 3 HSIS\nmasuk tertunda: 6 HSIS\nsaldo setelah tertunda masuk blok: 18 HSIS\n",
+            "utxo: 3\n"
+        )
+    );
+
+    // 0/1 sedang dibelanjakan, jadi hanya 0/0 (5 HSIS) yang boleh dipilih: 6 HSIS tidak cukup, 4 HSIS memakai 0/0.
+    let send = |quanta: u128| {
+        cli.send(
+            &dir.0,
+            "",
+            RECIPIENT,
+            Amount::from_quanta(quanta),
+            1,
+            &[0_u8; 32],
+        )
+    };
+    assert!(matches!(
+        send(SIX_HSIS),
+        Err(CliError::Send(SendError::InsufficientFunds { .. }))
+    ));
+    assert!(harness.node.sent.lock().unwrap().is_empty());
+    let sent = send(FOUR_HSIS).unwrap();
+    assert_eq!(sent.inputs, 1);
+    assert_eq!(sent.amount, Amount::from_quanta(FOUR_HSIS));
+    assert!(sent.change.is_some());
+    let txs = harness.node.sent.lock().unwrap();
+    assert_eq!(txs.len(), 1);
+    let bytes = txs.first().unwrap();
+    assert!(bytes.windows(32).any(|window| window == [0xa1_u8; 32]));
+    assert!(!bytes.windows(32).any(|window| window == [0xb2_u8; 32]));
 }
