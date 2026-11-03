@@ -4,7 +4,8 @@ use std::path::PathBuf;
 use homeostasis_primitives::Network;
 
 use super::{
-    ArgError, Command, Config, USAGE, db_path, default_http_port, default_rpc_url, parse_args,
+    ArgError, Command, Config, DEFAULT_API_RATE, USAGE, db_path, default_http_port,
+    default_rpc_url, parse_args,
 };
 
 fn args(list: &[&str]) -> Vec<String> {
@@ -18,6 +19,7 @@ fn run_config(datadir: &str, rpc_url: &str, http_port: u16) -> Command {
         rpc_url: rpc_url.to_owned(),
         http_bind: IpAddr::V4(Ipv4Addr::LOCALHOST),
         http_port,
+        api_rate: 10,
         web_dir: None,
     })
 }
@@ -58,6 +60,7 @@ fn parses_help_version_and_run() {
             rpc_url: "http://127.0.0.1:28801".to_owned(),
             http_bind: IpAddr::V4(Ipv4Addr::LOCALHOST),
             http_port: 28_802,
+            api_rate: DEFAULT_API_RATE,
             web_dir: Some(PathBuf::from("apps/explorer/web/out")),
         }))
     );
@@ -78,6 +81,18 @@ fn parses_help_version_and_run() {
         assert_eq!(config.http_bind, address, "{text}");
         assert_eq!(config.http_port, 28_802, "{text}");
     }
+    for (text, rate) in [("0", 0), ("25", 25), ("4294967295", u32::MAX)] {
+        let Ok(Command::Run(config)) = parse_args(args(&[
+            "--regtest",
+            "--datadir",
+            "data",
+            "--api-rate",
+            text,
+        ])) else {
+            unreachable!("argumen sah: {text}");
+        };
+        assert_eq!(config.api_rate, rate, "{text}");
+    }
     assert_eq!(default_rpc_url(Network::Regtest), "http://127.0.0.1:28801");
     assert_eq!(default_http_port(Network::Regtest), 28_802);
     assert_eq!(default_http_port(Network::Testnet), 18_802);
@@ -95,12 +110,13 @@ fn parses_help_version_and_run() {
     assert!(USAGE.contains("--rpc-url"));
     assert!(USAGE.contains("--http-port"));
     assert!(USAGE.contains("--http-bind <ip>"));
+    assert!(USAGE.contains("--api-rate <n>"));
     assert!(USAGE.contains("--web-dir <folder>"));
 }
 
 #[test]
 fn rejects_bad_arguments() {
-    let cases: [(&[&str], ArgError); 17] = [
+    let cases: [(&[&str], ArgError); 20] = [
         (&["--datadir", "x"], ArgError::MissingNetwork),
         (&["--regtest"], ArgError::MissingDatadir),
         (
@@ -175,6 +191,26 @@ fn rejects_bad_arguments() {
                 "::",
             ],
             ArgError::Duplicate("--http-bind"),
+        ),
+        (
+            &["--regtest", "--datadir", "x", "--api-rate", "4294967296"],
+            ArgError::InvalidRate("4294967296".to_owned()),
+        ),
+        (
+            &["--regtest", "--datadir", "x", "--api-rate"],
+            ArgError::MissingValue("--api-rate"),
+        ),
+        (
+            &[
+                "--regtest",
+                "--datadir",
+                "x",
+                "--api-rate",
+                "1",
+                "--api-rate",
+                "2",
+            ],
+            ArgError::Duplicate("--api-rate"),
         ),
         (&["--regtest", "--version"], ArgError::Exclusive),
         (

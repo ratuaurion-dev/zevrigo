@@ -3,7 +3,7 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `homeostasis-explorer` (bin)
-- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), dan paket Docker regtest (TSK-M33) selesai; batas laju API dan reverse proxy untuk explorer publik berikutnya
+- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), paket Docker regtest (TSK-M33), dan batas laju API (TSK-M40) selesai; reverse proxy HTTPS untuk explorer publik berikutnya
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08` (DEC-25; `MOD-09` tidak dipakai lagi sejak DEC-28); pustaka `axum`, `rusqlite` (DEC-10 bagian 6), `sha2` (bagian 4)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
@@ -21,6 +21,8 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
   jadwal rumus, jumlah mempool, pencarian tinggi/block_id/txid. Tanpa alamat, saldo, jejak koin, dan alokasi genesis
   (tetap dicatat di indeks untuk pemeriksaan I1–I4). Jumlah koin selalu `u128` quanta sebagai string desimal.
 - Privasi pengunjung: tanpa cookie, analitik, atau log alamat IP dan kata pencarian.
+- Batas laju API per klien dan bersama (`--api-rate`, TSK-M40), tanpa menyimpan alamat IP (hash dengan kunci acak per
+  proses, hanya di memori).
 - Antarmuka web Next.js + Tailwind CSS + shadcn/ui di `web/` (DEC-26,
   [spesifikasi-explorer-web-v0.2.md](../reference/spesifikasi-explorer-web-v0.2.md)), dua bahasa, static export yang
   disajikan program explorer lewat `--web-dir` dengan kebijakan keamanan konten berisi hash skrip inline setiap halaman.
@@ -29,7 +31,7 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 
 - Validasi konsensus (`MOD-04`, dijalankan node) maupun penyimpanan kunci pengguna (`MOD-09`).
 - Penyimpanan chain node (`MOD-05`): explorer punya indeks sendiri.
-- Reverse proxy HTTPS dan batas laju untuk explorer publik (menyusul sebelum testnet publik).
+- Reverse proxy HTTPS untuk explorer publik (menyusul sebelum testnet publik).
 
 ## Task terkait
 - [TSK-S06](../reference/spesifikasi-explorer-v0.1.md) — 🟢 spesifikasi v0.1
@@ -42,3 +44,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-M38](../tasks/TSK-M38-explorer-web-nextjs.md) — 🟢 selesai (Next.js + Tailwind + shadcn/ui dari AI Studio, CSP dengan hash di Rust)
 - [TSK-M39](../tasks/TSK-M39-explorer-data-sistem.md) — 🟢 selesai (hanya data sistem: tanpa alamat, jejak koin, dan alokasi genesis; DEC-28)
 - [TSK-M33](../tasks/TSK-M33-paket-docker.md) — 🟢 selesai (paket Docker regtest: node + explorer + web, opsi `--http-bind`)
+- [TSK-M40](../tasks/TSK-M40-batas-laju-api.md) — 🟢 selesai (batas laju API per klien dan bersama, `429 rate_limited`)

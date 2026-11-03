@@ -6,8 +6,8 @@
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | Satu image `homeostasis:regtest` (node, explorer, miner, CLI, antarmuka web) dari image dasar resmi yang dikunci digest, pengguna biasa uid 10001, data di volume `/data`. `compose.yaml` menjalankan node + explorer; explorer hanya terbuka di `127.0.0.1:28802` komputer host |
-| ⏳ Ditunda | Testnet dan mainnet (DEC-01), reverse proxy HTTPS dan batas laju untuk explorer publik, image untuk arsitektur lain (arm64), build yang bisa diulang bit demi bit (TSK-F10) |
-| ➡️ Langkah berikutnya | Batas laju API explorer, lalu paket testnet sesudah DEC-01 |
+| ⏳ Ditunda | Testnet dan mainnet (DEC-01), reverse proxy HTTPS untuk explorer publik, image untuk arsitektur lain (arm64), build yang bisa diulang bit demi bit (TSK-F10) |
+| ➡️ Langkah berikutnya | Paket testnet sesudah DEC-01. Batas laju API explorer selesai (TSK-M40, bawaan `--api-rate 10`) |
 
 Paket Docker hanya membungkus program yang sudah ada. Tidak ada aturan chain, kunci, atau data baru di dalamnya.
 
@@ -50,7 +50,8 @@ Konteks build hanya `Cargo.toml`, `Cargo.lock`, `crates/`, `apps/` (tanpa `node_
   dan P2P node tidak pernah diterbitkan ke host.
 - Explorer di dalam container mendengar di `0.0.0.0:28802` (opsi `--http-bind`, Spesifikasi Explorer v0.1 Bagian 6);
   Docker hanya meneruskannya ke `127.0.0.1:28802` komputer host. Membuka explorer ke internet tetap wajib lewat reverse
-  proxy HTTPS dengan batas laju (belum dikerjakan).
+  proxy HTTPS (belum dikerjakan). Explorer memakai batas laju bawaan (`--api-rate 10`, TSK-M40); karena semua koneksi
+  dari host masuk lewat penerus port Docker, batas itu berlaku bersama untuk semua tab browser di komputer host.
 - Data tetap di volume `homeostasis_hsis-data` sesudah `docker compose down`; `docker compose down -v` menghapusnya.
 
 ## 4. Perintah

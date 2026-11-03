@@ -224,6 +224,26 @@ describe('API client error mapping', () => {
     });
   });
 
+  it('maps 429 rate_limited', async () => {
+    const mockFetch: typeof fetch = async () =>
+      new Response(JSON.stringify({ error: 'rate_limited' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', 'Retry-After': '1' },
+      });
+
+    const res = await requestJson('/status', mockFetch);
+    expect(res).toEqual({
+      ok: false,
+      failure: {
+        kind: 'http',
+        status: 429,
+        error: 'rate_limited',
+      },
+    });
+    expect(id.rateLimitedTitle.length).toBeGreaterThan(0);
+    expect(en.rateLimitedTitle.length).toBeGreaterThan(0);
+  });
+
   it('maps network errors without throwing', async () => {
     const mockFetch: typeof fetch = async () => {
       throw new Error('Connection refused');

@@ -33,6 +33,8 @@ export const id = {
   copyHash: 'Salin {label}',
   copiedToast: '{label} disalin ke papan klip',
   retryButton: 'Coba lagi',
+  rateLimitedTitle: 'Terlalu banyak permintaan',
+  rateLimitedBody: 'Penjelajah membatasi jumlah permintaan per detik. Tunggu sebentar; halaman akan mencoba lagi otomatis.',
   backToDashboard: 'Kembali ke Beranda',
   viewAllBlocks: 'Lihat semua blok',
   loadingData: 'Memuat data rantai…',

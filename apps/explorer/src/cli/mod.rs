@@ -16,7 +16,7 @@ pub const USAGE: &str = concat!(
     "\n",
     "Pemakaian:\n",
     "  homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-bind <ip>] [--http-port <port>]\n",
-    "                       [--web-dir <folder>]\n",
+    "                       [--api-rate <n>] [--web-dir <folder>]\n",
     "  homeostasis-explorer --help | --version\n",
     "\n",
     "Opsi:\n",
@@ -26,11 +26,16 @@ pub const USAGE: &str = concat!(
     "  --http-bind <ip>    alamat dengar API HTTP (bawaan 127.0.0.1); alamat lain hanya di dalam container atau di\n",
     "                      belakang reverse proxy dengan batas laju (TSK-M33)\n",
     "  --http-port <port>  port API HTTP (bawaan regtest 28802; 0 = port bebas)\n",
+    "  --api-rate <n>      batas laju API: n permintaan per detik per klien, kapasitas 4n; semua klien 20n per detik\n",
+    "                      (bawaan 10; 0 = tanpa batas). Jawaban di atas batas: 429 rate_limited\n",
     "  --web-dir <folder>  antarmuka web hasil build apps/explorer/web (folder out); tanpa opsi ini hanya API\n",
     "\n",
     "Setelah siap, alamat API dicetak ke stdout sebagai `http: http://<alamat>`; jalur API di /api/v1/.\n",
     "Log ditulis ke stderr. Explorer berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
 );
+
+/// Batas laju API bawaan: permintaan per detik per klien (Spesifikasi Explorer v0.1 Bagian 6).
+pub const DEFAULT_API_RATE: u32 = 10;
 
 /// Perintah hasil membaca argumen.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -56,6 +61,8 @@ pub struct Config {
     pub http_bind: IpAddr,
     /// Port API HTTP. `0` memilih port bebas.
     pub http_port: u16,
+    /// Batas laju API (permintaan per detik per klien). `0` berarti tanpa batas.
+    pub api_rate: u32,
     /// Folder hasil build antarmuka web (`apps/explorer/web/out`). `None` berarti hanya API.
     pub web_dir: Option<PathBuf>,
 }
@@ -78,6 +85,9 @@ pub enum ArgError {
     /// Alamat dengar bukan alamat IPv4 atau IPv6.
     #[error("alamat dengar HTTP tidak sah: {0}")]
     InvalidBind(String),
+    /// Batas laju bukan bilangan 0 sampai 4294967295.
+    #[error("batas laju API tidak sah: {0}")]
+    InvalidRate(String),
     /// Jaringan belum tersedia.
     #[error("jaringan {0} belum tersedia (menunggu DEC-01)")]
     NetworkUnavailable(&'static str),
@@ -156,6 +166,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut rpc_url: Option<String> = None;
     let mut http_bind: Option<IpAddr> = None;
     let mut http_port: Option<u16> = None;
+    let mut api_rate: Option<u32> = None;
     let mut web_dir: Option<PathBuf> = None;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
@@ -200,6 +211,16 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
                     .map_err(|_| ArgError::InvalidPort(value.clone()))?;
                 http_port = Some(port);
             }
+            "--api-rate" => {
+                if api_rate.is_some() {
+                    return Err(ArgError::Duplicate("--api-rate"));
+                }
+                let value = value_of(&mut iter, "--api-rate")?;
+                let rate = value
+                    .parse::<u32>()
+                    .map_err(|_| ArgError::InvalidRate(value.clone()))?;
+                api_rate = Some(rate);
+            }
             "--web-dir" => {
                 if web_dir.is_some() {
                     return Err(ArgError::Duplicate("--web-dir"));
@@ -220,6 +241,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         rpc_url: rpc_url.unwrap_or_else(|| default_rpc_url(Network::Regtest)),
         http_bind: http_bind.unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST)),
         http_port: http_port.unwrap_or(default_http_port(Network::Regtest)),
+        api_rate: api_rate.unwrap_or(DEFAULT_API_RATE),
         web_dir,
     }))
 }

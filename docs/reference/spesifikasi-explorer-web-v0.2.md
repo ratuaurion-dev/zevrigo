@@ -10,7 +10,7 @@
 | 🟢 Hanya data sistem (DEC-28) | Explorer tidak menampilkan "apa dan siapa": tanpa halaman alamat, kode QR, pencarian alamat, halaman alokasi, alamat dan jumlah per penerima di transaksi, jejak koin, daftar txid mempool, angka alokasi genesis, maupun teks galat mentah dari node (keputusan pencipta 3 November 2026) |
 | ⚪ Dihapus | Peta node global dan tabel node aktif dari rancangan AI Studio: datanya karangan, karena node dan explorer tidak punya dan tidak mengumpulkan lokasi atau IP rekan (keputusan pencipta 2 November 2026) |
 | ⏳ Ditunda | Perkiraan daya tambang, peringatan konsentrasi tambang |
-| ➡️ Langkah berikutnya | Batas laju API explorer. Paket Docker selesai (TSK-M33): antarmuka web ada di image di `/usr/share/homeostasis/web` |
+| ➡️ Langkah berikutnya | Reverse proxy HTTPS untuk explorer publik (sesudah DEC-01). Paket Docker (TSK-M33) dan batas laju API (TSK-M40) selesai |
 
 Antarmuka web hanya **menampilkan** isi API explorer (Spesifikasi Explorer v0.1 Bagian 5). Tidak ada logika chain,
 pemeriksaan, atau kunci di browser. Siapa pun yang menjalankan node dan explorer sendiri mendapat tampilan yang sama.
@@ -46,6 +46,8 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 
 - Transaksi yang belum ada di blok tetapi ada di mempool (`404` dengan `in_mempool: true`) ditampilkan sebagai
   "menunggu di mempool", bukan "tidak ditemukan".
+- `429 rate_limited` (batas laju API, TSK-M40) ditampilkan sebagai "terlalu banyak permintaan" dengan tombol coba lagi;
+  halaman yang sudah punya data tetap menampilkannya dan mencoba lagi pada pembaruan berikutnya.
 - `503 not_ready` ditampilkan sebagai "indeks belum siap"; `index_error` dari `/status` ditampilkan sebagai peringatan di
   setiap halaman (tanda node yang ditunjuk tidak jujur atau rusak); `last_error` sebagai peringatan sinkronisasi. Keduanya
   dengan pesan umum, tanpa teks galat mentah dari node (DEC-28).
@@ -114,7 +116,7 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 | `components/ui/` | Komponen shadcn/ui: button, card, input, table, skeleton, alert, progress, tooltip, dialog, sheet, dropdown-menu; `primitives.tsx` titik impor halaman |
 | `components/explorer/` | Kepala halaman (navigasi, Ctrl+K, bahasa, tema, menu HP), grafik, tampilan jumlah, hash, konfirmasi, dan status API |
 | `lib/` | `api.ts` (tipe jawaban API, jumlah sebagai `string`, klien `fetch` yang tidak pernah melempar galat), `amount.ts`, `time.ts`, `route.ts`, `i18n/`, `mock.ts`, `config.ts` |
-| `lib/explorer.spec.ts` | 15 uji vitest: jumlah, basis poin, waktu UTC, jalur dan validasi (alamat bukan kunci pencarian), kamus, klien API dengan `fetch` tiruan, jalur API, mode tiruan mati, data tiruan tanpa alamat dan alokasi |
+| `lib/explorer.spec.ts` | 16 uji vitest (termasuk `429 rate_limited`): jumlah, basis poin, waktu UTC, jalur dan validasi (alamat bukan kunci pencarian), kamus, klien API dengan `fetch` tiruan, jalur API, mode tiruan mati, data tiruan tanpa alamat dan alokasi |
 
 - `make web-check` = `cd apps/explorer/web && npm ci --ignore-scripts && npm run check` (typecheck, uji, build).
   `make check-all` tetap untuk Rust saja; skrip gerbang dan CI menjalankan keduanya.

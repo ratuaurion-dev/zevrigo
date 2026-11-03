@@ -6,6 +6,7 @@
 //! - [`query`]: bacaan indeks (blok, transaksi, alamat, pasokan, alokasi genesis, mempool).
 //! - [`api`]: API HTTP baca saja sebagai fungsi murni.
 //! - [`cli`] dan [`server`]: argumen, server axum, sinkronisasi berkala, dan program `homeostasis-explorer`.
+//! - [`limit`]: batas laju API per klien dan bersama, tanpa menyimpan alamat IP.
 //! - [`web`]: penyajian antarmuka web (static export Next.js `apps/explorer/web/out`) dan kebijakan keamanan konten
 //!   dengan hash skrip inline setiap halaman.
 //!
@@ -18,6 +19,7 @@ pub mod api;
 pub mod cli;
 pub mod db;
 pub mod index;
+pub mod limit;
 pub mod query;
 pub mod rpc_source;
 pub mod server;
@@ -26,10 +28,12 @@ pub mod web;
 
 pub use api::{ApiResponse, NodeView, SyncStatus, respond};
 pub use cli::{
-    ArgError, Command, Config, USAGE, db_path, default_http_port, default_rpc_url, parse_args,
+    ArgError, Command, Config, DEFAULT_API_RATE, USAGE, db_path, default_http_port,
+    default_rpc_url, parse_args,
 };
 pub use db::{DB_FILE, SCHEMA_VERSION, amount_from_blob, amount_to_blob};
 pub use index::{IndexError, Indexer, SyncReport};
+pub use limit::{Limits, MAX_CLIENTS, Rate, RateLimiter};
 pub use query::{
     AddressSummary, AddressTx, AllocationInfo, BlockDetail, BlockRow, OutputRow, SpentBy,
     SupplyInfo, TxDetail, TxRow, confirmations,

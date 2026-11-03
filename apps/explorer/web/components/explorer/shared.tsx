@@ -276,6 +276,26 @@ export function ApiStateView({
     );
   }
 
+  if (failure.kind === 'http' && failure.status === 429) {
+    return (
+      <Alert variant="warning" className="my-6 flex items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <Clock className="h-4 w-4 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-semibold">{t('rateLimitedTitle')}</div>
+            <p className="mt-0.5">{t('rateLimitedBody')}</p>
+          </div>
+        </div>
+        {onRetry && (
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            <RefreshCw className="h-3.5 w-3.5" />
+            {t('retryButton')}
+          </Button>
+        )}
+      </Alert>
+    );
+  }
+
   if (failure.kind === 'http' && failure.status === 400) {
     return (
       <Alert variant="warning" className="my-6">

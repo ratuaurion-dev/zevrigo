@@ -6,7 +6,7 @@
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | axum 0.8 + SQLite (DEC-25). Indexer membaca node lewat RPC v0.1, mundur sedalam apa pun saat reorg, memeriksa sendiri jumlah koin setiap blok. API JSON baca saja: status, blok, transaksi, alamat, pasokan, alokasi genesis, mempool, pencarian |
-| ⏳ Ditunda | Batas laju, perkiraan daya tambang, peringatan konsentrasi tambang, detail transaksi mempool, testnet dan mainnet |
+| ⏳ Ditunda | Perkiraan daya tambang, peringatan konsentrasi tambang, detail transaksi mempool, testnet dan mainnet |
 | ➡️ Langkah berikutnya | Antarmuka web: [spesifikasi-explorer-web-v0.2.md](spesifikasi-explorer-web-v0.2.md) (DEC-26). TSK-M29 (indexer), TSK-M30 (API dan program), dan TSK-F05 (uji ujung ke ujung) selesai |
 
 Explorer **bukan konsensus** dan tidak memvalidasi blok. Explorer memercayai node yang ditunjuknya untuk PoW dan tanda
@@ -124,6 +124,14 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 - Mendengar di `127.0.0.1` (bawaan). `--http-bind <ip>` (IPv4 atau IPv6) memilih alamat lain, hanya untuk container
   (paket Docker, TSK-M33, Spesifikasi Docker v0.1) atau di belakang reverse proxy dengan batas laju. Setelah siap, stdout
   mencetak `http: http://<alamat>:<port>`; log ke stderr.
+- **Batas laju API (TSK-M40):** `--api-rate <n>` (bawaan 10; `0` = tanpa batas). Setiap klien `n` permintaan per detik
+  dengan kapasitas `4n`; semua klien bersama `20n` per detik dengan kapasitas `40n` (ember token, bilangan bulat dalam
+  mili-permintaan). Hanya jalur `/api` dan `/api/…`; file antarmuka web tidak dibatasi. Di atas batas: `429
+  {"error": "rate_limited"}` dengan `Retry-After: 1`, `no-store`, dan kepala keamanan yang sama. Klien dikenali dari
+  alamat IP koneksi, tetapi alamat itu tidak disimpan: kunci ember adalah hash 64-bit dengan kunci acak per proses, hanya
+  di memori, paling banyak 4.096 ember (klien yang diam dibuang lebih dulu, sesudah itu klien baru berbagi satu ember
+  limpahan). Di belakang reverse proxy atau penerus port Docker semua klien tampak dari satu alamat, sehingga batas per
+  klien menjadi batas bersama; batas per klien yang sebenarnya dipasang di reverse proxy.
 - Berhenti bersih dengan SIGINT atau SIGTERM. Akses SQLite lewat satu koneksi yang dijaga mutex di thread blocking.
 - **Privasi pengunjung:** tanpa cookie, tanpa analitik, tanpa log alamat IP, jalur, atau kata pencarian. Log hanya untuk
   start, kemajuan indeks, reorg, dan galat.
@@ -132,7 +140,8 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 
 ## 7. Batas v0.1 dan risiko yang diketahui
 
-- Tanpa batas laju: explorer bawaannya hanya mendengar di `127.0.0.1` (di Docker hanya diteruskan ke `127.0.0.1` host). Membuka explorer ke publik (testnet) wajib lewat reverse
+- Batas laju ada di explorer (`--api-rate`, Bagian 6), tetapi explorer bawaannya tetap hanya mendengar di `127.0.0.1` (di
+  Docker hanya diteruskan ke `127.0.0.1` host). Membuka explorer ke publik (testnet) wajib lewat reverse
   proxy dengan batas laju, atau batas laju di MOD-14, sebelum TSK-F06.
 - Pencarian titik cabang linear (satu panggilan RPC per tinggi); cukup untuk regtest, pencarian biner menyusul.
 - SQLite (sekitar 271 ribu baris C) dan `rusqlite` penuh `unsafe` (FFI); kode proyek tetap tanpa `unsafe` (DEC-10 bagian
@@ -151,6 +160,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 | API dan antarmuka hanya data sistem (tanpa alamat, jejak koin, dan alokasi genesis) | MOD-14, MOD-17 | TSK-M39 (DEC-28) |
 | Antarmuka web Next.js + Tailwind + shadcn/ui (spesifikasi terpisah, DEC-26) | MOD-14 | TSK-S07, TSK-M31, TSK-M32, TSK-M38 |
 | Paket Docker regtest, opsi `--http-bind` (Spesifikasi Docker v0.1) | MOD-14 | TSK-M33 🟢 |
+| Batas laju API per klien dan bersama, `429 rate_limited`, tanpa menyimpan alamat IP | MOD-14 | TSK-M40 🟢 |
 
 ---
 

@@ -79,7 +79,8 @@ Explorer membaca chain dari node lewat RPC, menyimpan indeks di `~/.homeostasis/
 sendiri jumlah koin setiap blok, lalu melayani API JSON baca saja di `http://127.0.0.1:28802/api/v1/` (misalnya
 `/status`, `/blocks`, `/block/<tinggi>`, `/tx/<txid>`, `/supply`, `/mempool`). Jumlah koin selalu string desimal quanta.
 Explorer hanya menyajikan data sistem (DEC-28): tanpa alamat, saldo, jumlah per penerima, jejak koin, dan alokasi genesis.
-Saldo sendiri diperiksa lewat `balance` di CLI. Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
+Saldo sendiri diperiksa lewat `balance` di CLI. API dibatasi `--api-rate` (bawaan 10 permintaan per detik per klien;
+`0` = tanpa batas); di atas batas explorer menjawab `429`. Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
 
 ### Antarmuka web explorer
 

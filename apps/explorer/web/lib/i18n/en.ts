@@ -35,6 +35,8 @@ export const en: Dictionary = {
   copyHash: 'Copy {label}',
   copiedToast: '{label} copied to clipboard',
   retryButton: 'Retry',
+  rateLimitedTitle: 'Too many requests',
+  rateLimitedBody: 'This explorer limits requests per second. Wait a moment; the page will retry automatically.',
   backToDashboard: 'Back to Dashboard',
   viewAllBlocks: 'View all blocks',
   loadingData: 'Loading chain data…',

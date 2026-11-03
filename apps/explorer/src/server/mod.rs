@@ -1,6 +1,6 @@
-//! Program explorer (Spesifikasi Explorer v0.1 Bagian 6): server HTTP axum (bawaan 127.0.0.1, `--http-bind`),
-//! sinkronisasi indeks dari node
-//! setiap 2 detik, dan berhenti bersih dengan SIGINT atau SIGTERM. Dengan `--web-dir`, jalur di luar `/api/` menyajikan
+//! Program explorer (Spesifikasi Explorer v0.1 Bagian 6): server HTTP axum (bawaan 127.0.0.1, `--http-bind`), batas laju
+//! API per klien dan bersama ([`crate::limit`], `--api-rate`), sinkronisasi indeks dari node setiap 2 detik, dan berhenti
+//! bersih dengan SIGINT atau SIGTERM. Dengan `--web-dir`, jalur di luar `/api/` menyajikan
 //! antarmuka web (Spesifikasi Explorer Web v0.2 Bagian 7). Semua jawaban membawa kepala keamanan; halaman HTML
 //! mendapat kebijakan keamanan konten dengan hash skrip inline-nya ([`web::page_policy`]).
 //!
@@ -12,11 +12,11 @@ use std::future::Future;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use axum::Router;
-use axum::extract::State;
-use axum::http::{Method, StatusCode, Uri, header};
+use axum::extract::{ConnectInfo, State};
+use axum::http::{Extensions, HeaderValue, Method, StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
 use homeostasis_consensus::regtest_network_id;
 use homeostasis_primitives::Network;
@@ -29,6 +29,7 @@ use tokio::time::MissedTickBehavior;
 use crate::api::{ApiResponse, SyncStatus, respond};
 use crate::cli::{Config, db_path};
 use crate::index::{IndexError, Indexer};
+use crate::limit::{Limits, RateLimiter};
 use crate::rpc_source::RpcSource;
 use crate::web::{self, CONTENT_SECURITY_POLICY, INDEX_FILE, WebResponse};
 
@@ -136,18 +137,45 @@ impl Shared {
     }
 }
 
-/// Isi router: data explorer dan folder antarmuka web (jika ada).
+/// Badan jawaban `429`.
+const RATE_LIMITED_BODY: &[u8] = b"{\"error\":\"rate_limited\"}";
+
+/// Isi router: data explorer, folder antarmuka web (jika ada), dan pembatas laju API (jika ada).
 struct App {
     shared: Arc<Shared>,
     web_dir: Option<Arc<PathBuf>>,
+    limiter: Option<Mutex<RateLimiter>>,
+    started: Instant,
 }
 
-/// Router axum. Jalur `/api` dan `/api/…` diteruskan ke [`Shared::respond`]; jalur lain menyajikan file dari `web_dir`
-/// lewat [`web::serve`] (metode `GET` dan `HEAD`), atau `404` JSON API jika `web_dir` tidak ada.
-pub fn router(shared: Arc<Shared>, web_dir: Option<PathBuf>) -> Router {
+impl App {
+    /// `true` jika permintaan API boleh dilayani. Alamat klien dari [`ConnectInfo`] (jika server dipasang dengan
+    /// `into_make_service_with_connect_info`) hanya diteruskan ke [`RateLimiter`], tidak disimpan atau dicatat.
+    fn allow(&self, extensions: &Extensions) -> bool {
+        let Some(limiter) = &self.limiter else {
+            return true;
+        };
+        let client = extensions
+            .get::<ConnectInfo<SocketAddr>>()
+            .map(|info| info.0.ip());
+        let now_ms = u64::try_from(self.started.elapsed().as_millis()).unwrap_or(u64::MAX);
+        limiter
+            .lock()
+            .map(|mut limiter| limiter.allow(client, now_ms))
+            .unwrap_or(false)
+    }
+}
+
+/// Router axum. Jalur `/api` dan `/api/…` diteruskan ke [`Shared::respond`] (dengan batas laju `limits` jika ada); jalur
+/// lain menyajikan file dari `web_dir` lewat [`web::serve`] (metode `GET` dan `HEAD`, tanpa batas laju), atau `404` JSON
+/// API jika `web_dir` tidak ada. Batas per klien butuh `into_make_service_with_connect_info::<SocketAddr>()`; tanpa itu
+/// semua klien berbagi satu ember.
+pub fn router(shared: Arc<Shared>, web_dir: Option<PathBuf>, limits: Option<Limits>) -> Router {
     let app = App {
         shared,
         web_dir: web_dir.map(Arc::new),
+        limiter: limits.map(|limits| Mutex::new(RateLimiter::new(limits))),
+        started: Instant::now(),
     };
     Router::new().fallback(handle).with_state(Arc::new(app))
 }
@@ -181,7 +209,27 @@ fn reply(
         .into_response()
 }
 
-async fn handle(State(app): State<Arc<App>>, method: Method, uri: Uri) -> Response {
+/// `429 {"error": "rate_limited"}` dengan `Retry-After: 1`.
+fn rate_limited() -> Response {
+    let mut response = reply(
+        429,
+        "application/json",
+        "no-store",
+        CONTENT_SECURITY_POLICY,
+        RATE_LIMITED_BODY.to_vec(),
+    );
+    response
+        .headers_mut()
+        .insert(header::RETRY_AFTER, HeaderValue::from_static("1"));
+    response
+}
+
+async fn handle(
+    State(app): State<Arc<App>>,
+    method: Method,
+    uri: Uri,
+    extensions: Extensions,
+) -> Response {
     let path = uri.path().to_owned();
     let web_dir = if is_api_path(&path) {
         None
@@ -209,6 +257,9 @@ async fn handle(State(app): State<Arc<App>>, method: Method, uri: Uri) -> Respon
             &answer.content_security_policy,
             answer.body,
         );
+    }
+    if !app.allow(&extensions) {
+        return rate_limited();
     }
     let shared = Arc::clone(&app.shared);
     let method = method.as_str().to_owned();
@@ -284,12 +335,20 @@ async fn serve(indexer: Indexer, config: &Config) -> Result<(), ExplorerError> {
     let listener =
         TcpListener::bind(SocketAddr::from((config.http_bind, config.http_port))).await?;
     let local = listener.local_addr()?;
-    tracing::info!(%local, rpc = %config.rpc_url, "explorer berjalan");
+    tracing::info!(%local, rpc = %config.rpc_url, api_rate = config.api_rate, "explorer berjalan");
     println!("http: http://{local}");
     let sync = tokio::spawn(sync_loop(Arc::clone(&shared), source));
-    let served = axum::serve(listener, router(shared, config.web_dir.clone()))
-        .with_graceful_shutdown(shutdown)
-        .await;
+    let app = router(
+        shared,
+        config.web_dir.clone(),
+        Limits::from_rate(config.api_rate),
+    );
+    let served = axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown)
+    .await;
     sync.abort();
     tracing::info!("explorer berhenti");
     Ok(served?)

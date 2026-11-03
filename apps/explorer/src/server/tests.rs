@@ -13,6 +13,7 @@ use tokio::runtime::Runtime;
 
 use super::{Shared, router};
 use crate::index::Indexer;
+use crate::limit::{Limits, Rate};
 use crate::rpc_source::RpcSource;
 use crate::test_support::{Chain, FakeNode, genesis_output, out, spend};
 
@@ -84,7 +85,7 @@ fn http_server_answers_and_syncs_from_node() {
         .block_on(TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))))
         .unwrap();
     let addr = listener.local_addr().unwrap();
-    let app = router(Arc::clone(&shared), None);
+    let app = router(Arc::clone(&shared), None, None);
     let server = rt.spawn(async move { axum::serve(listener, app).await });
 
     // Sebelum sinkronisasi: genesis belum terindeks.
@@ -167,7 +168,7 @@ fn http_server_serves_web_files_and_api() {
         .block_on(TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))))
         .unwrap();
     let addr = listener.local_addr().unwrap();
-    let app = router(shared, Some(site.0.clone()));
+    let app = router(shared, Some(site.0.clone()), None);
     let server = rt.spawn(async move { axum::serve(listener, app).await });
 
     let (status, head, body) = raw(addr, "GET", "/");
@@ -234,5 +235,47 @@ fn http_server_serves_web_files_and_api() {
         (status, body["error"].as_str()),
         (405, Some("method_not_allowed"))
     );
+    server.abort();
+}
+
+#[test]
+fn http_server_limits_api_requests_per_client() {
+    let rt = Runtime::new().unwrap();
+    let index = Indexer::open_in_memory(regtest_network_id().unwrap()).unwrap();
+    let shared = Arc::new(Shared::new(index, Network::Regtest));
+    let limits = Limits {
+        client: Rate {
+            per_second: 1,
+            burst: 2,
+        },
+        global: Rate {
+            per_second: 1_000,
+            burst: 1_000,
+        },
+    };
+    let listener = rt
+        .block_on(TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))))
+        .unwrap();
+    let addr = listener.local_addr().unwrap();
+    let app =
+        router(shared, None, Some(limits)).into_make_service_with_connect_info::<SocketAddr>();
+    let server = rt.spawn(async move { axum::serve(listener, app).await });
+
+    let (status, _, _) = request(addr, "GET", "/api/v1/status");
+    assert_eq!(status, 200);
+    let (status, _, body) = request(addr, "GET", "/api/v1/blocks");
+    assert_eq!((status, body["error"].as_str()), (503, Some("not_ready")));
+    // Kapasitas 2 habis: permintaan ketiga ditolak dengan 429 dan kepala keamanan yang sama.
+    let (status, head, body) = request(addr, "GET", "/api/v1/status");
+    assert_eq!(
+        (status, body["error"].as_str()),
+        (429, Some("rate_limited"))
+    );
+    assert!(head.contains("retry-after: 1"), "{head}");
+    assert!(head.contains("cache-control: no-store"), "{head}");
+    assert!(head.contains("content-type: application/json"), "{head}");
+    assert_security_headers(&head);
+    let (status, _, _) = request(addr, "POST", "/api/v1/status");
+    assert_eq!(status, 429);
     server.abort();
 }
