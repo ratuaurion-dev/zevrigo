@@ -94,3 +94,24 @@ Buka `http://127.0.0.1:28802/` di browser. Tampilan (Next.js, Tailwind CSS, shad
 dan English, mode terang dan gelap, pencarian Ctrl+K, tanpa cookie, analitik, atau sumber dari luar. Untuk melihat
 tampilan tanpa node, `npm run dev:mock` di `apps/explorer/web` membuka `http://127.0.0.1:3000/` dengan data tiruan.
 Aturan lengkap di [docs/reference/spesifikasi-explorer-web-v0.2.md](docs/reference/spesifikasi-explorer-web-v0.2.md).
+
+## Docker (regtest)
+
+Tanpa memasang Rust atau Node.js: butuh Docker Engine dengan plugin compose. Dari akar repo:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Buka `http://127.0.0.1:28802/`. Node dan explorer berjalan di container dengan data di volume `homeostasis_hsis-data`;
+RPC node tidak terbuka ke host, dan explorer hanya bisa dibuka dari komputer ini. Wallet dan miner di dalam container:
+
+```bash
+docker compose exec node homeostasis-cli --datadir /data wallet-create
+docker compose exec node homeostasis-cli --datadir /data address
+HSIS_PAYOUT=<payload dari perintah address> docker compose --profile miner up -d miner
+docker compose down
+```
+
+Aturan lengkap di [docs/reference/spesifikasi-docker-v0.1.md](docs/reference/spesifikasi-docker-v0.1.md).

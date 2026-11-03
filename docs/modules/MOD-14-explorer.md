@@ -3,7 +3,7 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `homeostasis-explorer` (bin)
-- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), dan tampilan hanya data sistem (TSK-M39, DEC-28) selesai; paket Docker (TSK-M33) berikutnya
+- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), dan paket Docker regtest (TSK-M33) selesai; batas laju API dan reverse proxy untuk explorer publik berikutnya
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08` (DEC-25; `MOD-09` tidak dipakai lagi sejak DEC-28); pustaka `axum`, `rusqlite` (DEC-10 bagian 6), `sha2` (bagian 4)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
@@ -29,7 +29,7 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 
 - Validasi konsensus (`MOD-04`, dijalankan node) maupun penyimpanan kunci pengguna (`MOD-09`).
 - Penyimpanan chain node (`MOD-05`): explorer punya indeks sendiri.
-- Paket Docker (TSK-M33, menyusul sebelum testnet publik).
+- Reverse proxy HTTPS dan batas laju untuk explorer publik (menyusul sebelum testnet publik).
 
 ## Task terkait
 - [TSK-S06](../reference/spesifikasi-explorer-v0.1.md) — 🟢 spesifikasi v0.1
@@ -41,3 +41,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-M32](../tasks/TSK-M32-explorer-web-react.md) — 🟢 selesai (aplikasi web React di `web/`, dua bahasa, pemakaian pertama npm; diganti TSK-M38)
 - [TSK-M38](../tasks/TSK-M38-explorer-web-nextjs.md) — 🟢 selesai (Next.js + Tailwind + shadcn/ui dari AI Studio, CSP dengan hash di Rust)
 - [TSK-M39](../tasks/TSK-M39-explorer-data-sistem.md) — 🟢 selesai (hanya data sistem: tanpa alamat, jejak koin, dan alokasi genesis; DEC-28)
+- [TSK-M33](../tasks/TSK-M33-paket-docker.md) — 🟢 selesai (paket Docker regtest: node + explorer + web, opsi `--http-bind`)

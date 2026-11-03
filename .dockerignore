@@ -1,0 +1,16 @@
+# Konteks build Docker (TSK-M33): hanya Cargo.toml, Cargo.lock, crates, apps, dan tests yang dipakai Dockerfile.
+.git
+.github
+.vscode
+.idea
+.cargo
+.agent
+target
+ai_advisory_hub
+docs
+scripts
+**/node_modules
+apps/explorer/web/.next
+apps/explorer/web/out
+apps/explorer/web/next-env.d.ts
+apps/explorer/web/*.tsbuildinfo

@@ -6,7 +6,7 @@
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | axum 0.8 + SQLite (DEC-25). Indexer membaca node lewat RPC v0.1, mundur sedalam apa pun saat reorg, memeriksa sendiri jumlah koin setiap blok. API JSON baca saja: status, blok, transaksi, alamat, pasokan, alokasi genesis, mempool, pencarian |
-| ⏳ Ditunda | Paket Docker, batas laju, perkiraan daya tambang, peringatan konsentrasi tambang, detail transaksi mempool, testnet dan mainnet |
+| ⏳ Ditunda | Batas laju, perkiraan daya tambang, peringatan konsentrasi tambang, detail transaksi mempool, testnet dan mainnet |
 | ➡️ Langkah berikutnya | Antarmuka web: [spesifikasi-explorer-web-v0.2.md](spesifikasi-explorer-web-v0.2.md) (DEC-26). TSK-M29 (indexer), TSK-M30 (API dan program), dan TSK-F05 (uji ujung ke ujung) selesai |
 
 Explorer **bukan konsensus** dan tidak memvalidasi blok. Explorer memercayai node yang ditunjuknya untuk PoW dan tanda
@@ -121,7 +121,9 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 - `--web-dir`: folder hasil build antarmuka web; aturan penyajian di Spesifikasi Explorer Web v0.1 Bagian 7 (TSK-M31).
 
 - RPC bawaan `http://127.0.0.1:28801`. Port HTTP bawaan regtest 28_802 (testnet 18_802, mainnet 8_802), `0` = port bebas.
-- Mendengar hanya di `127.0.0.1`. Setelah siap, stdout mencetak `http: http://127.0.0.1:<port>`; log ke stderr.
+- Mendengar di `127.0.0.1` (bawaan). `--http-bind <ip>` (IPv4 atau IPv6) memilih alamat lain, hanya untuk container
+  (paket Docker, TSK-M33, Spesifikasi Docker v0.1) atau di belakang reverse proxy dengan batas laju. Setelah siap, stdout
+  mencetak `http: http://<alamat>:<port>`; log ke stderr.
 - Berhenti bersih dengan SIGINT atau SIGTERM. Akses SQLite lewat satu koneksi yang dijaga mutex di thread blocking.
 - **Privasi pengunjung:** tanpa cookie, tanpa analitik, tanpa log alamat IP, jalur, atau kata pencarian. Log hanya untuk
   start, kemajuan indeks, reorg, dan galat.
@@ -130,7 +132,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 
 ## 7. Batas v0.1 dan risiko yang diketahui
 
-- Tanpa batas laju: explorer hanya mendengar di `127.0.0.1`. Membuka explorer ke publik (testnet) wajib lewat reverse
+- Tanpa batas laju: explorer bawaannya hanya mendengar di `127.0.0.1` (di Docker hanya diteruskan ke `127.0.0.1` host). Membuka explorer ke publik (testnet) wajib lewat reverse
   proxy dengan batas laju, atau batas laju di MOD-14, sebelum TSK-F06.
 - Pencarian titik cabang linear (satu panggilan RPC per tinggi); cukup untuk regtest, pencarian biner menyusul.
 - SQLite (sekitar 271 ribu baris C) dan `rusqlite` penuh `unsafe` (FFI); kode proyek tetap tanpa `unsafe` (DEC-10 bagian
@@ -148,7 +150,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 | Uji ujung ke ujung: node + miner + explorer, reorg, alokasi genesis dibelanjakan | MOD-17 | TSK-F05 |
 | API dan antarmuka hanya data sistem (tanpa alamat, jejak koin, dan alokasi genesis) | MOD-14, MOD-17 | TSK-M39 (DEC-28) |
 | Antarmuka web Next.js + Tailwind + shadcn/ui (spesifikasi terpisah, DEC-26) | MOD-14 | TSK-S07, TSK-M31, TSK-M32, TSK-M38 |
-| Paket Docker | MOD-14 | TSK-M33 (sebelum TSK-F06) |
+| Paket Docker regtest, opsi `--http-bind` (Spesifikasi Docker v0.1) | MOD-14 | TSK-M33 🟢 |
 
 ---
 

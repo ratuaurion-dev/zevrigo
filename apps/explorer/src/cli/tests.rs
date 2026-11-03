@@ -1,3 +1,4 @@
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
 
 use homeostasis_primitives::Network;
@@ -15,6 +16,7 @@ fn run_config(datadir: &str, rpc_url: &str, http_port: u16) -> Command {
         network: Network::Regtest,
         datadir: PathBuf::from(datadir),
         rpc_url: rpc_url.to_owned(),
+        http_bind: IpAddr::V4(Ipv4Addr::LOCALHOST),
         http_port,
         web_dir: None,
     })
@@ -54,10 +56,28 @@ fn parses_help_version_and_run() {
             network: Network::Regtest,
             datadir: PathBuf::from("data"),
             rpc_url: "http://127.0.0.1:28801".to_owned(),
+            http_bind: IpAddr::V4(Ipv4Addr::LOCALHOST),
             http_port: 28_802,
             web_dir: Some(PathBuf::from("apps/explorer/web/out")),
         }))
     );
+    for (text, address) in [
+        ("0.0.0.0", IpAddr::V4(Ipv4Addr::UNSPECIFIED)),
+        ("::", IpAddr::V6(Ipv6Addr::UNSPECIFIED)),
+        ("::1", IpAddr::V6(Ipv6Addr::LOCALHOST)),
+    ] {
+        let Ok(Command::Run(config)) = parse_args(args(&[
+            "--regtest",
+            "--http-bind",
+            text,
+            "--datadir",
+            "data",
+        ])) else {
+            unreachable!("argumen sah: {text}");
+        };
+        assert_eq!(config.http_bind, address, "{text}");
+        assert_eq!(config.http_port, 28_802, "{text}");
+    }
     assert_eq!(default_rpc_url(Network::Regtest), "http://127.0.0.1:28801");
     assert_eq!(default_http_port(Network::Regtest), 28_802);
     assert_eq!(default_http_port(Network::Testnet), 18_802);
@@ -74,12 +94,13 @@ fn parses_help_version_and_run() {
     assert!(USAGE.contains("MOD-14"));
     assert!(USAGE.contains("--rpc-url"));
     assert!(USAGE.contains("--http-port"));
+    assert!(USAGE.contains("--http-bind <ip>"));
     assert!(USAGE.contains("--web-dir <folder>"));
 }
 
 #[test]
 fn rejects_bad_arguments() {
-    let cases: [(&[&str], ArgError); 14] = [
+    let cases: [(&[&str], ArgError); 17] = [
         (&["--datadir", "x"], ArgError::MissingNetwork),
         (&["--regtest"], ArgError::MissingDatadir),
         (
@@ -134,6 +155,26 @@ fn rejects_bad_arguments() {
                 "b",
             ],
             ArgError::Duplicate("--web-dir"),
+        ),
+        (
+            &["--regtest", "--datadir", "x", "--http-bind", "localhost"],
+            ArgError::InvalidBind("localhost".to_owned()),
+        ),
+        (
+            &["--regtest", "--datadir", "x", "--http-bind"],
+            ArgError::MissingValue("--http-bind"),
+        ),
+        (
+            &[
+                "--regtest",
+                "--datadir",
+                "x",
+                "--http-bind",
+                "0.0.0.0",
+                "--http-bind",
+                "::",
+            ],
+            ArgError::Duplicate("--http-bind"),
         ),
         (&["--regtest", "--version"], ArgError::Exclusive),
         (

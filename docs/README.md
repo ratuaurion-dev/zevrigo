@@ -7,7 +7,7 @@
 | 🟢 Berjalan baik | Spesifikasi format, validasi, dan RPC lengkap. Node, mempool, RPC, dan miner berjalan untuk regtest; FTR-01 sampai FTR-04 diuji ujung ke ujung. Wallet-core: frasa BIP39, kunci BIP32, alamat bech32m (TSK-M15), serta pemilihan koin dan tanda tangan transaksi (TSK-M16). CLI wallet regtest (TSK-M19). Cabang chain dan reorg di node (TSK-M27). P2P libp2p (TSK-M14) di daemon (TSK-M28): lima node uji tetap sinkron, terpisah lalu tersambung dengan reorg 10 blok, node offline dan node baru mengejar (TSK-F04). 343 test |
 | 🔴 Masalah utama | Testnet publik (FTR-06) terblokir DEC-01: strategi PoW di tengah larangan unsafe dan float |
 | ❓ Keputusan dibutuhkan | DEC-01 strategi PoW mainnet |
-| ➡️ Langkah berikutnya | Antarmuka web explorer Next.js + Tailwind + shadcn/ui (DEC-26) selesai (TSK-S07, M31, M38). Pilihan pencipta berikutnya: paket Docker (TSK-M33), DEC-01 (PoW mainnet), atau FTR-07 wallet desktop. FTR-01 sampai FTR-05 selesai |
+| ➡️ Langkah berikutnya | Antarmuka web explorer Next.js + Tailwind + shadcn/ui (DEC-26) selesai (TSK-S07, M31, M38). Explorer hanya data sistem (DEC-28) dan paket Docker regtest (TSK-M33) selesai. Pilihan pencipta berikutnya: batas laju API explorer, DEC-01 (PoW mainnet), atau FTR-07 wallet desktop. FTR-01 sampai FTR-05 selesai |
 
 **Legenda status:** 🟢 selesai · 🟡 berjalan atau siap dikerjakan · 🔴 terblokir · ⚪ belum dimulai · ❓ perlu keputusan
 

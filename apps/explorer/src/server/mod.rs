@@ -1,4 +1,5 @@
-//! Program explorer (Spesifikasi Explorer v0.1 Bagian 6): server HTTP axum di 127.0.0.1, sinkronisasi indeks dari node
+//! Program explorer (Spesifikasi Explorer v0.1 Bagian 6): server HTTP axum (bawaan 127.0.0.1, `--http-bind`),
+//! sinkronisasi indeks dari node
 //! setiap 2 detik, dan berhenti bersih dengan SIGINT atau SIGTERM. Dengan `--web-dir`, jalur di luar `/api/` menyajikan
 //! antarmuka web (Spesifikasi Explorer Web v0.2 Bagian 7). Semua jawaban membawa kepala keamanan; halaman HTML
 //! mendapat kebijakan keamanan konten dengan hash skrip inline-nya ([`web::page_policy`]).
@@ -8,7 +9,7 @@
 //! pencarian; log hanya untuk start, kemajuan indeks, reorg, dan galat.
 
 use std::future::Future;
-use std::net::{Ipv4Addr, SocketAddr};
+use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -281,7 +282,7 @@ async fn serve(indexer: Indexer, config: &Config) -> Result<(), ExplorerError> {
     let source = Arc::new(RpcSource::new(client, Handle::current()));
     let shared = Arc::new(Shared::new(indexer, config.network));
     let listener =
-        TcpListener::bind(SocketAddr::from((Ipv4Addr::LOCALHOST, config.http_port))).await?;
+        TcpListener::bind(SocketAddr::from((config.http_bind, config.http_port))).await?;
     let local = listener.local_addr()?;
     tracing::info!(%local, rpc = %config.rpc_url, "explorer berjalan");
     println!("http: http://{local}");

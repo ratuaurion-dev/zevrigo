@@ -112,6 +112,7 @@ make test-slow   # cargo test --workspace --release -- --ignored
 make check-forbidden  # gagal jika ada f32/f64 atau kata kunci unsafe di kode proyek
 make check-all   # fmt-check + lint + check-forbidden + test
 make web-check   # antarmuka web explorer: npm ci --ignore-scripts, typecheck, test, next build ke out/ (Node.js >= 22.12, DEC-26)
+make docker-build # image Docker regtest homeostasis:regtest (TSK-M33, Spesifikasi Docker v0.1)
 ```
 
 ## Larangan mutlak: `unsafe` dan floating point

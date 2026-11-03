@@ -1,6 +1,7 @@
 //! Argumen program explorer (Spesifikasi Explorer v0.1 Bagian 6). Tanpa `clap` (DEC-10 bagian 2): argumen dibaca
 //! sendiri dan tidak ada file konfigurasi.
 
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
 use homeostasis_primitives::Network;
@@ -14,14 +15,17 @@ pub const USAGE: &str = concat!(
     "homeostasis-explorer (MOD-14): indexer dan API explorer Homeostasis Coin\n",
     "\n",
     "Pemakaian:\n",
-    "  homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>]\n",
+    "  homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-bind <ip>] [--http-port <port>]\n",
+    "                       [--web-dir <folder>]\n",
     "  homeostasis-explorer --help | --version\n",
     "\n",
     "Opsi:\n",
     "  --regtest           jaringan regtest (testnet dan mainnet menunggu DEC-01)\n",
     "  --datadir <folder>  folder data; indeks disimpan di <folder>/regtest/explorer.sqlite\n",
     "  --rpc-url <url>     node JSON-RPC (bawaan regtest http://127.0.0.1:28801)\n",
-    "  --http-port <port>  port API HTTP di 127.0.0.1 (bawaan regtest 28802; 0 = port bebas)\n",
+    "  --http-bind <ip>    alamat dengar API HTTP (bawaan 127.0.0.1); alamat lain hanya di dalam container atau di\n",
+    "                      belakang reverse proxy dengan batas laju (TSK-M33)\n",
+    "  --http-port <port>  port API HTTP (bawaan regtest 28802; 0 = port bebas)\n",
     "  --web-dir <folder>  antarmuka web hasil build apps/explorer/web (folder out); tanpa opsi ini hanya API\n",
     "\n",
     "Setelah siap, alamat API dicetak ke stdout sebagai `http: http://<alamat>`; jalur API di /api/v1/.\n",
@@ -48,7 +52,9 @@ pub struct Config {
     pub datadir: PathBuf,
     /// URL JSON-RPC node.
     pub rpc_url: String,
-    /// Port API HTTP di 127.0.0.1. `0` memilih port bebas.
+    /// Alamat dengar API HTTP. Bawaan `127.0.0.1`; alamat lain hanya untuk container (TSK-M33).
+    pub http_bind: IpAddr,
+    /// Port API HTTP. `0` memilih port bebas.
     pub http_port: u16,
     /// Folder hasil build antarmuka web (`apps/explorer/web/out`). `None` berarti hanya API.
     pub web_dir: Option<PathBuf>,
@@ -69,6 +75,9 @@ pub enum ArgError {
     /// Port HTTP bukan bilangan 0 sampai 65535.
     #[error("port HTTP tidak sah: {0}")]
     InvalidPort(String),
+    /// Alamat dengar bukan alamat IPv4 atau IPv6.
+    #[error("alamat dengar HTTP tidak sah: {0}")]
+    InvalidBind(String),
     /// Jaringan belum tersedia.
     #[error("jaringan {0} belum tersedia (menunggu DEC-01)")]
     NetworkUnavailable(&'static str),
@@ -145,6 +154,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut regtest = false;
     let mut datadir: Option<PathBuf> = None;
     let mut rpc_url: Option<String> = None;
+    let mut http_bind: Option<IpAddr> = None;
     let mut http_port: Option<u16> = None;
     let mut web_dir: Option<PathBuf> = None;
     let mut iter = args.into_iter();
@@ -169,6 +179,16 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
                     return Err(ArgError::Duplicate("--rpc-url"));
                 }
                 rpc_url = Some(value_of(&mut iter, "--rpc-url")?);
+            }
+            "--http-bind" => {
+                if http_bind.is_some() {
+                    return Err(ArgError::Duplicate("--http-bind"));
+                }
+                let value = value_of(&mut iter, "--http-bind")?;
+                let address = value
+                    .parse::<IpAddr>()
+                    .map_err(|_| ArgError::InvalidBind(value.clone()))?;
+                http_bind = Some(address);
             }
             "--http-port" => {
                 if http_port.is_some() {
@@ -198,6 +218,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         network: Network::Regtest,
         datadir,
         rpc_url: rpc_url.unwrap_or_else(|| default_rpc_url(Network::Regtest)),
+        http_bind: http_bind.unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST)),
         http_port: http_port.unwrap_or(default_http_port(Network::Regtest)),
         web_dir,
     }))

@@ -9,8 +9,8 @@
 | 🟢 Dikunci | Next.js (App Router, static export) + React + TypeScript + Tailwind CSS + shadcn/ui (DEC-26, diubah 2 November 2026 atas keinginan pencipta). Tampilan dirancang lewat Google AI Studio, lalu disesuaikan Quick. Dua bahasa (Indonesia bawaan, English), mode terang dan gelap. Jumlah koin selalu `bigint`. Tanpa cookie, analitik, font, atau skrip dari luar |
 | 🟢 Hanya data sistem (DEC-28) | Explorer tidak menampilkan "apa dan siapa": tanpa halaman alamat, kode QR, pencarian alamat, halaman alokasi, alamat dan jumlah per penerima di transaksi, jejak koin, daftar txid mempool, angka alokasi genesis, maupun teks galat mentah dari node (keputusan pencipta 3 November 2026) |
 | ⚪ Dihapus | Peta node global dan tabel node aktif dari rancangan AI Studio: datanya karangan, karena node dan explorer tidak punya dan tidak mengumpulkan lokasi atau IP rekan (keputusan pencipta 2 November 2026) |
-| ⏳ Ditunda | Paket Docker (TSK-M33), perkiraan daya tambang, peringatan konsentrasi tambang |
-| ➡️ Langkah berikutnya | TSK-M33 paket Docker sesudah TSK-M38 |
+| ⏳ Ditunda | Perkiraan daya tambang, peringatan konsentrasi tambang |
+| ➡️ Langkah berikutnya | Batas laju API explorer. Paket Docker selesai (TSK-M33): antarmuka web ada di image di `/usr/share/homeostasis/web` |
 
 Antarmuka web hanya **menampilkan** isi API explorer (Spesifikasi Explorer v0.1 Bagian 5). Tidak ada logika chain,
 pemeriksaan, atau kunci di browser. Siapa pun yang menjalankan node dan explorer sendiri mendapat tampilan yang sama.
@@ -178,7 +178,7 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 | Aplikasi web React (Vite), diganti TSK-M38 | MOD-14 (`web/`) | TSK-M32 🟢 |
 | Aplikasi Next.js + Tailwind + shadcn/ui hasil AI Studio, penyajian static export dan CSP dengan hash di Rust | MOD-14 | TSK-M38 |
 | Hanya data sistem: halaman alamat, alokasi, dan QR dihapus; ringkasan transaksi; banner tanpa galat mentah | MOD-14 | TSK-M39 (DEC-28) |
-| Paket Docker: node + explorer + web | MOD-14 | TSK-M33 (sebelum TSK-F06) |
+| Paket Docker: node + explorer + web (Spesifikasi Docker v0.1) | MOD-14 | TSK-M33 🟢 |
 
 ---
 
