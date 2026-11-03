@@ -1095,7 +1095,6 @@ dependencies = [
  "homeostasis-crypto",
  "homeostasis-primitives",
  "homeostasis-rpc",
- "homeostasis-wallet-core",
  "rusqlite",
  "serde_json",
  "sha2 0.10.9",

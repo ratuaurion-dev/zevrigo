@@ -101,7 +101,7 @@ export default function SupplyPage() {
       )}
 
       {/* Key Supply Figures */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 space-y-1">
             <div className="text-xs text-slate-500 dark:text-slate-400">
@@ -126,34 +126,6 @@ export default function SupplyPage() {
             </div>
             <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
               {supply.matches_schedule ? '✓ Exact match' : '✕ Schedule mismatch'}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 space-y-1">
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              {t('supplyGenesisAllocation')}
-            </div>
-            <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              <HsisAmount quanta={supply.genesis_allocation} />
-            </div>
-            <div className="text-[11px] text-slate-500">
-              Genesis Block #0 (outside S)
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 space-y-1">
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              {t('statTotalSupply')}
-            </div>
-            <div className="text-base font-bold text-teal-700 dark:text-teal-400">
-              <HsisAmount quanta={supply.total_supply} />
-            </div>
-            <div className="text-[11px] text-slate-500">
-              Mined + Genesis Allocation
             </div>
           </CardContent>
         </Card>

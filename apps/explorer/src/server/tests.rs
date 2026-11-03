@@ -107,9 +107,17 @@ fn http_server_answers_and_syncs_from_node() {
     assert_eq!(body["last_error"], Value::Null);
     let (status, _, body) = request(addr, "GET", &format!("/api/v1/tx/{tx_id}"));
     assert_eq!((status, body["fee"].as_str()), (200, Some("1000")));
-    let (_, _, body) = request(addr, "GET", "/api/v1/allocation?page=0");
-    assert_eq!(body["unspent"], "0");
-    assert_eq!(body["outputs"][0]["spent_by"]["txid"], tx_id.to_string());
+    assert_eq!(
+        (body["input_count"].as_u64(), body["output_count"].as_u64()),
+        (Some(1), Some(1))
+    );
+    assert!(
+        body.get("inputs").is_none() && body.get("outputs").is_none(),
+        "{body}"
+    );
+    // Alokasi genesis tidak disajikan API (DEC-28).
+    let (status, _, body) = request(addr, "GET", "/api/v1/allocation?page=0");
+    assert_eq!((status, body["error"].as_str()), (404, Some("not_found")));
     let (status, _, body) = request(addr, "POST", "/api/v1/status");
     assert_eq!(
         (status, body["error"].as_str()),

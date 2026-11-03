@@ -1,9 +1,9 @@
-# Paket npm di apps/explorer/web/package-lock.json (antarmuka web explorer Next.js, DEC-26, TSK-M38)
-# Dibuat skrip gerbang Q90 dari package-lock.json. Kolom: nama versi | lisensi | aplikasi (pohon dependencies:
+# Paket npm di apps/explorer/web/package-lock.json (antarmuka web explorer Next.js, DEC-26, TSK-M38; qrcode dihapus TSK-M39, DEC-28)
+# Dibuat skrip gerbang Q91 dari package-lock.json. Kolom: nama versi | lisensi | aplikasi (pohon dependencies:
 # Next.js, React, shadcn/ui, dan paket build Next.js) atau alat (devDependencies: build CSS, typecheck, uji) |
 # skrip pasang (npm ci --ignore-scripts: tidak pernah dijalankan) | opsional per platform | pengecualian lisensi
 # (Spesifikasi Explorer Web v0.2 Bagian 8: caniuse-lite, lightningcss*, @img/sharp-*; tidak ikut ke browser).
-# jumlah: 281, aplikasi: 164, pengecualian: 15, lisensi ditolak: 0
+# jumlah: 251, aplikasi: 135, pengecualian: 15, lisensi ditolak: 0
 @alloc/quick-lru 5.3.0 | MIT | alat | - | - | -
 @emnapi/runtime 1.11.3 | MIT | aplikasi | - | opsional | -
 @floating-ui/core 1.8.0 | MIT | aplikasi | - | - | -
@@ -148,7 +148,6 @@
 @types/deep-eql 4.0.2 | MIT | alat | - | - | -
 @types/estree 1.0.10 | MIT | alat | - | - | -
 @types/node 26.6.6 | MIT | alat | - | - | -
-@types/qrcode 1.5.6 | MIT | alat | - | - | -
 @types/react 19.3.0 | MIT | aplikasi | - | opsional | -
 @types/react-dom 19.3.0 | MIT | aplikasi | - | opsional | -
 @typescript/typescript-aix-ppc64 7.0.2 | Apache-2.0 | alat | - | opsional aix,ppc64 | -
@@ -174,37 +173,25 @@
 @vitest/mocker 5.0.5 | MIT | alat | - | - | -
 magic-string 1.4.5 | MIT | alat | - | - | -
 @vitest/spy 5.0.5 | MIT | alat | - | - | -
-ansi-regex 5.0.1 | MIT | aplikasi | - | - | -
-ansi-styles 4.3.0 | MIT | aplikasi | - | - | -
 aria-hidden 1.2.6 | MIT | aplikasi | - | - | -
 assertion-error 2.0.1 | MIT | alat | - | - | -
 baseline-browser-mapping 2.11.34 | Apache-2.0 | aplikasi | - | - | -
-camelcase 5.3.1 | MIT | aplikasi | - | - | -
 caniuse-lite 1.0.30001820 | CC-BY-4.0 | aplikasi | - | - | pengecualian tercatat
 chai 6.3.0 | MIT | alat | - | - | -
 class-variance-authority 0.7.1 | Apache-2.0 | aplikasi | - | - | -
 client-only 0.0.1 | MIT | aplikasi | - | - | -
-cliui 6.0.0 | ISC | aplikasi | - | - | -
 clsx 2.1.1 | MIT | aplikasi | - | - | -
-color-convert 2.0.1 | MIT | aplikasi | - | - | -
-color-name 1.1.4 | MIT | aplikasi | - | - | -
 csstype 3.2.3 | MIT | aplikasi | - | opsional | -
-decamelize 1.2.0 | MIT | aplikasi | - | - | -
 detect-libc 2.1.2 | Apache-2.0 | aplikasi | - | opsional | -
 detect-node-es 1.1.0 | MIT | aplikasi | - | - | -
-dijkstrajs 1.0.3 | MIT | aplikasi | - | - | -
-emoji-regex 8.0.0 | MIT | aplikasi | - | - | -
 enhanced-resolve 5.26.0 | MIT | alat | - | - | -
 es-module-lexer 2.3.2 | MIT | alat | - | - | -
 estree-walker 3.0.3 | MIT | alat | - | - | -
 expect-type 1.4.0 | Apache-2.0 | alat | - | - | -
 fdir 6.5.0 | MIT | alat | - | - | -
-find-up 4.1.0 | MIT | aplikasi | - | - | -
 fsevents 2.3.3 | MIT | alat | skrip pasang (tidak dijalankan) | opsional darwin | -
-get-caller-file 2.0.5 | ISC | aplikasi | - | - | -
 get-nonce 1.0.1 | MIT | aplikasi | - | - | -
 graceful-fs 4.2.11 | ISC | alat | - | - | -
-is-fullwidth-code-point 3.0.0 | MIT | aplikasi | - | - | -
 jiti 2.7.0 | MIT | alat | - | - | -
 lightningcss 1.32.0 | MPL-2.0 | alat | - | - | -
 lightningcss-android-arm64 1.32.0 | MPL-2.0 | alat | - | opsional android,arm64 | -
@@ -218,40 +205,28 @@ lightningcss-linux-x64-gnu 1.32.0 | MPL-2.0 | alat | - | opsional linux,x64 | -
 lightningcss-linux-x64-musl 1.32.0 | MPL-2.0 | alat | - | opsional linux,x64 | -
 lightningcss-win32-arm64-msvc 1.32.0 | MPL-2.0 | alat | - | opsional win32,arm64 | -
 lightningcss-win32-x64-msvc 1.32.0 | MPL-2.0 | alat | - | opsional win32,x64 | -
-locate-path 5.0.0 | MIT | aplikasi | - | - | -
 lucide-react 1.66.0 | ISC | aplikasi | - | - | -
 magic-string 0.30.21 | MIT | alat | - | - | -
 nanoid 3.3.20 | MIT | aplikasi | - | - | -
 next 16.4.4 | MIT | aplikasi | - | - | -
 postcss 8.5.23 | MIT | aplikasi | - | - | -
 obug 3.0.0 | MIT | alat | - | - | -
-p-limit 2.3.0 | MIT | aplikasi | - | - | -
-p-locate 4.1.0 | MIT | aplikasi | - | - | -
-p-try 2.2.0 | MIT | aplikasi | - | - | -
-path-exists 4.0.0 | MIT | aplikasi | - | - | -
 picocolors 1.1.1 | ISC | aplikasi | - | - | -
 picomatch 4.0.7 | MIT | alat | - | - | -
-pngjs 5.0.0 | MIT | aplikasi | - | - | -
 postcss 8.5.32 | MIT | alat | - | - | -
-qrcode 1.5.4 | MIT | aplikasi | - | - | -
 radix-ui 1.8.1 | MIT | aplikasi | - | - | -
 react 19.3.1 | MIT | aplikasi | - | - | -
 react-dom 19.3.1 | MIT | aplikasi | - | - | -
 react-remove-scroll 2.7.2 | MIT | aplikasi | - | - | -
 react-remove-scroll-bar 2.3.8 | MIT | aplikasi | - | - | -
 react-style-singleton 2.2.3 | MIT | aplikasi | - | - | -
-require-directory 2.1.1 | MIT | aplikasi | - | - | -
-require-main-filename 2.0.0 | ISC | aplikasi | - | - | -
 rolldown 1.2.16 | MIT | alat | - | - | -
 scheduler 0.28.0 | MIT | aplikasi | - | - | -
 semver 7.8.5 | ISC | aplikasi | - | opsional | -
-set-blocking 2.0.0 | ISC | aplikasi | - | - | -
 sharp 0.35.5 | Apache-2.0 | aplikasi | - | opsional | -
 sonner 2.0.8 | MIT | aplikasi | - | - | -
 source-map-js 1.2.2 | BSD-3-Clause | aplikasi | - | - | -
 std-env 4.3.0 | MIT | alat | - | - | -
-string-width 4.2.3 | MIT | aplikasi | - | - | -
-strip-ansi 6.0.1 | MIT | aplikasi | - | - | -
 styled-jsx 5.1.6 | MIT | aplikasi | - | - | -
 tailwind-merge 3.7.0 | MIT | aplikasi | - | - | -
 tailwindcss 4.3.3 | MIT | alat | - | - | -
@@ -279,9 +254,4 @@ lightningcss-win32-arm64-msvc 1.33.0 | MPL-2.0 | alat | - | opsional win32,arm64
 lightningcss-win32-x64-msvc 1.33.0 | MPL-2.0 | alat | - | opsional win32,x64 | -
 vitest 5.0.5 | MIT | alat | - | - | -
 magic-string 1.4.5 | MIT | alat | - | - | -
-which-module 2.0.1 | ISC | aplikasi | - | - | -
 why-is-node-running 3.2.1 | MIT | alat | - | - | -
-wrap-ansi 6.2.0 | MIT | aplikasi | - | - | -
-y18n 4.0.3 | ISC | aplikasi | - | - | -
-yargs 15.4.1 | MIT | aplikasi | - | - | -
-yargs-parser 18.1.3 | ISC | aplikasi | - | - | -

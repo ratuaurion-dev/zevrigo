@@ -77,8 +77,9 @@ cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis
 
 Explorer membaca chain dari node lewat RPC, menyimpan indeks di `~/.homeostasis/regtest/explorer.sqlite`, memeriksa
 sendiri jumlah koin setiap blok, lalu melayani API JSON baca saja di `http://127.0.0.1:28802/api/v1/` (misalnya
-`/status`, `/blocks`, `/block/<tinggi>`, `/tx/<txid>`, `/address/<alamat>`, `/supply`, `/allocation`). Jumlah koin
-selalu string desimal quanta. Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
+`/status`, `/blocks`, `/block/<tinggi>`, `/tx/<txid>`, `/supply`, `/mempool`). Jumlah koin selalu string desimal quanta.
+Explorer hanya menyajikan data sistem (DEC-28): tanpa alamat, saldo, jumlah per penerima, jejak koin, dan alokasi genesis.
+Saldo sendiri diperiksa lewat `balance` di CLI. Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
 
 ### Antarmuka web explorer
 

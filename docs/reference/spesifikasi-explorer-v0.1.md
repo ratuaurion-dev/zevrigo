@@ -97,14 +97,18 @@ karakter, nonce string desimal. Alamat bech32m regtest (`rhsis1…`, DEC-11). Ju
 | `/status` | `network`, `indexed_height`, `indexed_block_id`, `node_height`, `node_best_block_id`, `chainwork` (ujung node), `mempool_count`, `index_error` (galat yang menghentikan indexer, string atau `null`), `last_error` (galat langkah sinkronisasi terakhir, misalnya node tidak bisa dihubungi, string atau `null`) |
 | `/blocks?before=<h>` | `{"blocks": […]}`, paling banyak 20 blok dengan tinggi `< h` (bawaan: semua), terbaru dulu: `height`, `block_id`, `timestamp`, `size`, `tx_count`, `confirmations` |
 | `/block/<kunci>` | kunci = tinggi desimal atau `block_id` hex. Header lengkap, `size`, `subsidy`, `fees`, `confirmations`, `txids`, `next_block_id` (atau `null`) |
-| `/tx/<txid>` | `txid`, `block_id`, `height`, `position`, `size`, `is_coinbase`, `fee`, `confirmations`; `inputs` (`txid`, `index`, `amount`, `kind`, `payload`, `address`); `outputs` (`index`, `amount`, `kind`, `payload`, `address`, `spent_by` = `{txid, input, height}` atau `null`) |
-| `/address/<alamat>?page=<n>` (halaman mulai 0) | `address`, `kind`, `payload`, `balance` (Σ output belum dibelanjakan), `received`, `sent`, `utxo_count`, `tx_count`, `page`, `page_size` (= 25), `txs` (terbaru dulu: `txid`, `height`, `confirmations`, `received`, `sent`) |
-| `/supply` | `height`, `mined_total` (Σ subsidy di indeks), `scheduled_mined_total` (jadwal MOD-04 di tinggi itu), `matches_schedule`, `genesis_allocation`, `total_supply` (= alokasi genesis + `mined_total`), `fees_total`, `next_subsidy`, `tip_target`, `average_block_seconds` (rata-rata bilangan bulat 100 blok terakhir) |
-| `/allocation?page=<n>` | Halaman alokasi genesis (Dokumen Aplikasi Bagian 7): `genesis_block_id`, `allocated` (Σ output coinbase genesis), `outputs` (setiap output genesis dengan `address` dan `spent_by`), `unspent` (Σ output genesis yang belum dibelanjakan), `addresses` (setiap alamat penerima alokasi dengan isi sama seperti `/address`, halaman `n`) |
-| `/mempool` | `count`, `txids` (RPC v0.1 hanya memberi txid; isi transaksi mempool ditunda) |
-| `/search/<q>` | `{"kind": "block" \| "tx" \| "address", "key": …}`: desimal = tinggi; hex 64 = `block_id`, lalu `txid`; `rhsis1…` = alamat. `key` untuk blok selalu `block_id` |
+| `/tx/<txid>` | `txid`, `block_id`, `height`, `position`, `size`, `is_coinbase`, `fee`, `confirmations`, `input_count`, `output_count` (DEC-28: tanpa alamat, payload, jumlah per output, rujukan input, dan pembelanja) |
+| `/supply` | `height`, `mined_total` (Σ subsidy di indeks), `scheduled_mined_total` (jadwal MOD-04 di tinggi itu), `matches_schedule`, `fees_total`, `next_subsidy`, `tip_target`, `average_block_seconds` (rata-rata bilangan bulat 100 blok terakhir). DEC-28: tanpa `genesis_allocation` dan `total_supply` |
+| `/mempool` | `count` (DEC-28: tanpa daftar txid) |
+| `/search/<q>` | `{"kind": "block" \| "tx", "key": …}`: desimal = tinggi; hex 64 = `block_id`, lalu `txid`. Teks lain (termasuk alamat) `400`. `key` untuk blok selalu `block_id` |
 
-Galat: `400 {"error": "bad_request"}` (kunci, hex, alamat, atau `page` tidak sah), `404 {"error": "not_found"}` (untuk
+**Hanya data sistem (DEC-28, 3 November 2026).** Explorer tidak menyajikan "apa dan siapa": jalur `/address/…` dan
+`/allocation` dihapus (`404`), dan jawaban mana pun tidak memuat alamat, payload, saldo, jumlah per penerima, jejak koin
+(input, output, pembelanja), maupun alokasi genesis. Indeks tetap menyimpan semua itu untuk pemeriksaan I1–I4 dan bisa
+dibaca pustaka (`Shared::read_index`, `Indexer::address`, `Indexer::allocation`) oleh operator dan uji, tidak lewat HTTP.
+Batas: data tetap ada di chain; orang yang menjalankan node sendiri tetap bisa membacanya.
+
+Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), `404 {"error": "not_found"}` (untuk
 `/tx` ditambah `"in_mempool": true` jika txid ada di mempool), `503 {"error": "not_ready"}` sebelum genesis terindeks, `405 {"error": "method_not_allowed"}`, dan
 `500 {"error": "internal"}` jika indeks tidak bisa dibaca. Pencarian hex yang tidak ditemukan juga memuat `in_mempool`.
 
@@ -142,6 +146,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, alamat, atau `page` tidak sah
 | Skema SQLite, sinkronisasi dan reorg, pemeriksaan I1–I4, query (pustaka) | MOD-14 | TSK-M29 |
 | API HTTP axum, program `homeostasis-explorer`, opsi, sinyal | MOD-14 | TSK-M30 |
 | Uji ujung ke ujung: node + miner + explorer, reorg, alokasi genesis dibelanjakan | MOD-17 | TSK-F05 |
+| API dan antarmuka hanya data sistem (tanpa alamat, jejak koin, dan alokasi genesis) | MOD-14, MOD-17 | TSK-M39 (DEC-28) |
 | Antarmuka web Next.js + Tailwind + shadcn/ui (spesifikasi terpisah, DEC-26) | MOD-14 | TSK-S07, TSK-M31, TSK-M32, TSK-M38 |
 | Paket Docker | MOD-14 | TSK-M33 (sebelum TSK-F06) |
 

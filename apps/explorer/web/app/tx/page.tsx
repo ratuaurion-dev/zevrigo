@@ -3,7 +3,7 @@
 import React, { Suspense, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowDown, ArrowRight, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useApp } from '@/app/providers';
 import { usePoll } from '@/hooks/use-poll';
 import { fetchTx } from '@/lib/api';
@@ -12,7 +12,7 @@ import {
   formatDigitsWithThousands,
   formatInt,
 } from '@/lib/amount';
-import { isValidHash, routes, truncateMiddle } from '@/lib/route';
+import { isValidHash, routes } from '@/lib/route';
 import {
   Alert,
   Card,
@@ -199,125 +199,38 @@ function TxDetailContent() {
         </CardContent>
       </Card>
 
-      {/* Visual Inputs -> Outputs Flow */}
+      {/* Ringkasan input dan output: tanpa alamat, jumlah per output, maupun jejak koin (DEC-28) */}
       <Card>
         <CardHeader>
           <CardTitle>{t('txFlowTitle')}</CardTitle>
         </CardHeader>
-        <CardContent className="p-5">
-          <div className="grid grid-cols-1 lg:grid-cols-11 gap-4 items-start">
-            {/* Left Column: Inputs */}
-            <div className="lg:col-span-5 space-y-3">
-              <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 pb-1 border-b border-slate-200 dark:border-slate-800">
-                {t('txInputsHeader', { count: formatInt(tx.inputs.length, lang) })}
+        <CardContent className="p-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 space-y-1">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                {t('txInputCountLabel')}
               </div>
-
-              {tx.is_coinbase || tx.inputs.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-800 p-4 text-xs font-medium text-teal-700 dark:text-teal-400">
+              <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+                {formatInt(tx.input_count, lang)}
+              </div>
+              {tx.is_coinbase && (
+                <div className="text-[11px] font-medium text-teal-700 dark:text-teal-400">
                   {t('txCoinbaseNoInputs')}
                 </div>
-              ) : (
-                tx.inputs.map((inp, i) => (
-                  <div
-                    key={`${inp.txid}-${inp.index}-${i}`}
-                    className="rounded-lg border border-slate-200 dark:border-slate-800 p-3.5 space-y-2 text-xs"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <HashValue
-                        value={inp.address}
-                        href={routes.address(inp.address)}
-                        startChars={12}
-                        endChars={8}
-                        label="address"
-                      />
-                      <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        <HsisAmount quanta={inp.amount} />
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-                      <span>{t('txInputSource', { index: inp.index })}:</span>
-                      <HashValue
-                        value={inp.txid}
-                        href={routes.tx(inp.txid)}
-                        startChars={10}
-                        endChars={8}
-                        label="source txid"
-                      />
-                    </div>
-                    <div className="font-mono text-[10px] text-slate-400">
-                      {t('txPayloadKindLabel', {
-                        kind: inp.kind,
-                        payload: truncateMiddle(inp.payload, 8, 6),
-                      })}
-                    </div>
-                  </div>
-                ))
               )}
             </div>
-
-            {/* Center Arrow */}
-            <div className="lg:col-span-1 flex items-center justify-center py-2 lg:py-8 text-slate-400">
-              <ArrowRight className="hidden lg:block h-5 w-5" aria-hidden="true" />
-              <ArrowDown className="lg:hidden h-5 w-5" aria-hidden="true" />
-            </div>
-
-            {/* Right Column: Outputs */}
-            <div className="lg:col-span-5 space-y-3">
-              <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 pb-1 border-b border-slate-200 dark:border-slate-800">
-                {t('txOutputsHeader', {
-                  count: formatInt(tx.outputs.length, lang),
-                })}
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 space-y-1">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                {t('txOutputCountLabel')}
               </div>
-
-              {tx.outputs.map((out) => (
-                <div
-                  key={out.index}
-                  className="rounded-lg border border-slate-200 dark:border-slate-800 p-3.5 space-y-2 text-xs"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[11px] text-slate-500">
-                      {t('txOutputIndex', { index: out.index })}
-                    </span>
-                    <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                      <HsisAmount quanta={out.amount} />
-                    </span>
-                  </div>
-
-                  <div>
-                    <HashValue
-                      value={out.address}
-                      href={routes.address(out.address)}
-                      startChars={14}
-                      endChars={10}
-                      label="address"
-                    />
-                  </div>
-
-                  <div className="pt-1 flex items-center justify-between gap-2 text-[11px]">
-                    {out.spent_by ? (
-                      <span className="text-amber-700 dark:text-amber-400 font-medium">
-                        {t('txSpentByBadge', {
-                          txid: truncateMiddle(out.spent_by.txid, 8, 6),
-                          height: formatInt(out.spent_by.height, lang),
-                        })}{' '}
-                        ·{' '}
-                        <Link
-                          href={routes.tx(out.spent_by.txid)}
-                          className="underline font-mono"
-                        >
-                          tx →
-                        </Link>
-                      </span>
-                    ) : (
-                      <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                        {t('txUnspentBadge')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+              <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">
+                {formatInt(tx.output_count, lang)}
+              </div>
             </div>
           </div>
+          <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+            {t('txPrivacyNote')}
+          </p>
         </CardContent>
       </Card>
     </div>

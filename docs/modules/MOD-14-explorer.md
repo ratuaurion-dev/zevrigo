@@ -3,8 +3,8 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `homeostasis-explorer` (bin)
-- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), dan antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32) selesai; paket Docker (TSK-M33) berikutnya
-- **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08`, `MOD-09` (DEC-25); pustaka `axum` dan `rusqlite` (DEC-10 bagian 6)
+- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), dan tampilan hanya data sistem (TSK-M39, DEC-28) selesai; paket Docker (TSK-M33) berikutnya
+- **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08` (DEC-25; `MOD-09` tidak dipakai lagi sejak DEC-28); pustaka `axum`, `rusqlite` (DEC-10 bagian 6), `sha2` (bagian 4)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
 ## Tujuan
@@ -17,8 +17,9 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 
 - Indexer SQLite (`<datadir>/<jaringan>/explorer.sqlite`) yang membaca node lewat RPC v0.1, mundur sedalam apa pun saat
   reorg, dan memeriksa sendiri txid, block_id, serta jumlah koin setiap blok (I1–I4).
-- API `GET /api/v1/…`: status, blok, transaksi, alamat, pasokan dibanding jadwal rumus, halaman alokasi genesis, mempool,
-  pencarian. Jumlah koin selalu `u128` quanta sebagai string desimal.
+- API `GET /api/v1/…` hanya data sistem (DEC-28): status, blok, ringkasan transaksi, pasokan hasil tambang dibanding
+  jadwal rumus, jumlah mempool, pencarian tinggi/block_id/txid. Tanpa alamat, saldo, jejak koin, dan alokasi genesis
+  (tetap dicatat di indeks untuk pemeriksaan I1–I4). Jumlah koin selalu `u128` quanta sebagai string desimal.
 - Privasi pengunjung: tanpa cookie, analitik, atau log alamat IP dan kata pencarian.
 - Antarmuka web Next.js + Tailwind CSS + shadcn/ui di `web/` (DEC-26,
   [spesifikasi-explorer-web-v0.2.md](../reference/spesifikasi-explorer-web-v0.2.md)), dua bahasa, static export yang
@@ -39,3 +40,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-M31](../tasks/TSK-M31-explorer-web-dir.md) — 🟢 selesai (opsi `--web-dir`, penyajian file aman, kepala keamanan)
 - [TSK-M32](../tasks/TSK-M32-explorer-web-react.md) — 🟢 selesai (aplikasi web React di `web/`, dua bahasa, pemakaian pertama npm; diganti TSK-M38)
 - [TSK-M38](../tasks/TSK-M38-explorer-web-nextjs.md) — 🟢 selesai (Next.js + Tailwind + shadcn/ui dari AI Studio, CSP dengan hash di Rust)
+- [TSK-M39](../tasks/TSK-M39-explorer-data-sistem.md) — 🟢 selesai (hanya data sistem: tanpa alamat, jejak koin, dan alokasi genesis; DEC-28)

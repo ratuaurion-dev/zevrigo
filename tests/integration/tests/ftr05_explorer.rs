@@ -3,8 +3,10 @@
 //! Node A dan B (MOD-11, `MemoryStore`) masing-masing dengan server RPC sungguhan (MOD-08) dan miner sungguhan (MOD-13)
 //! di satu proses. Explorer (MOD-14) memakai indeks SQLite di file sementara dan membaca node A lewat RPC
 //! (`RpcSource`), lewat `Shared` yang sama dengan program `homeostasis-explorer`: `sync_once` untuk satu langkah
-//! sinkronisasi dan `respond` untuk API (fungsi yang dipanggil handler axum). Selesai bila (Dokumen fitur FTR-05): API
-//! menampilkan blok, transaksi, alamat, statistik pasokan, dan halaman alokasi genesis; indexer tahan reorg.
+//! sinkronisasi dan `respond` untuk API (fungsi yang dipanggil handler axum). Selesai bila (Dokumen fitur FTR-05, diubah
+//! DEC-28): API menampilkan blok, ringkasan transaksi, dan statistik pasokan tanpa alamat, jumlah per penerima, maupun
+//! alokasi genesis; indeks (dibaca langsung lewat `Shared::read_index`) tetap mencatat alamat dan alokasi genesis dengan
+//! benar; indexer tahan reorg.
 //!
 //! Reorg dibuat tanpa P2P: B menambang cabang yang lebih panjang, lalu blok-bloknya dikirim ke A lewat RPC
 //! `submit_block`. Jam kedua node sama dan tetap, jauh di belakang jadwal, sehingga target tetap `pow_limit` dan setiap
@@ -22,13 +24,15 @@ mod ftr05 {
         ChainParams, REGTEST_GENESIS_TIMESTAMP, SupplySchedule, regtest_genesis, regtest_network_id,
     };
     use homeostasis_crypto::{SecretKey, sighash_v1, sign, txid};
-    use homeostasis_explorer::{DB_FILE, Indexer, RpcSource, Shared};
+    use homeostasis_explorer::{
+        AddressSummary, AllocationInfo, DB_FILE, Indexer, RpcSource, Shared, TxDetail,
+    };
     use homeostasis_mempool::DEFAULT_MAX_BYTES;
     use homeostasis_miner::Miner;
     use homeostasis_node::Node;
     use homeostasis_primitives::params::GENESIS_ALLOCATION;
     use homeostasis_primitives::{
-        Amount, Encode, Input, Network, Output, OutputKind, Transaction, Witness,
+        Amount, Encode, Hash32, Input, Network, Output, OutputKind, Transaction, Witness,
     };
     use homeostasis_rpc::{Hex32, KindNumber, RpcBackend, RpcClient, RpcServer, SubmitStatus};
     use homeostasis_storage::MemoryStore;
@@ -106,6 +110,37 @@ mod ftr05 {
             let (status, body) = self.call(target);
             assert_eq!(status, 200, "{target}: {body}");
             body
+        }
+
+        /// `GET` yang wajib `404 not_found`: jalur yang tidak disajikan API (DEC-28).
+        fn hidden(&self, target: &str) {
+            let (status, body) = self.call(target);
+            assert_eq!(
+                (status, body["error"].as_str()),
+                (404, Some("not_found")),
+                "{target}"
+            );
+        }
+
+        /// Alokasi genesis dibaca langsung dari indeks (tidak lewat API).
+        fn allocation(&self) -> AllocationInfo {
+            self.shared
+                .read_index(|index| index.allocation().unwrap().unwrap())
+                .unwrap()
+        }
+
+        /// Ringkasan alamat kunci tunggal `payload` (halaman 0) dibaca langsung dari indeks.
+        fn account(&self, payload: &[u8; 32]) -> AddressSummary {
+            self.shared
+                .read_index(|index| index.address(0, payload, 0, 25).unwrap())
+                .unwrap()
+        }
+
+        /// Rincian transaksi dibaca langsung dari indeks.
+        fn tx(&self, id: &Hash32) -> TxDetail {
+            self.shared
+                .read_index(|index| index.tx(id).unwrap().unwrap())
+                .unwrap()
         }
     }
 
@@ -229,11 +264,13 @@ mod ftr05 {
 
         let genesis = regtest_genesis().unwrap();
         let coinbase = &genesis.txs()[0];
-        let genesis_txid = txid(coinbase).to_string();
-        let owner = address(coinbase.body().outputs()[0].payload());
-        let allocated = quanta(GENESIS_ALLOCATION.as_quanta());
+        let genesis_id = txid(coinbase);
+        let owner_payload = *coinbase.body().outputs()[0].payload();
+        let owner = address(&owner_payload);
+        let after_fee = Amount::from_quanta(GENESIS_ALLOCATION.as_quanta() - FEE);
         let tx = spend_genesis();
-        let tx_hex = txid(&tx).to_string();
+        let tx_id = txid(&tx);
+        let tx_hex = tx_id.to_string();
         let receiver = address(&key(3));
 
         // 1. Sebelum sinkron pertama hanya /status yang menjawab; jalur lain 503 not_ready.
@@ -246,7 +283,7 @@ mod ftr05 {
         assert_eq!(body["error"], "not_ready");
 
         // 2. A menambang 99 blok (miner sungguhan lewat RPC); B menerima blok yang sama. Explorer mengindeks 0..99 dan
-        //    halaman alokasi menunjukkan alokasi genesis utuh.
+        //    indeks mencatat alokasi genesis utuh; API tidak menyajikan alokasi maupun alamat.
         assert_eq!(miner_a.run(99, |_| {}).unwrap(), 99);
         for height in 1..=99 {
             let result = b.submit_block(&block_bytes(&a, height)).unwrap();
@@ -260,19 +297,20 @@ mod ftr05 {
         assert_eq!(status["node_height"], 99);
         assert_eq!(status["node_best_block_id"], hex(info.best_block_id));
         assert_eq!(status["chainwork"], hex(info.chainwork));
-        let allocation = explorer.get("/api/v1/allocation");
+        let allocation = explorer.allocation();
         assert_eq!(
-            allocation["genesis_block_id"],
+            allocation.genesis_block_id.to_string(),
             regtest_network_id().unwrap().to_string()
         );
-        assert_eq!(allocation["allocated"], allocated.as_str());
-        assert_eq!(allocation["unspent"], allocated.as_str());
-        assert_eq!(allocation["outputs"].as_array().unwrap().len(), 1);
-        assert_eq!(allocation["outputs"][0]["txid"], genesis_txid.as_str());
-        assert_eq!(allocation["outputs"][0]["address"], owner.as_str());
-        assert_eq!(allocation["outputs"][0]["spent_by"], Value::Null);
-        assert_eq!(allocation["addresses"][0]["address"], owner.as_str());
-        assert_eq!(allocation["addresses"][0]["balance"], allocated.as_str());
+        assert_eq!(allocation.allocated, GENESIS_ALLOCATION);
+        assert_eq!(allocation.unspent, GENESIS_ALLOCATION);
+        assert_eq!(allocation.outputs.len(), 1);
+        assert_eq!(allocation.outputs[0].txid, genesis_id);
+        assert_eq!(allocation.outputs[0].payload, owner_payload);
+        assert!(allocation.outputs[0].spent_by.is_none());
+        assert_eq!(explorer.account(&owner_payload).balance, GENESIS_ALLOCATION);
+        explorer.hidden("/api/v1/allocation");
+        explorer.hidden(&format!("/api/v1/address/{owner}"));
 
         // 3. Transaksi yang membelanjakan alokasi genesis masuk mempool A; explorer melaporkannya sebagai in_mempool.
         let sent = rt
@@ -283,7 +321,11 @@ mod ftr05 {
         assert_eq!(status["mempool_count"], 1);
         let mempool = explorer.get("/api/v1/mempool");
         assert_eq!(mempool["count"], 1);
-        assert_eq!(mempool["txids"][0], tx_hex.as_str());
+        assert!(mempool.get("txids").is_none(), "{mempool}");
+        assert_eq!(
+            explorer.shared.read_index(|index| index.mempool().unwrap()),
+            Some(vec![tx_id])
+        );
         for target in [
             format!("/api/v1/tx/{tx_hex}"),
             format!("/api/v1/search/{tx_hex}"),
@@ -294,8 +336,8 @@ mod ftr05 {
             assert_eq!(body["in_mempool"], true);
         }
 
-        // 4. A menambang blok 100 (berisi transaksi itu) sampai 102. Explorer menampilkan transaksi, blok, alamat,
-        //    alokasi yang sudah dibelanjakan, dan pasokan yang sama dengan node.
+        // 4. A menambang blok 100 (berisi transaksi itu) sampai 102. API menampilkan ringkasan transaksi, blok, dan
+        //    pasokan yang sama dengan node; indeks mencatat input, output, alamat, dan alokasi yang sudah dibelanjakan.
         assert_eq!(miner_a.run(3, |_| {}).unwrap(), 3);
         let a_100 = hex(a.block_hash(100).unwrap());
         let status = explorer.sync();
@@ -308,43 +350,43 @@ mod ftr05 {
         assert_eq!(detail["is_coinbase"], false);
         assert_eq!(detail["fee"], quanta(FEE).as_str());
         assert_eq!(detail["confirmations"], 3);
-        assert_eq!(detail["inputs"][0]["txid"], genesis_txid.as_str());
-        assert_eq!(detail["inputs"][0]["index"], 0);
-        assert_eq!(detail["inputs"][0]["amount"], allocated.as_str());
-        assert_eq!(detail["inputs"][0]["address"], owner.as_str());
-        assert_eq!(
-            detail["outputs"][0]["amount"],
-            quanta(GENESIS_ALLOCATION.as_quanta() - FEE).as_str()
-        );
-        assert_eq!(detail["outputs"][0]["address"], receiver.as_str());
-        assert_eq!(detail["outputs"][0]["spent_by"], Value::Null);
+        assert_eq!(detail["input_count"], 1);
+        assert_eq!(detail["output_count"], 1);
+        for key in ["inputs", "outputs", "address"] {
+            assert!(!detail.to_string().contains(key), "{key}: {detail}");
+        }
+        let full = explorer.tx(&tx_id);
+        assert_eq!(full.inputs[0].txid, genesis_id);
+        assert_eq!(full.inputs[0].index, 0);
+        assert_eq!(full.inputs[0].amount, GENESIS_ALLOCATION);
+        assert_eq!(full.inputs[0].payload, owner_payload);
+        assert_eq!(full.outputs[0].amount, after_fee);
+        assert_eq!(full.outputs[0].payload, key(3));
+        assert!(full.outputs[0].spent_by.is_none());
         let block = explorer.get("/api/v1/block/100");
         assert_eq!(block["block_id"], a_100.as_str());
         assert_eq!(block["tx_count"], 2);
         assert_eq!(block["fees"], quanta(FEE).as_str());
         assert_eq!(block["txids"][1], tx_hex.as_str());
         assert_eq!(block["confirmations"], 3);
-        let allocation = explorer.get("/api/v1/allocation");
-        assert_eq!(allocation["unspent"], "0");
+        let allocation = explorer.allocation();
+        assert_eq!(allocation.unspent.as_quanta(), 0);
+        let spender = allocation.outputs[0].spent_by.as_ref().unwrap();
         assert_eq!(
-            allocation["outputs"][0]["spent_by"]["txid"],
-            tx_hex.as_str()
+            (spender.txid, spender.input, spender.height),
+            (tx_id, 0, 100)
         );
-        assert_eq!(allocation["outputs"][0]["spent_by"]["input"], 0);
-        assert_eq!(allocation["outputs"][0]["spent_by"]["height"], 100);
-        assert_eq!(allocation["addresses"][0]["balance"], "0");
-        assert_eq!(allocation["addresses"][0]["received"], allocated.as_str());
-        assert_eq!(allocation["addresses"][0]["sent"], allocated.as_str());
-        assert_eq!(allocation["addresses"][0]["tx_count"], 2);
-        let account = explorer.get(&format!("/api/v1/address/{receiver}"));
-        assert_eq!(
-            account["balance"],
-            quanta(GENESIS_ALLOCATION.as_quanta() - FEE).as_str()
-        );
-        assert_eq!(account["utxo_count"], 1);
-        assert_eq!(account["tx_count"], 1);
-        assert_eq!(account["txs"][0]["txid"], tx_hex.as_str());
-        assert_eq!(account["txs"][0]["height"], 100);
+        let creator = explorer.account(&owner_payload);
+        assert_eq!(creator.balance.as_quanta(), 0);
+        assert_eq!(creator.received, GENESIS_ALLOCATION);
+        assert_eq!(creator.sent, GENESIS_ALLOCATION);
+        assert_eq!(creator.tx_count, 2);
+        let account = explorer.account(&key(3));
+        assert_eq!(account.balance, after_fee);
+        assert_eq!(account.utxo_count, 1);
+        assert_eq!(account.tx_count, 1);
+        assert_eq!((account.txs[0].txid, account.txs[0].height), (tx_id, 100));
+        explorer.hidden(&format!("/api/v1/address/{receiver}"));
         let info = a.chain_info().unwrap();
         let supply = explorer.get("/api/v1/supply");
         assert_eq!(supply["height"], 102);
@@ -353,11 +395,14 @@ mod ftr05 {
             supply["mined_total"],
             quanta(info.mined_total.amount().as_quanta()).as_str()
         );
-        assert_eq!(
-            supply["total_supply"],
-            quanta(info.total_supply.amount().as_quanta()).as_str()
-        );
-        assert_eq!(supply["genesis_allocation"], allocated.as_str());
+        assert!(supply.get("total_supply").is_none(), "{supply}");
+        assert!(supply.get("genesis_allocation").is_none(), "{supply}");
+        let indexed = explorer
+            .shared
+            .read_index(|index| index.supply().unwrap().unwrap())
+            .unwrap();
+        assert_eq!(indexed.total_supply, info.total_supply.amount());
+        assert_eq!(indexed.genesis_allocation, GENESIS_ALLOCATION);
         assert_eq!(supply["fees_total"], quanta(FEE).as_str());
         let found = explorer.get("/api/v1/search/100");
         assert_eq!(found["kind"], "block");
@@ -366,10 +411,8 @@ mod ftr05 {
             explorer.get(&format!("/api/v1/search/{tx_hex}"))["kind"],
             "tx"
         );
-        assert_eq!(
-            explorer.get(&format!("/api/v1/search/{owner}"))["kind"],
-            "address"
-        );
+        let (code, body) = explorer.call(&format!("/api/v1/search/{owner}"));
+        assert_eq!((code, body["error"].as_str()), (400, Some("bad_request")));
 
         // 5. B (tanpa transaksi itu) menambang 5 blok di atas blok 99, lalu bloknya dikirim ke A lewat RPC: A reorg
         //    3 blok ke cabang B dan transaksi kembali ke mempool. Explorer mundur dan mengikuti chain baru.
@@ -398,19 +441,22 @@ mod ftr05 {
         let (code, body) = explorer.call(&format!("/api/v1/tx/{tx_hex}"));
         assert_eq!(code, 404);
         assert_eq!(body["in_mempool"], true);
-        let allocation = explorer.get("/api/v1/allocation");
-        assert_eq!(allocation["unspent"], allocated.as_str());
-        assert_eq!(allocation["outputs"][0]["spent_by"], Value::Null);
-        assert_eq!(allocation["addresses"][0]["balance"], allocated.as_str());
-        let account = explorer.get(&format!("/api/v1/address/{receiver}"));
-        assert_eq!(account["balance"], "0");
-        assert_eq!(account["utxo_count"], 0);
-        assert_eq!(account["tx_count"], 0);
-        let rewards_b = explorer.get(&format!("/api/v1/address/{}", address(&key(4))));
-        assert_eq!(rewards_b["utxo_count"], 5);
-        assert_eq!(rewards_b["tx_count"], 5);
-        let rewards_a = explorer.get(&format!("/api/v1/address/{}", address(&key(2))));
-        assert_eq!(rewards_a["utxo_count"], 99);
+        let allocation = explorer.allocation();
+        assert_eq!(allocation.unspent, GENESIS_ALLOCATION);
+        assert!(allocation.outputs[0].spent_by.is_none());
+        assert_eq!(explorer.account(&owner_payload).balance, GENESIS_ALLOCATION);
+        let account = explorer.account(&key(3));
+        assert_eq!(
+            (
+                account.balance.as_quanta(),
+                account.utxo_count,
+                account.tx_count
+            ),
+            (0, 0, 0)
+        );
+        let rewards_b = explorer.account(&key(4));
+        assert_eq!((rewards_b.utxo_count, rewards_b.tx_count), (5, 5));
+        assert_eq!(explorer.account(&key(2)).utxo_count, 99);
         let info = a.chain_info().unwrap();
         let supply = explorer.get("/api/v1/supply");
         assert_eq!(supply["height"], 104);
@@ -443,9 +489,12 @@ mod ftr05 {
         assert_eq!(detail["height"], 105);
         assert_eq!(detail["confirmations"], 1);
         assert_eq!(detail["block_id"], hex(a.block_hash(105).unwrap()).as_str());
-        let allocation = explorer.get("/api/v1/allocation");
-        assert_eq!(allocation["unspent"], "0");
-        assert_eq!(allocation["outputs"][0]["spent_by"]["height"], 105);
+        let allocation = explorer.allocation();
+        assert_eq!(allocation.unspent.as_quanta(), 0);
+        assert_eq!(
+            allocation.outputs[0].spent_by.as_ref().map(|by| by.height),
+            Some(105)
+        );
         for height in 0..=105_u64 {
             let block = explorer.get(&format!("/api/v1/block/{height}"));
             assert_eq!(block["height"], height);
@@ -473,10 +522,7 @@ mod ftr05 {
             supply["mined_total"],
             quanta(info.mined_total.amount().as_quanta()).as_str()
         );
-        assert_eq!(
-            supply["total_supply"],
-            quanta(info.total_supply.amount().as_quanta()).as_str()
-        );
+        assert!(supply.get("total_supply").is_none(), "{supply}");
         assert_eq!(supply["fees_total"], quanta(FEE).as_str());
 
         // 8. Node A berhenti: langkah sinkronisasi gagal dengan last_error, indeks terakhir tetap dilayani.

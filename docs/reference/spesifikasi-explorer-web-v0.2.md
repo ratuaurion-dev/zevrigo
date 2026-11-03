@@ -1,12 +1,13 @@
 # Spesifikasi Antarmuka Web Explorer Homeostasis Coin (HSIS) v0.2: Next.js, Tailwind CSS, shadcn/ui, dua bahasa
 
-> Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S07, TSK-M38 · Status: 🟢 v0.2
+> Diperbarui: 3 November 2026 (DEC-28) · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S07, TSK-M38, TSK-M39 · Status: 🟢 v0.2
 > Lokasi di repo: `docs/reference/spesifikasi-explorer-web-v0.2.md` · Menggantikan
 > [spesifikasi-explorer-web-v0.1.md](spesifikasi-explorer-web-v0.1.md) (Vite + React tanpa Tailwind)
 
 | Status | Ringkasan |
 |---|---|
 | 🟢 Dikunci | Next.js (App Router, static export) + React + TypeScript + Tailwind CSS + shadcn/ui (DEC-26, diubah 2 November 2026 atas keinginan pencipta). Tampilan dirancang lewat Google AI Studio, lalu disesuaikan Quick. Dua bahasa (Indonesia bawaan, English), mode terang dan gelap. Jumlah koin selalu `bigint`. Tanpa cookie, analitik, font, atau skrip dari luar |
+| 🟢 Hanya data sistem (DEC-28) | Explorer tidak menampilkan "apa dan siapa": tanpa halaman alamat, kode QR, pencarian alamat, halaman alokasi, alamat dan jumlah per penerima di transaksi, jejak koin, daftar txid mempool, angka alokasi genesis, maupun teks galat mentah dari node (keputusan pencipta 3 November 2026) |
 | ⚪ Dihapus | Peta node global dan tabel node aktif dari rancangan AI Studio: datanya karangan, karena node dan explorer tidak punya dan tidak mengumpulkan lokasi atau IP rekan (keputusan pencipta 2 November 2026) |
 | ⏳ Ditunda | Paket Docker (TSK-M33), perkiraan daya tambang, peringatan konsentrasi tambang |
 | ➡️ Langkah berikutnya | TSK-M33 paket Docker sesudah TSK-M38 |
@@ -22,7 +23,7 @@ pemeriksaan, atau kunci di browser. Siapa pun yang menjalankan node dan explorer
 |---|---|
 | Lokasi | `apps/explorer/web/` (bagian MOD-14, bukan crate Rust) |
 | Perangkat | Next.js App Router dengan `output: 'export'` dan `trailingSlash: true`: build statis ke `apps/explorer/web/out/` (tidak di-commit). Tanpa server Node.js, route handler, middleware, optimasi gambar, atau `next/font` |
-| Tampilan | Tailwind CSS 4, komponen shadcn/ui (`components/ui/`, di atas `radix-ui`), ikon `lucide-react`, notifikasi `sonner`, kode QR `qrcode` dibuat di browser |
+| Tampilan | Tailwind CSS 4, komponen shadcn/ui (`components/ui/`, di atas `radix-ui`), ikon `lucide-react`, notifikasi `sonner` |
 | Penyajian | Program `homeostasis-explorer --web-dir apps/explorer/web/out` di origin yang sama dengan API (tanpa CORS), Bagian 7 |
 | Pengembangan | `npm run dev:mock` (server Next.js di `http://127.0.0.1:3000/` dengan data Regtest tiruan). Static export tidak bisa meneruskan `/api`, jadi tampilan dengan data sungguhan dilihat lewat build + explorer |
 | Dependensi | DEC-10 bagian 7 (Bagian 8) |
@@ -35,24 +36,25 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 
 | Jalur | Isi | API |
 |---|---|---|
-| `/` | Status (tinggi indeks dan node, chainwork, galat sinkronisasi), 8 kartu ringkasan, pasokan, grafik 20 blok terbaru (selang waktu, ukuran, jumlah transaksi), blok terbaru | `/status`, `/supply`, `/blocks` |
+| `/` | Status (tinggi indeks dan node, chainwork, tanda galat sinkronisasi), 8 kartu ringkasan, pasokan hasil tambang, grafik 20 blok terbaru (selang waktu, ukuran, jumlah transaksi), blok terbaru | `/status`, `/supply`, `/blocks` |
 | `/blocks/?before=<h>` | Daftar blok per 20, tautan "lebih lama" dan "lebih baru" | `/blocks?before=` |
 | `/block/?id=<tinggi atau block_id>` | Header lengkap, subsidy, biaya, konfirmasi, daftar transaksi, blok sebelum dan sesudah | `/block/` |
-| `/tx/?id=<txid>` | Blok, posisi, ukuran, biaya, konfirmasi, input dan output (alamat, jumlah, dibelanjakan oleh) | `/tx/` |
-| `/address/?a=<alamat>&page=<n>` | Saldo, diterima, dikirim, jumlah UTXO, kode QR alamat, riwayat per 25 | `/address/` |
-| `/supply/` | Pasokan hasil tambang dibanding jadwal rumus, alokasi genesis, total, biaya, subsidy berikutnya, rata-rata waktu blok, aturan emisi | `/supply` |
-| `/allocation/?page=<n>` | **Halaman alokasi pencipta**: jumlah dialokasikan dan belum bergerak, setiap output genesis, dan riwayat setiap alamat penerima | `/allocation` |
-| `/mempool/` | Jumlah dan daftar txid di mempool | `/mempool` |
-| `/search/?q=<kata>` | Pencarian (juga dari kotak pencarian dan Ctrl+K / ⌘K di setiap halaman) → pindah ke halaman yang sesuai | `/search/` |
+| `/tx/?id=<txid>` | Blok, posisi, ukuran, biaya, laju biaya, konfirmasi, jumlah input dan jumlah output. Tanpa alamat, jumlah per penerima, dan jejak koin (DEC-28) | `/tx/` |
+| `/supply/` | Pasokan hasil tambang dibanding jadwal rumus, biaya, subsidy berikutnya, rata-rata waktu blok, aturan emisi. Tanpa angka alokasi genesis dan total beredar (DEC-28) | `/supply` |
+| `/mempool/` | Jumlah transaksi di mempool (tanpa daftar txid) | `/mempool` |
+| `/search/?q=<kata>` | Pencarian tinggi, block_id, atau txid (juga dari kotak pencarian dan Ctrl+K / ⌘K di setiap halaman) → pindah ke halaman yang sesuai. Alamat tidak dicari | `/search/` |
 
 - Transaksi yang belum ada di blok tetapi ada di mempool (`404` dengan `in_mempool: true`) ditampilkan sebagai
   "menunggu di mempool", bukan "tidak ditemukan".
 - `503 not_ready` ditampilkan sebagai "indeks belum siap"; `index_error` dari `/status` ditampilkan sebagai peringatan di
-  setiap halaman (tanda node yang ditunjuk tidak jujur atau rusak); `last_error` sebagai peringatan sinkronisasi.
+  setiap halaman (tanda node yang ditunjuk tidak jujur atau rusak); `last_error` sebagai peringatan sinkronisasi. Keduanya
+  dengan pesan umum, tanpa teks galat mentah dari node (DEC-28).
 - **Konfirmasi selalu ditampilkan** di setiap blok dan transaksi, karena chain tanpa batas reorg. Di bawah 6 konfirmasi
   diberi tanda "belum aman".
 - Status dan halaman diperbarui setiap 10 detik selama halaman terbuka. Tanpa WebSocket.
 - Tidak ada halaman atau peta node: API tidak punya data node, dan explorer tidak boleh menampilkan angka karangan.
+- Tidak ada halaman alamat dan halaman alokasi (DEC-28). Pengguna memeriksa saldonya sendiri lewat wallet (`balance` di
+  CLI membaca node milik pengguna, tidak lewat explorer).
 
 ---
 
@@ -93,7 +95,12 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
   kode.
 - Semua teks dari API dirender sebagai teks oleh React. Isi dari pengguna atau API (txid, alamat, block_id) dimasukkan
   ke jalur API setelah diperiksa pola dan `encodeURIComponent`.
-- Mode data tiruan (`lib/mock.ts`) hanya aktif dengan `NEXT_PUBLIC_USE_MOCK=1`; build biasa selalu membaca API.
+- Mode data tiruan (`lib/mock.ts`) hanya aktif dengan `NEXT_PUBLIC_USE_MOCK=1`; build biasa selalu membaca API. Data
+  tiruan hanya mengeluarkan bentuk publik API (tanpa alamat dan alokasi).
+- **Hanya data sistem (DEC-28):** transparan untuk sistem (aturan, blok, pasokan hasil tambang), privat untuk individu.
+  Explorer tidak menampilkan alamat, saldo, jumlah per penerima, jejak koin, maupun alokasi genesis. Batas: data tetap
+  ada di chain; explorer lain yang dijalankan orang lain tetap bisa menampilkannya. Explorer ini hanya memastikan bukan
+  penyelenggaranya yang memamerkan.
 
 ---
 
@@ -107,7 +114,7 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 | `components/ui/` | Komponen shadcn/ui: button, card, input, table, skeleton, alert, progress, tooltip, dialog, sheet, dropdown-menu; `primitives.tsx` titik impor halaman |
 | `components/explorer/` | Kepala halaman (navigasi, Ctrl+K, bahasa, tema, menu HP), grafik, tampilan jumlah, hash, konfirmasi, dan status API |
 | `lib/` | `api.ts` (tipe jawaban API, jumlah sebagai `string`, klien `fetch` yang tidak pernah melempar galat), `amount.ts`, `time.ts`, `route.ts`, `i18n/`, `mock.ts`, `config.ts` |
-| `lib/explorer.spec.ts` | 14 uji vitest: jumlah, basis poin, waktu UTC, jalur dan validasi, kamus, klien API dengan `fetch` tiruan, jalur API, mode tiruan mati |
+| `lib/explorer.spec.ts` | 15 uji vitest: jumlah, basis poin, waktu UTC, jalur dan validasi (alamat bukan kunci pencarian), kamus, klien API dengan `fetch` tiruan, jalur API, mode tiruan mati, data tiruan tanpa alamat dan alokasi |
 
 - `make web-check` = `cd apps/explorer/web && npm ci --ignore-scripts && npm run check` (typecheck, uji, build).
   `make check-all` tetap untuk Rust saja; skrip gerbang dan CI menjalankan keduanya.
@@ -144,12 +151,13 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 | `clsx`, `tailwind-merge` | 2.1.1, 3.7.0 | MIT | Penggabung kelas `cn()` shadcn/ui |
 | `lucide-react` | 1.66.0 | ISC | Ikon |
 | `sonner` | 2.0.8 | MIT | Notifikasi "tersalin" |
-| `qrcode` | 1.5.4 | MIT | Kode QR alamat di browser |
 | `tailwindcss`, `@tailwindcss/postcss` | 4.3.3 | MIT | CSS (alat build; membawa lightningcss dan oxide native) |
 | `postcss` | 8.5.32 | MIT | Alat build CSS |
 | `typescript` | 7.0.2 | Apache-2.0 | Pemeriksaan tipe |
 | `vitest` | 5.0.5 | MIT | Uji |
-| `@types/react`, `@types/react-dom`, `@types/node`, `@types/qrcode` | 19.3.0, 19.3.0, 26.6.6, 1.5.6 | MIT | Tipe |
+| `@types/react`, `@types/react-dom`, `@types/node` | 19.3.0, 19.3.0, 26.6.6 | MIT | Tipe |
+
+`qrcode` 1.5.4 dan `@types/qrcode` 1.5.6 dipakai di TSK-M38, lalu dihapus bersama halaman alamat (TSK-M39, DEC-28).
 
 - Versi persis di `package.json`, pohon lengkap di `package-lock.json` (di-commit). Paket dipasang dengan
   `npm ci --ignore-scripts`: skrip pasang paket tidak pernah dijalankan.
@@ -169,6 +177,7 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 | Opsi `--web-dir`, penyajian file aman, kepala keamanan untuk API dan web | MOD-14 (Rust) | TSK-M31 🟢 |
 | Aplikasi web React (Vite), diganti TSK-M38 | MOD-14 (`web/`) | TSK-M32 🟢 |
 | Aplikasi Next.js + Tailwind + shadcn/ui hasil AI Studio, penyajian static export dan CSP dengan hash di Rust | MOD-14 | TSK-M38 |
+| Hanya data sistem: halaman alamat, alokasi, dan QR dihapus; ringkasan transaksi; banner tanpa galat mentah | MOD-14 | TSK-M39 (DEC-28) |
 | Paket Docker: node + explorer + web | MOD-14 | TSK-M33 (sebelum TSK-F06) |
 
 ---
@@ -178,4 +187,5 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 | ID | Keputusan | Status |
 |---|---|---|
 | DEC-26 | Antarmuka web explorer memakai Next.js (static export) + React + TypeScript + Tailwind CSS + shadcn/ui, dirancang lewat Google AI Studio, dua bahasa (Indonesia bawaan, English) | 🟢 diubah pencipta 2 November 2026 (sebelumnya Vite + React tanpa Tailwind) |
-| DEC-10 bagian 7 | Dependensi npm Bagian 8, hanya di `apps/explorer/web` | 🟢 diubah 2 November 2026 (konsekuensi DEC-26) |
+| DEC-10 bagian 7 | Dependensi npm Bagian 8, hanya di `apps/explorer/web` | 🟢 diubah 2 November 2026 (konsekuensi DEC-26); `qrcode` dihapus 3 November 2026 (DEC-28) |
+| DEC-28 | Explorer hanya menampilkan data sistem, tanpa "apa dan siapa" (alamat, saldo, jumlah per penerima, jejak koin, alokasi genesis) | 🟢 diputuskan pencipta 3 November 2026 |

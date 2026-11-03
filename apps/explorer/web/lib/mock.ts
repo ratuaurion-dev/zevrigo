@@ -1,7 +1,4 @@
 import type {
-  AddressInfo,
-  AddressTx,
-  AllocationInfo,
   BlockDetail,
   BlockList,
   BlockRow,
@@ -11,6 +8,49 @@ import type {
   SupplyInfo,
   TxDetail,
 } from './api';
+
+/*
+ * Bentuk data lengkap di dalam data tiruan saja. Fungsi `getMock*` hanya mengeluarkan bentuk publik API (DEC-28):
+ * tanpa alamat, jumlah per output, jejak koin, maupun alokasi genesis.
+ */
+type SpentBy = { txid: string; input: number; height: number };
+type TxInput = { txid: string; index: number; amount: string; kind: number; payload: string; address: string };
+type TxOutput = {
+  index: number;
+  amount: string;
+  kind: number;
+  payload: string;
+  address: string;
+  spent_by: SpentBy | null;
+};
+type FullTx = Omit<TxDetail, 'input_count' | 'output_count'> & { inputs: TxInput[]; outputs: TxOutput[] };
+type AddressTx = { txid: string; height: number; confirmations: number; received: string; sent: string };
+type AddressInfo = {
+  address: string;
+  kind: number;
+  payload: string;
+  balance: string;
+  received: string;
+  sent: string;
+  utxo_count: number;
+  tx_count: number;
+  page: number;
+  page_size: number;
+  txs: AddressTx[];
+};
+type AllocationInfo = {
+  genesis_block_id: string;
+  allocated: string;
+  unspent: string;
+  outputs: (TxOutput & { txid: string })[];
+  addresses: AddressInfo[];
+};
+type FullSupply = SupplyInfo & { genesis_allocation: string; total_supply: string };
+
+function toPublicTx(full: FullTx): TxDetail {
+  const { inputs, outputs, ...rest } = full;
+  return { ...rest, input_count: inputs.length, output_count: outputs.length };
+}
 
 /**
  * Deterministic 64-character lowercase hex generator from a tag + integer seed.
@@ -80,9 +120,9 @@ export const MEMPOOL_TXIDS: string[] = [
 interface BuiltChain {
   blocksByHeight: Map<number, BlockDetail>;
   blocksByHash: Map<string, BlockDetail>;
-  txsByHash: Map<string, TxDetail>;
+  txsByHash: Map<string, FullTx>;
   addressesByBech32: Map<string, AddressInfo>;
-  supply: SupplyInfo;
+  supply: FullSupply;
   allocation: AllocationInfo;
 }
 
@@ -93,7 +133,7 @@ function buildMockChain(): BuiltChain {
 
   const blocksByHeight = new Map<number, BlockDetail>();
   const blocksByHash = new Map<string, BlockDetail>();
-  const txsByHash = new Map<string, TxDetail>();
+  const txsByHash = new Map<string, FullTx>();
 
   // Precompute block hashes 0..120
   const blockHashes: string[] = [];
@@ -157,7 +197,7 @@ function buildMockChain(): BuiltChain {
 
     if (h === 0) {
       // Genesis coinbase transaction containing the 4,380,000 HSIS creator allocation
-      const genesisTx: TxDetail = {
+      const genesisTx: FullTx = {
         txid: genesisTxid,
         block_id: blockId,
         height: 0,
@@ -194,7 +234,7 @@ function buildMockChain(): BuiltChain {
     } else {
       const minerReward = subsidyQuanta + blockFees;
       const minerAddress = h % 3 === 0 ? MINER_POOL_ADDRESS : makeRegtestAddress(h);
-      const coinbaseTx: TxDetail = {
+      const coinbaseTx: FullTx = {
         txid: coinbaseTxid,
         block_id: blockId,
         height: h,
@@ -218,7 +258,7 @@ function buildMockChain(): BuiltChain {
       txsByHash.set(coinbaseTxid, coinbaseTx);
 
       if (hasRegularTx) {
-        const spendTx: TxDetail = {
+        const spendTx: FullTx = {
           txid: height100SpendTxid,
           block_id: blockId,
           height: 100,
@@ -292,7 +332,7 @@ function buildMockChain(): BuiltChain {
   const genesisAllocationQuanta = BigInt(GENESIS_ALLOCATION_STR);
   const totalSupplyQuanta = minedSoFar + genesisAllocationQuanta;
 
-  const supply: SupplyInfo = {
+  const supply: FullSupply = {
     height: CHAIN_TIP_HEIGHT,
     mined_total: minedSoFar.toString(10),
     scheduled_mined_total: minedSoFar.toString(10),
@@ -530,7 +570,7 @@ export function getMockTxDetail(txid: string): {
   const norm = txid.toLowerCase();
   const found = chain.txsByHash.get(norm) ?? null;
   if (found) {
-    return { tx: found, inMempool: false };
+    return { tx: toPublicTx(found), inMempool: false };
   }
   if (MEMPOOL_TXIDS.includes(norm)) {
     return { tx: null, inMempool: true };
@@ -538,46 +578,13 @@ export function getMockTxDetail(txid: string): {
   return { tx: null, inMempool: false };
 }
 
-export function getMockAddressInfo(address: string, page = 0): AddressInfo | null {
-  const chain = buildMockChain();
-  const norm = address.toLowerCase();
-  const info = chain.addressesByBech32.get(norm);
-  if (!info) {
-    return null;
-  }
-  const pageSize = 25;
-  const start = page * pageSize;
-  const pagedTxs = info.txs.slice(start, start + pageSize);
-  return {
-    ...info,
-    page,
-    page_size: pageSize,
-    txs: pagedTxs,
-  };
-}
-
 export function getMockSupplyInfo(): SupplyInfo {
-  return buildMockChain().supply;
-}
-
-export function getMockAllocationInfo(page = 0): AllocationInfo {
-  const alloc = buildMockChain().allocation;
-  return {
-    ...alloc,
-    addresses: alloc.addresses.map((a) => ({
-      ...a,
-      page,
-      page_size: 25,
-      txs: a.txs.slice(page * 25, (page + 1) * 25),
-    })),
-  };
+  const { genesis_allocation: _genesis, total_supply: _total, ...supply } = buildMockChain().supply;
+  return supply;
 }
 
 export function getMockMempoolInfo(): MempoolInfo {
-  return {
-    count: MEMPOOL_TXIDS.length,
-    txids: [...MEMPOOL_TXIDS],
-  };
+  return { count: MEMPOOL_TXIDS.length };
 }
 
 export function getMockSearchResult(query: string): {
@@ -623,17 +630,6 @@ export function getMockSearchResult(query: string): {
     return { result: null, inMempool: false };
   }
 
-  if (/^(hsis|thsis|rhsis)1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{6,100}$/.test(q)) {
-    const addr = chain.addressesByBech32.get(q);
-    if (addr) {
-      return {
-        result: { kind: 'address', key: addr.address },
-        inMempool: false,
-      };
-    }
-    return { result: null, inMempool: false };
-  }
-
   return { result: null, inMempool: false };
 }
 
@@ -647,9 +643,6 @@ export function getSampleShowcaseIds() {
     genesisBlockId: genesisBlock.block_id,
     spendTxId: block100.txids[1],
     genesisCoinbaseTxId: genesisBlock.txids[0],
-    creatorPrimaryAddress: CREATOR_PRIMARY_ADDRESS,
-    creatorReserveAddress: CREATOR_RESERVE_ADDRESS,
-    recipientAddress: RECIPIENT_TRANSFER_ADDRESS,
     mempoolPendingTxId: MEMPOOL_ONLY_TXID,
   };
 }

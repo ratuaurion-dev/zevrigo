@@ -1,8 +1,6 @@
 import { API_BASE_PATH, USE_MOCK } from './config';
 import {
   getActiveMockOverride,
-  getMockAddressInfo,
-  getMockAllocationInfo,
   getMockBlockDetail,
   getMockBlocks,
   getMockMempoolInfo,
@@ -54,30 +52,6 @@ export type BlockDetail = {
   next_block_id: string | null;
 };
 
-export type SpentBy = {
-  txid: string;
-  input: number;
-  height: number;
-};
-
-export type TxInput = {
-  txid: string;
-  index: number;
-  amount: string;
-  kind: number;
-  payload: string;
-  address: string;
-};
-
-export type TxOutput = {
-  index: number;
-  amount: string;
-  kind: number;
-  payload: string;
-  address: string;
-  spent_by: SpentBy | null;
-};
-
 export type TxDetail = {
   txid: string;
   block_id: string;
@@ -87,30 +61,9 @@ export type TxDetail = {
   is_coinbase: boolean;
   fee: string;
   confirmations: number;
-  inputs: TxInput[];
-  outputs: TxOutput[];
-};
-
-export type AddressTx = {
-  txid: string;
-  height: number;
-  confirmations: number;
-  received: string;
-  sent: string;
-};
-
-export type AddressInfo = {
-  address: string;
-  kind: number;
-  payload: string;
-  balance: string;
-  received: string;
-  sent: string;
-  utxo_count: number;
-  tx_count: number;
-  page: number;
-  page_size: number;
-  txs: AddressTx[];
+  /** Jumlah input dan output saja: API tidak menyajikan alamat, jumlah per output, maupun jejak koin (DEC-28). */
+  input_count: number;
+  output_count: number;
 };
 
 export type SupplyInfo = {
@@ -118,33 +71,18 @@ export type SupplyInfo = {
   mined_total: string;
   scheduled_mined_total: string;
   matches_schedule: boolean;
-  genesis_allocation: string;
-  total_supply: string;
   fees_total: string;
   next_subsidy: string;
   tip_target: string;
   average_block_seconds: number | null;
 };
 
-export type AllocationOutput = TxOutput & {
-  txid: string;
-};
-
-export type AllocationInfo = {
-  genesis_block_id: string;
-  allocated: string;
-  unspent: string;
-  outputs: AllocationOutput[];
-  addresses: AddressInfo[];
-};
-
 export type MempoolInfo = {
   count: number;
-  txids: string[];
 };
 
 export type SearchResult = {
-  kind: 'block' | 'tx' | 'address';
+  kind: 'block' | 'tx';
   key: string;
 };
 
@@ -342,30 +280,6 @@ export async function fetchTx(
   return requestJson<TxDetail>(`/tx/${encodeURIComponent(txid)}`, fetchFn);
 }
 
-export async function fetchAddress(
-  address: string,
-  page = 0,
-  fetchFn?: FetchImpl
-): Promise<ApiResult<AddressInfo>> {
-  if (USE_MOCK && !fetchFn) {
-    await mockDelay();
-    const fail = checkMockGlobalFailure(false);
-    if (fail) return fail;
-    const info = getMockAddressInfo(address, page);
-    if (!info) {
-      return {
-        ok: false,
-        failure: { kind: 'http', status: 404, error: 'not_found' },
-      };
-    }
-    return { ok: true, data: info };
-  }
-  return requestJson<AddressInfo>(
-    `/address/${encodeURIComponent(address)}?page=${encodeURIComponent(String(page))}`,
-    fetchFn
-  );
-}
-
 export async function fetchSupply(fetchFn?: FetchImpl): Promise<ApiResult<SupplyInfo>> {
   if (USE_MOCK && !fetchFn) {
     await mockDelay();
@@ -374,22 +288,6 @@ export async function fetchSupply(fetchFn?: FetchImpl): Promise<ApiResult<Supply
     return { ok: true, data: getMockSupplyInfo() };
   }
   return requestJson<SupplyInfo>('/supply', fetchFn);
-}
-
-export async function fetchAllocation(
-  page = 0,
-  fetchFn?: FetchImpl
-): Promise<ApiResult<AllocationInfo>> {
-  if (USE_MOCK && !fetchFn) {
-    await mockDelay();
-    const fail = checkMockGlobalFailure(false);
-    if (fail) return fail;
-    return { ok: true, data: getMockAllocationInfo(page) };
-  }
-  return requestJson<AllocationInfo>(
-    `/allocation?page=${encodeURIComponent(String(page))}`,
-    fetchFn
-  );
 }
 
 export async function fetchMempool(fetchFn?: FetchImpl): Promise<ApiResult<MempoolInfo>> {

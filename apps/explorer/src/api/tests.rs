@@ -1,18 +1,35 @@
 use homeostasis_consensus::{SupplySchedule, regtest_network_id};
 use homeostasis_crypto::txid;
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{Hash32, Network, OutputKind};
-use homeostasis_wallet_core::encode_address;
+use homeostasis_primitives::{Hash32, Network};
 use serde_json::Value;
 
 use super::{NodeView, SyncStatus, respond};
 use crate::index::Indexer;
-use crate::test_support::{Chain, Fault, genesis_output, out, payload, spend};
+use crate::test_support::{Chain, Fault, genesis_output, out, spend};
 
 const FEE: u128 = 1_000;
 
-fn addr(payload: &[u8; 32]) -> String {
-    encode_address(Network::Regtest, OutputKind::SingleKey, payload)
+/// Alamat regtest bech32m yang sah bentuknya (untuk memastikan alamat tidak pernah dicari).
+const SOME_ADDRESS: &str = "rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9x8gf2tvdw0s3jn54khce6";
+
+/// Kunci yang tidak boleh muncul di jawaban mana pun (DEC-28).
+const HIDDEN_KEYS: [&str; 9] = [
+    "address",
+    "payload",
+    "inputs",
+    "outputs",
+    "spent_by",
+    "genesis_allocation",
+    "total_supply",
+    "unspent",
+    "addresses",
+];
+
+fn assert_hidden(body: &Value) {
+    let text = body.to_string();
+    for key in HIDDEN_KEYS {
+        assert!(!text.contains(&format!("\"{key}\"")), "{key} di {text}");
+    }
 }
 
 /// Genesis + 3 blok ke pemilik 2; blok 3 membelanjakan alokasi genesis ke pemilik 3 (alokasi − 1_500) dan pemilik 2
@@ -69,7 +86,6 @@ fn heights(body: &Value) -> Vec<u64> {
 #[test]
 fn api_serves_indexed_chain() {
     let (chain, index, tx_id) = indexed();
-    let (genesis_txid, allocation, genesis_payload) = genesis_output();
     let schedule: Vec<_> = SupplySchedule::new().take(4).collect();
     let hex = |id: Hash32| id.to_string();
     let quanta = |value: u128| value.to_string();
@@ -115,49 +131,29 @@ fn api_serves_indexed_chain() {
     assert_eq!(tx["is_coinbase"], false);
     assert_eq!(tx["fee"], quanta(FEE));
     assert_eq!(tx["confirmations"], 1);
-    assert_eq!(tx["inputs"][0]["txid"], hex(genesis_txid));
-    assert_eq!(tx["inputs"][0]["index"], 0);
-    assert_eq!(tx["inputs"][0]["amount"], quanta(allocation));
-    assert_eq!(tx["inputs"][0]["address"], addr(&genesis_payload));
-    assert!(tx["inputs"][0].get("spent_by").is_none());
-    assert_eq!(tx["outputs"][0]["amount"], quanta(allocation - 1_500));
-    assert_eq!(tx["outputs"][0]["kind"], 0);
-    assert_eq!(tx["outputs"][0]["address"], addr(&payload(3)));
-    assert_eq!(tx["outputs"][0]["spent_by"], Value::Null);
-    assert_eq!(tx["outputs"][1]["index"], 1);
+    assert_eq!(tx["input_count"], 1);
+    assert_eq!(tx["output_count"], 2);
+    assert_hidden(&tx);
+    let coinbase = get(
+        &index,
+        &format!("/api/v1/tx/{}", tip["txids"][0].as_str().unwrap()),
+    );
+    assert_eq!(coinbase["is_coinbase"], true);
+    assert_eq!(coinbase["input_count"], 0);
+    assert_eq!(coinbase["output_count"], 1);
 
-    let receiver = get(&index, &format!("/api/v1/address/{}", addr(&payload(3))));
-    assert_eq!(receiver["balance"], quanta(allocation - 1_500));
-    assert_eq!(receiver["payload"], hex(Hash32::from_bytes(payload(3))));
-    assert_eq!(receiver["kind"], 0);
-    assert_eq!(
-        (
-            receiver["tx_count"].as_u64(),
-            receiver["utxo_count"].as_u64()
-        ),
-        (Some(1), Some(1))
-    );
-    assert_eq!(
-        (receiver["page"].as_u64(), receiver["page_size"].as_u64()),
-        (Some(0), Some(25))
-    );
-    assert_eq!(receiver["txs"][0]["txid"], hex(tx_id));
-    assert_eq!(receiver["txs"][0]["confirmations"], 1);
-    let creator = get(
-        &index,
-        &format!("/api/v1/address/{}", addr(&genesis_payload)),
-    );
-    assert_eq!(creator["balance"], "0");
-    assert_eq!(creator["sent"], quanta(allocation));
-    assert_eq!(creator["tx_count"], 2);
-    let later = get_query(
-        &index,
-        &format!("/api/v1/address/{}", addr(&payload(2))),
-        Some("page=1"),
-    );
-    assert_eq!(later["tx_count"], 4);
-    assert_eq!(later["page"], 1);
-    assert!(later["txs"].as_array().unwrap().is_empty());
+    // Alamat dan alokasi genesis tidak punya jalur API (DEC-28).
+    for path in [
+        format!("/api/v1/address/{SOME_ADDRESS}"),
+        "/api/v1/allocation".to_owned(),
+    ] {
+        let (status, body) = call(&index, &SyncStatus::default(), "GET", &path, None);
+        assert_eq!(
+            (status, body["error"].as_str()),
+            (404, Some("not_found")),
+            "{path}"
+        );
+    }
 
     let supply = get(&index, "/api/v1/supply");
     let mined = schedule[3].mined_total_after;
@@ -165,49 +161,27 @@ fn api_serves_indexed_chain() {
     assert_eq!(supply["mined_total"], quanta(mined.as_quanta()));
     assert_eq!(supply["scheduled_mined_total"], quanta(mined.as_quanta()));
     assert_eq!(supply["matches_schedule"], true);
-    assert_eq!(
-        supply["genesis_allocation"],
-        quanta(GENESIS_ALLOCATION.as_quanta())
-    );
-    assert_eq!(
-        supply["total_supply"],
-        quanta(GENESIS_ALLOCATION.checked_add(mined).unwrap().as_quanta())
-    );
     assert_eq!(supply["fees_total"], quanta(FEE));
     assert_eq!(supply["tip_target"], "207fffff");
     assert_eq!(supply["average_block_seconds"], 120);
-
-    let allocation_page = get(&index, "/api/v1/allocation");
-    assert_eq!(allocation_page["genesis_block_id"], hex(chain.id(0)));
-    assert_eq!(
-        allocation_page["allocated"],
-        quanta(GENESIS_ALLOCATION.as_quanta())
-    );
-    assert_eq!(allocation_page["unspent"], "0");
-    assert_eq!(allocation_page["outputs"][0]["txid"], hex(genesis_txid));
-    assert_eq!(
-        allocation_page["outputs"][0]["spent_by"]["txid"],
-        hex(tx_id)
-    );
-    assert_eq!(allocation_page["outputs"][0]["spent_by"]["height"], 3);
-    assert_eq!(
-        allocation_page["addresses"][0]["address"],
-        addr(&genesis_payload)
-    );
-    assert_eq!(allocation_page["addresses"][0]["balance"], "0");
+    assert_hidden(&supply);
 
     let mempool = get(&index, "/api/v1/mempool");
-    assert_eq!(mempool["count"], 0);
-    assert!(mempool["txids"].as_array().unwrap().is_empty());
+    assert_eq!(mempool, serde_json::json!({ "count": 0 }));
 
     let search = |q: &str| get(&index, &format!("/api/v1/search/{q}"));
     assert_eq!(search("3")["kind"], "block");
     assert_eq!(search("3")["key"], hex(chain.id(3)));
     assert_eq!(search(&hex(chain.id(1)))["kind"], "block");
     assert_eq!(search(&hex(tx_id))["kind"], "tx");
-    let address = search(&addr(&payload(3)));
-    assert_eq!(address["kind"], "address");
-    assert_eq!(address["key"], addr(&payload(3)));
+    for path in [
+        "/api/v1/status",
+        "/api/v1/blocks",
+        "/api/v1/block/0",
+        "/api/v1/block/3",
+    ] {
+        assert_hidden(&get(&index, path));
+    }
 }
 
 #[test]
@@ -280,20 +254,20 @@ fn api_rejects_bad_requests_and_reports_status() {
             "GET",
             "/api/v1/address/bukan-alamat".to_owned(),
             None,
-            400,
-            "bad_request",
-        ),
-        (
-            "GET",
-            format!("/api/v1/address/{}", addr(&payload(3))),
-            Some("page=01"),
-            400,
-            "bad_request",
+            404,
+            "not_found",
         ),
         (
             "GET",
             "/api/v1/allocation".to_owned(),
             Some("page=x"),
+            404,
+            "not_found",
+        ),
+        (
+            "GET",
+            format!("/api/v1/search/{SOME_ADDRESS}"),
+            None,
             400,
             "bad_request",
         ),
@@ -339,8 +313,7 @@ fn api_rejects_bad_requests_and_reports_status() {
     );
     assert_eq!((status, body["in_mempool"].as_bool()), (404, Some(true)));
     let (_, mempool) = call(&index, &none, "GET", "/api/v1/mempool", None);
-    assert_eq!(mempool["count"], 1);
-    assert_eq!(mempool["txids"][0], pending.to_string());
+    assert_eq!(mempool, serde_json::json!({ "count": 1 }));
 
     // Ujung node dan galat terakhir dari server, galat yang menghentikan indexer dari indeks.
     let sync = SyncStatus {

@@ -11,7 +11,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 | FTR-02 | Menambang blok di regtest | MOD-01, 03, 04, 08, 11, 13 | TSK-F02 | 🟢 |
 | FTR-03 | Kirim dan terima HSIS lewat CLI di regtest | MOD-01, 02, 04, 07, 08, 09, 11, 12 | TSK-F03 | 🟢 |
 | FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | 🟢 |
-| FTR-05 | Explorer minimal dengan halaman alokasi pencipta | MOD-01, 02, 04, 08, 09, 14 (DEC-25) | TSK-F05 | 🟢 |
+| FTR-05 | Explorer minimal (hanya data sistem sejak DEC-28) | MOD-01, 02, 04, 08, 14 (DEC-25, DEC-28) | TSK-F05, TSK-M39 | 🟢 |
 | FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 DEC-01 |
 | FTR-07 | Wallet desktop (P0) | MOD-08, 09, 15 | TSK-F07 | ⚪ |
 | FTR-08 | Wallet mobile | MOD-09, 15 | TSK-F08 | ⚪ |
@@ -38,8 +38,11 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 - **Selesai bila:** 4 node atau lebih tetap sinkron; uji reorg dalam (tanpa batas kedalaman) lolos; node yang sempat offline mengejar chain dengan kerja terbanyak.
 
 ### FTR-05 · Explorer minimal · 🟢
-- **Nilai:** siapa pun bisa memeriksa chain, termasuk alokasi pencipta, tanpa perlu percaya pada pencipta.
-- **Selesai bila:** API explorer menampilkan blok, transaksi, alamat, statistik pasokan, dan halaman alokasi genesis; indexer tahan reorg.
+- **Nilai:** siapa pun bisa memeriksa chain (blok, transaksi, pasokan sesuai jadwal) tanpa perlu percaya pada node atau
+  pencipta, tanpa explorer menampilkan "apa dan siapa".
+- **Selesai bila (diubah DEC-28, 3 November 2026):** API explorer menampilkan blok, ringkasan transaksi, dan statistik
+  pasokan hasil tambang, tanpa alamat, jumlah per penerima, jejak koin, dan alokasi genesis; indeks tetap mencatat semuanya
+  dengan benar (I1–I4); indexer tahan reorg.
 
 ### FTR-06 · Testnet publik · 🔴
 - **Terblokir oleh:** DEC-01 (PoW mainnet) dan parameter testnet.

@@ -85,11 +85,6 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
       match: (p: string) => p.startsWith('/supply'),
     },
     {
-      href: '/allocation/',
-      label: t('navAllocation'),
-      match: (p: string) => p.startsWith('/allocation'),
-    },
-    {
       href: '/mempool/',
       label: t('navMempool'),
       match: (p: string) => p.startsWith('/mempool'),
@@ -262,10 +257,8 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
               <div className="flex items-start gap-3">
                 <AlertOctagon className="h-4 w-4 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <div className="font-semibold">{t('bannerIndexErrorBody')}</div>
-                  <div className="font-mono text-[11px] opacity-90 break-all">
-                    {status.index_error}
-                  </div>
+                  <div className="font-semibold">{t('bannerIndexErrorTitle')}</div>
+                  <div className="text-[11px] opacity-90">{t('bannerIndexErrorBody')}</div>
                 </div>
               </div>
             </Alert>
@@ -275,9 +268,9 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
             <Alert variant="warning" className="mt-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold">{t('bannerLastErrorTitle')}: </span>
-                  <span className="font-mono text-[11px]">{status.last_error}</span>
+                <div className="space-y-1">
+                  <div className="font-semibold">{t('bannerLastErrorTitle')}</div>
+                  <div className="text-[11px] opacity-90">{t('bannerLastErrorBody')}</div>
                 </div>
               </div>
             </Alert>
@@ -413,7 +406,7 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
                 >
                   <span className="inline-flex items-center gap-2 font-medium">
                     <ShieldCheck className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                    <span>Block #0 (Genesis Allocation)</span>
+                    <span>Block #0 (Genesis)</span>
                   </span>
                   <span className="font-mono text-[11px] text-slate-400">
                     {truncateMiddle(showcase.genesisBlockId, 8, 6)}
@@ -451,23 +444,6 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
                   </span>
                   <span className="font-mono text-[11px] text-slate-400">
                     {truncateMiddle(showcase.mempoolPendingTxId, 8, 6)}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCmdOpen(false);
-                    router.push(routes.address(showcase.creatorPrimaryAddress));
-                  }}
-                  className="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 text-left cursor-pointer"
-                >
-                  <span className="inline-flex items-center gap-2 font-medium">
-                    <ArrowRight className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                    <span>Creator Primary Address</span>
-                  </span>
-                  <span className="font-mono text-[11px] text-slate-400">
-                    {truncateMiddle(showcase.creatorPrimaryAddress, 10, 6)}
                   </span>
                 </button>
               </div>

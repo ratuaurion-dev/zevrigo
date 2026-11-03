@@ -292,18 +292,18 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* 6. Total Supply */}
+        {/* 6. Cumulative Fees */}
         <Card>
           <CardContent className="p-4 space-y-1">
             <div className="text-xs text-slate-500 dark:text-slate-400">
-              {t('statTotalSupply')}
+              {t('supplyCumulativeFees')}
             </div>
             {isLoading && !supply ? (
               <Skeleton className="h-7 w-36" />
             ) : (
               <div className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">
                 {supply ? (
-                  <HsisAmount quanta={supply.total_supply} compact maxDecimals={4} />
+                  <HsisAmount quanta={supply.fees_total} compact maxDecimals={6} />
                 ) : (
                   '—'
                 )}
@@ -402,18 +402,6 @@ export default function DashboardPage() {
               <div>
                 <HsisAmount quanta={supply.mined_total} /> /{' '}
                 {formatHsis(MINING_SUPPLY_QUANTA, lang)} ({minedPercentLabel})
-              </div>
-              <div className="text-slate-500 dark:text-slate-400 font-sans">
-                {t('supplyGenesisSeparateNote', {
-                  amount: formatHsis(supply.genesis_allocation, lang),
-                })}{' '}
-                ·{' '}
-                <Link
-                  href={routes.allocation()}
-                  className="text-teal-700 dark:text-teal-400 hover:underline font-medium"
-                >
-                  {t('navAllocation')} →
-                </Link>
               </div>
             </div>
           </CardContent>

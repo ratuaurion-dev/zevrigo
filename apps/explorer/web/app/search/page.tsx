@@ -42,8 +42,6 @@ function SearchHandlerContent() {
           router.replace(routes.block(match.key));
         } else if (match.kind === 'tx') {
           router.replace(routes.tx(match.key));
-        } else if (match.kind === 'address') {
-          router.replace(routes.address(match.key));
         }
         return;
       }

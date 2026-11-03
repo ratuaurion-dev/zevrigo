@@ -84,6 +84,13 @@ impl Shared {
         respond(&index, &sync, self.network, method, path, query)
     }
 
+    /// Membaca indeks langsung dengan `read` (untuk operator dan uji), tidak lewat API HTTP. Dipakai untuk data yang
+    /// sengaja tidak disajikan API (DEC-28): alamat, input dan output transaksi, alokasi genesis. `None` jika kunci
+    /// indeks rusak.
+    pub fn read_index<T>(&self, read: impl FnOnce(&Indexer) -> T) -> Option<T> {
+        self.indexer.lock().ok().map(|index| read(&index))
+    }
+
     /// Satu langkah sinkronisasi dengan node: ujung node untuk `/status`, lalu [`Indexer::sync_step`]. Galat dicatat
     /// di `last_error` dan di log (sekali per galat yang sama).
     pub fn sync_once(&self, source: &RpcSource) {

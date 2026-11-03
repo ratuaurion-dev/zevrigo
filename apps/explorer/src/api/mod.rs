@@ -1,25 +1,25 @@
 //! API HTTP baca saja explorer (Spesifikasi Explorer v0.1 Bagian 5), sebagai fungsi murni di atas [`Indexer`].
 //!
+//! API hanya menyajikan data sistem (DEC-28): blok, ringkasan transaksi, pasokan hasil tambang, dan jumlah mempool.
+//! Alamat, saldo, jumlah per penerima, jejak koin (input, output, pembelanja), dan alokasi genesis tidak pernah
+//! disajikan, supaya explorer tidak menampilkan "apa dan siapa". Datanya tetap ada di indeks untuk pemeriksaan I1–I4.
+//!
 //! [`respond`] menerima metode, jalur, dan query string, lalu mengembalikan kode status HTTP dan badan JSON. Server
 //! axum ([`crate::server`]) hanya meneruskan permintaan ke fungsi ini, sehingga seluruh API bisa diuji tanpa jaringan.
 //! Encoding nilai mengikuti Spesifikasi RPC v0.1 Bagian 2: jumlah koin string desimal quanta (tidak pernah angka
 //! JSON), hash dan payload hex huruf kecil 64 karakter, target compact hex 8 karakter, nonce string desimal.
 
-use homeostasis_primitives::{Amount, Hash32, Network, OutputKind};
-use homeostasis_wallet_core::{decode_address, encode_address};
+use homeostasis_primitives::{Amount, Hash32, Network};
 use serde_json::{Map, Value};
 
 use crate::index::{IndexError, Indexer};
-use crate::query::{OutputRow, SpentBy, confirmations};
+use crate::query::confirmations;
 
 /// Awalan semua jalur API.
 pub const API_PREFIX: &str = "/api/v1/";
 
 /// Jumlah blok paling banyak di `/blocks`.
 pub const BLOCKS_PER_PAGE: usize = 20;
-
-/// Jumlah transaksi per halaman riwayat alamat.
-pub const ADDRESS_PAGE_SIZE: usize = 25;
 
 /// Badan jawaban galat internal.
 const INTERNAL_BODY: &str = "{\"error\":\"internal\"}";
@@ -66,7 +66,7 @@ impl ApiResponse {
 
 /// Galat permintaan.
 enum ApiError {
-    /// `400`: kunci, hex, alamat, atau angka query tidak sah.
+    /// `400`: kunci, hex, atau angka query tidak sah.
     BadRequest,
     /// `404`: tidak ada di indeks; untuk transaksi, `in_mempool` ikut dilaporkan.
     NotFound { in_mempool: Option<bool> },
@@ -125,14 +125,6 @@ fn compact(target: u32) -> Value {
     Value::String(format!("{target:08x}"))
 }
 
-fn spent(by: &SpentBy) -> Value {
-    object(vec![
-        ("txid", hash(&by.txid)),
-        ("input", number(u64::from(by.input))),
-        ("height", number(by.height)),
-    ])
-}
-
 const fn network_name(network: Network) -> &'static str {
     match network {
         Network::Mainnet => "mainnet",
@@ -174,14 +166,6 @@ fn query_number(query: Option<&str>, key: &str) -> Result<Option<u64>, ApiError>
         }
     }
     Ok(None)
-}
-
-/// Nomor halaman `page` (mulai 0, bawaan 0).
-fn page(query: Option<&str>) -> Result<usize, ApiError> {
-    match query_number(query, "page")? {
-        None => Ok(0),
-        Some(page) => usize::try_from(page).map_err(|_| ApiError::BadRequest),
-    }
 }
 
 fn encode(status: u16, value: &Value) -> ApiResponse {
@@ -248,18 +232,12 @@ fn route(
     let Some((tip, _)) = index.tip()? else {
         return Err(ApiError::NotReady);
     };
-    let ctx = Ctx {
-        index,
-        network,
-        tip,
-    };
+    let ctx = Ctx { index, tip };
     match segments.as_slice() {
         ["blocks"] => ctx.blocks(query_number(query, "before")?),
         ["block", key] => ctx.block(key),
         ["tx", id] => ctx.tx(id),
-        ["address", text] => ctx.address_page(text, page(query)?),
         ["supply"] => ctx.supply(),
-        ["allocation"] => ctx.allocation(page(query)?),
         ["mempool"] => ctx.mempool(),
         ["search", text] => ctx.search(text),
         _ => Err(not_found()),
@@ -304,41 +282,12 @@ fn status(index: &Indexer, sync: &SyncStatus, network: Network) -> Result<Value,
 /// Konteks satu permintaan sesudah genesis terindeks.
 struct Ctx<'a> {
     index: &'a Indexer,
-    network: Network,
     tip: u64,
 }
 
 impl Ctx<'_> {
     fn confirmations(&self, height: u64) -> Value {
         number(confirmations(self.tip, height))
-    }
-
-    fn address(&self, kind: u8, payload: &[u8; 32]) -> Result<Value, ApiError> {
-        let kind = OutputKind::from_u8(kind).map_err(|_| ApiError::Internal)?;
-        Ok(Value::String(encode_address(self.network, kind, payload)))
-    }
-
-    /// Satu output. `include_txid` untuk input dan alokasi genesis (rujukan outpoint), `include_spent` untuk output
-    /// dan alokasi genesis (pembelanja).
-    fn output(
-        &self,
-        row: &OutputRow,
-        include_txid: bool,
-        include_spent: bool,
-    ) -> Result<Value, ApiError> {
-        let mut fields = Vec::new();
-        if include_txid {
-            fields.push(("txid", hash(&row.txid)));
-        }
-        fields.push(("index", number(u64::from(row.index))));
-        fields.push(("amount", amount(row.amount)));
-        fields.push(("kind", number(u64::from(row.kind))));
-        fields.push(("payload", bytes32(&row.payload)));
-        fields.push(("address", self.address(row.kind, &row.payload)?));
-        if include_spent {
-            fields.push(("spent_by", optional(row.spent_by.as_ref().map(spent))));
-        }
-        Ok(object(fields))
     }
 
     fn blocks(&self, before: Option<u64>) -> Result<Value, ApiError> {
@@ -400,16 +349,7 @@ impl Ctx<'_> {
                 in_mempool: Some(self.index.in_mempool(&id)?),
             });
         };
-        let inputs = detail
-            .inputs
-            .iter()
-            .map(|row| self.output(row, true, false))
-            .collect::<Result<Vec<_>, _>>()?;
-        let outputs = detail
-            .outputs
-            .iter()
-            .map(|row| self.output(row, false, true))
-            .collect::<Result<Vec<_>, _>>()?;
+        // Hanya ringkasan (DEC-28): tanpa alamat, jumlah per output, maupun rujukan input dan pembelanja.
         let tx = &detail.tx;
         Ok(object(vec![
             ("txid", hash(&tx.txid)),
@@ -420,45 +360,9 @@ impl Ctx<'_> {
             ("is_coinbase", Value::Bool(tx.is_coinbase)),
             ("fee", amount(tx.fee)),
             ("confirmations", self.confirmations(tx.height)),
-            ("inputs", Value::Array(inputs)),
-            ("outputs", Value::Array(outputs)),
+            ("input_count", count(detail.inputs.len())),
+            ("output_count", count(detail.outputs.len())),
         ]))
-    }
-
-    fn address_object(&self, kind: u8, payload: &[u8; 32], page: usize) -> Result<Value, ApiError> {
-        let summary = self.index.address(kind, payload, page, ADDRESS_PAGE_SIZE)?;
-        let txs = summary
-            .txs
-            .iter()
-            .map(|tx| {
-                object(vec![
-                    ("txid", hash(&tx.txid)),
-                    ("height", number(tx.height)),
-                    ("confirmations", self.confirmations(tx.height)),
-                    ("received", amount(tx.received)),
-                    ("sent", amount(tx.sent)),
-                ])
-            })
-            .collect();
-        Ok(object(vec![
-            ("address", self.address(kind, payload)?),
-            ("kind", number(u64::from(kind))),
-            ("payload", bytes32(payload)),
-            ("balance", amount(summary.balance)),
-            ("received", amount(summary.received)),
-            ("sent", amount(summary.sent)),
-            ("utxo_count", number(summary.utxo_count)),
-            ("tx_count", number(summary.tx_count)),
-            ("page", count(page)),
-            ("page_size", count(ADDRESS_PAGE_SIZE)),
-            ("txs", Value::Array(txs)),
-        ]))
-    }
-
-    fn address_page(&self, text: &str, page: usize) -> Result<Value, ApiError> {
-        let (kind, payload) =
-            decode_address(self.network, text).map_err(|_| ApiError::BadRequest)?;
-        self.address_object(kind.to_u8(), &payload, page)
     }
 
     fn supply(&self) -> Result<Value, ApiError> {
@@ -468,8 +372,6 @@ impl Ctx<'_> {
             ("mined_total", amount(info.mined_total)),
             ("scheduled_mined_total", amount(info.scheduled_mined_total)),
             ("matches_schedule", Value::Bool(info.matches_schedule)),
-            ("genesis_allocation", amount(info.genesis_allocation)),
-            ("total_supply", amount(info.total_supply)),
             ("fees_total", amount(info.fees_total)),
             ("next_subsidy", amount(info.next_subsidy)),
             ("tip_target", compact(info.tip_target)),
@@ -480,38 +382,9 @@ impl Ctx<'_> {
         ]))
     }
 
-    fn allocation(&self, page: usize) -> Result<Value, ApiError> {
-        let info = self.index.allocation()?.ok_or(ApiError::NotReady)?;
-        let outputs = info
-            .outputs
-            .iter()
-            .map(|row| self.output(row, true, true))
-            .collect::<Result<Vec<_>, _>>()?;
-        let mut owners: Vec<(u8, [u8; 32])> = Vec::new();
-        for row in &info.outputs {
-            if !owners.contains(&(row.kind, row.payload)) {
-                owners.push((row.kind, row.payload));
-            }
-        }
-        let addresses = owners
-            .iter()
-            .map(|(kind, payload)| self.address_object(*kind, payload, page))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(object(vec![
-            ("genesis_block_id", hash(&info.genesis_block_id)),
-            ("allocated", amount(info.allocated)),
-            ("unspent", amount(info.unspent)),
-            ("outputs", Value::Array(outputs)),
-            ("addresses", Value::Array(addresses)),
-        ]))
-    }
-
     fn mempool(&self) -> Result<Value, ApiError> {
         let txids = self.index.mempool()?;
-        Ok(object(vec![
-            ("count", count(txids.len())),
-            ("txids", Value::Array(txids.iter().map(hash).collect())),
-        ]))
+        Ok(object(vec![("count", count(txids.len()))]))
     }
 
     fn search(&self, text: &str) -> Result<Value, ApiError> {
@@ -533,9 +406,7 @@ impl Ctx<'_> {
                 in_mempool: Some(self.index.in_mempool(&id)?),
             });
         }
-        if decode_address(self.network, text).is_ok() {
-            return Ok(found("address", Value::String(text.to_owned())));
-        }
+        // Alamat tidak dicari (DEC-28): teks selain tinggi dan hash adalah permintaan tidak sah.
         Err(ApiError::BadRequest)
     }
 }

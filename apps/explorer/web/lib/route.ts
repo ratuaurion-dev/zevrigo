@@ -1,6 +1,5 @@
 const HEIGHT_REGEX = /^(0|[1-9][0-9]{0,19})$/;
 const HASH_REGEX = /^[0-9a-f]{64}$/;
-const ADDRESS_REGEX = /^(hsis|thsis|rhsis)1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{6,100}$/;
 const PAGE_REGEX = /^(0|[1-9][0-9]{0,8})$/;
 
 export function isValidHeight(value: string): boolean {
@@ -15,10 +14,6 @@ export function isValidBlockIdOrHeight(value: string): boolean {
   return isValidHeight(value) || isValidHash(value);
 }
 
-export function isValidAddress(value: string): boolean {
-  return typeof value === 'string' && ADDRESS_REGEX.test(value);
-}
-
 export function isValidPage(value: string): boolean {
   return typeof value === 'string' && PAGE_REGEX.test(value);
 }
@@ -26,7 +21,6 @@ export function isValidPage(value: string): boolean {
 export type ClassifiedQuery =
   | { kind: 'height'; normalized: string }
   | { kind: 'hash'; normalized: string }
-  | { kind: 'address'; normalized: string }
   | { kind: 'invalid'; normalized: string };
 
 export function classifySearchQuery(raw: string): ClassifiedQuery {
@@ -37,9 +31,7 @@ export function classifySearchQuery(raw: string): ClassifiedQuery {
   if (isValidHash(normalized)) {
     return { kind: 'hash', normalized };
   }
-  if (isValidAddress(normalized)) {
-    return { kind: 'address', normalized };
-  }
+  // Alamat tidak pernah dicari (DEC-28): explorer tidak menampilkan "apa dan siapa".
   return { kind: 'invalid', normalized };
 }
 
@@ -50,17 +42,8 @@ export const routes = {
   block: (idOrHeight: string | number) =>
     `/block/?id=${encodeURIComponent(String(idOrHeight))}`,
   tx: (txid: string) => `/tx/?id=${encodeURIComponent(txid)}`,
-  address: (address: string, page?: number) => {
-    const base = `/address/?a=${encodeURIComponent(address)}`;
-    return page !== undefined && page > 0 ? `${base}&page=${encodeURIComponent(String(page))}` : base;
-  },
   supply: () => '/supply/',
-  allocation: (page?: number) =>
-    page !== undefined && page > 0
-      ? `/allocation/?page=${encodeURIComponent(String(page))}`
-      : '/allocation/',
   mempool: () => '/mempool/',
-  nodes: () => '/nodes/',
   search: (query: string) => `/search/?q=${encodeURIComponent(query.trim())}`,
 };
 

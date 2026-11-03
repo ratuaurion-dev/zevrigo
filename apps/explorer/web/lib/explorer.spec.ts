@@ -9,17 +9,17 @@ import {
   U128_MAX,
 } from './amount';
 import { formatRelativeTime, formatUtcTimestamp } from './time';
-import {
-  classifySearchQuery,
-  isValidAddress,
-  isValidHash,
-  isValidHeight,
-  isValidPage,
-  routes,
-} from './route';
+import { classifySearchQuery, isValidHash, isValidHeight, isValidPage, routes } from './route';
 import { en, id, translate } from './i18n';
-import { fetchAddress, fetchAllocation, fetchBlocks, fetchTx, requestJson } from './api';
+import { fetchBlocks, fetchMempool, fetchSearch, fetchSupply, fetchTx, requestJson } from './api';
 import { API_BASE_PATH, USE_MOCK } from './config';
+import {
+  getMockMempoolInfo,
+  getMockSearchResult,
+  getMockSupplyInfo,
+  getMockTxDetail,
+  getSampleShowcaseIds,
+} from './mock';
 
 describe('amount parse and format (BigInt only)', () => {
   it('parses valid quanta strings up to u128 max and rejects invalid inputs', () => {
@@ -117,7 +117,7 @@ describe('UTC and relative time formatting (civil-from-days integer math)', () =
 });
 
 describe('validators and href builders', () => {
-  it('validates height, hash, bech32m address, and page', () => {
+  it('validates height, hash, and page; addresses are never search keys', () => {
     expect(isValidHeight('0')).toBe(true);
     expect(isValidHeight('120')).toBe(true);
     expect(isValidHeight('01')).toBe(false);
@@ -128,19 +128,13 @@ describe('validators and href builders', () => {
     expect(isValidHash('A'.repeat(64))).toBe(false);
     expect(isValidHash('a'.repeat(63))).toBe(false);
 
-    expect(
-      isValidAddress('rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9')
-    ).toBe(true);
-    expect(
-      isValidAddress('hsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9')
-    ).toBe(true);
-    expect(
-      isValidAddress('thsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9')
-    ).toBe(true);
-    expect(isValidAddress('btc1qpzry9x8gf2tvdw0s3jn54khce6mua7l')).toBe(
-      false
-    );
-    expect(isValidAddress('rhsis1invalidcharb')).toBe(false);
+    for (const address of [
+      'rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
+      'hsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
+      'thsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
+    ]) {
+      expect(classifySearchQuery(address).kind).toBe('invalid');
+    }
 
     expect(isValidPage('0')).toBe(true);
     expect(isValidPage('25')).toBe(true);
@@ -158,11 +152,11 @@ describe('validators and href builders', () => {
     expect(routes.blocks(100)).toBe('/blocks/?before=100');
     expect(routes.block(120)).toBe('/block/?id=120');
     expect(routes.tx('abc')).toBe('/tx/?id=abc');
-    expect(routes.address('rhsis1qpzry9', 2)).toBe(
-      '/address/?a=rhsis1qpzry9&page=2'
+    expect(routes.supply()).toBe('/supply/');
+    expect(routes.mempool()).toBe('/mempool/');
+    expect(Object.keys(routes).sort()).toEqual(
+      ['block', 'blocks', 'home', 'mempool', 'search', 'supply', 'tx'].sort()
     );
-    expect(routes.allocation()).toBe('/allocation/');
-    expect(routes.allocation(1)).toBe('/allocation/?page=1');
   });
 });
 
@@ -270,20 +264,42 @@ describe('API paths and mock mode', () => {
     await fetchBlocks(undefined, fetchFn);
     await fetchBlocks(5, fetchFn);
     await fetchTx(txid, fetchFn);
-    await fetchAddress('rhsis1qqq', 2, fetchFn);
-    await fetchAllocation(0, fetchFn);
+    await fetchSupply(fetchFn);
+    await fetchMempool(fetchFn);
+    await fetchSearch('120', fetchFn);
     expect(API_BASE_PATH).toBe('/api/v1');
     expect(seen).toEqual([
       '/api/v1/blocks',
       '/api/v1/blocks?before=5',
       `/api/v1/tx/${txid}`,
-      '/api/v1/address/rhsis1qqq?page=2',
-      '/api/v1/allocation?page=0',
+      '/api/v1/supply',
+      '/api/v1/mempool',
+      '/api/v1/search/120',
     ]);
   });
 
   it('keeps mock data off unless NEXT_PUBLIC_USE_MOCK=1', () => {
     expect(process.env.NEXT_PUBLIC_USE_MOCK).toBeUndefined();
     expect(USE_MOCK).toBe(false);
+  });
+});
+
+describe('privacy: system data only (DEC-28)', () => {
+  it('mock data exposes no address, per-output amount, coin trail, or genesis allocation', () => {
+    const ids = getSampleShowcaseIds();
+    const { tx } = getMockTxDetail(ids.spendTxId);
+    expect(tx).not.toBeNull();
+    if (tx) {
+      expect(tx.input_count).toBe(1);
+      expect(tx.output_count).toBe(2);
+    }
+    const coinbase = getMockTxDetail(ids.genesisCoinbaseTxId).tx;
+    expect(coinbase?.input_count).toBe(0);
+    const text = JSON.stringify([tx, coinbase, getMockSupplyInfo(), getMockMempoolInfo(), ids]);
+    for (const key of ['address', 'payload', 'inputs', 'outputs', 'spent_by', 'genesis_allocation', 'total_supply', 'txids']) {
+      expect(text.includes(`"${key}"`)).toBe(false);
+    }
+    expect(text.includes('rhsis1')).toBe(false);
+    expect(getMockSearchResult('rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9').result).toBeNull();
   });
 });
