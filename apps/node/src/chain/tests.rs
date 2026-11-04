@@ -20,8 +20,8 @@ use homeostasis_rpc::{
 use homeostasis_storage::{ChainStore, MemoryStore, RedbStore};
 
 use super::{
-    Clock, HeadersOutcome, MAX_LOCATOR_IDS, Node, NodeError, NodeLimits, block_rule,
-    locator_heights, mempool_reason,
+    Clock, HeadersOutcome, MAX_LOCATOR_IDS, Node, NodeError, NodeLimits, PRESYNC_COMMIT_INTERVAL,
+    Presync, PresyncOutcome, block_rule, locator_heights, mempool_reason,
 };
 
 /// Cap waktu genesis regtest.
@@ -1404,6 +1404,214 @@ fn trimmed_and_invalid_side_blocks_leave_store() {
     for block in &a {
         assert!(!side_body_stored(&fx, block));
     }
+}
+
+/// Header dari setiap blok `blocks`.
+fn headers_of(blocks: &[Block]) -> Vec<Header> {
+    blocks.iter().map(|block| *block.header()).collect()
+}
+
+/// Rantai `count` blok di atas `prev` mulai tinggi `from`, semuanya ke `owner`, tanpa dikirim ke node.
+fn chain_on(prev: Hash32, from: u64, count: u64, owner: u8) -> Vec<Block> {
+    let mut blocks = Vec::new();
+    let mut parent = prev;
+    for height in from..from + count {
+        let block = block_on(parent, height, owner, Vec::new(), 0);
+        parent = id_of(&block);
+        blocks.push(block);
+    }
+    blocks
+}
+
+#[test]
+fn presync_syncs_branch_longer_than_header_index() {
+    let b = open_limited(NodeLimits {
+        max_headers: 3,
+        ..NodeLimits::DEFAULT
+    });
+    let genesis = params().network_id();
+    extend(&b, genesis, 1, 5, 2);
+    // Cabang dari genesis baru lebih berat daripada chain aktif (chainwork 12) di tinggi 6 (chainwork 14).
+    let long = chain_on(genesis, 1, 8, 4);
+    let headers = headers_of(&long);
+    let ids: Vec<Hash32> = long.iter().map(id_of).collect();
+    // Tanpa presync: indeks header penuh sebelum cabang terbukti lebih berat, jadi tidak ada badan blok yang diminta.
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Full { added: 3 }
+    );
+    assert!(b.node.missing_blocks(16).unwrap().is_empty());
+
+    // Tahap hitung: header diperiksa tanpa disimpan sampai chainwork melebihi chain aktif.
+    let mut presync = Presync::default();
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers[..4]).unwrap(),
+        PresyncOutcome::Continue { after: ids[3] }
+    );
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers[4..]).unwrap(),
+        PresyncOutcome::Redownload { fork: genesis }
+    );
+    assert_eq!(header_set(&b), set(ids[..3].iter().copied()));
+
+    // Unduh ulang dari titik cabang: header disimpan sebagai header terbukti, melebihi batas indeks header.
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers[..2]).unwrap(),
+        PresyncOutcome::Continue { after: ids[1] }
+    );
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers[2..]).unwrap(),
+        PresyncOutcome::Done { added: 3 }
+    );
+    assert_eq!(header_set(&b), set(ids[..6].iter().copied()));
+
+    // Badan blok diunduh dan node reorg ke cabang itu; sisanya lewat sinkronisasi header biasa.
+    assert_eq!(b.node.missing_blocks(16).unwrap(), ids[..6].to_vec());
+    for block in &long[..6] {
+        let receipt = b.node.receive_block(&block.to_bytes()).unwrap();
+        assert_eq!(receipt.result.status, SubmitStatus::Accepted);
+    }
+    assert_active(&b, &long[..6]);
+    assert!(header_set(&b).is_empty());
+    assert_eq!(
+        b.node.accept_headers(&headers).unwrap(),
+        HeadersOutcome::Accepted {
+            added: 2,
+            last: Some(ids[7])
+        }
+    );
+    for block in &long[6..] {
+        assert!(b.node.receive_block(&block.to_bytes()).unwrap().new_tip);
+    }
+    assert_active(&b, &long);
+}
+
+#[test]
+fn presync_stops_on_bad_or_changed_headers() {
+    let b = open_limited(NodeLimits {
+        max_headers: 3,
+        ..NodeLimits::DEFAULT
+    });
+    let genesis = params().network_id();
+    extend(&b, genesis, 1, 5, 2);
+    let long = chain_on(genesis, 1, 8, 4);
+    let headers = headers_of(&long);
+    let fresh = |headers: &[Header]| {
+        let mut presync = Presync::default();
+        b.node.presync_headers(&mut presync, headers).unwrap()
+    };
+
+    // Tidak menyambung ke blok yang dikenal atau ke header sebelumnya, dan header tidak sah: rekan disanksi.
+    assert_eq!(fresh(&headers[1..]), PresyncOutcome::Disconnected);
+    assert_eq!(
+        fresh(&[headers[0], headers[2]]),
+        PresyncOutcome::Disconnected
+    );
+    let tall = *block_on(genesis, 2, 9, Vec::new(), 0).header();
+    assert_eq!(fresh(&[tall]), PresyncOutcome::Invalid { rule: "V5" });
+    // Pesan kosong dan V8: berhenti tanpa sanksi.
+    assert_eq!(fresh(&[]), PresyncOutcome::NotHeavier);
+    b.now.store(T0 + 240 - 3_601, Ordering::SeqCst);
+    assert_eq!(fresh(&headers), PresyncOutcome::Deferred);
+    b.now.store(FAR, Ordering::SeqCst);
+
+    // Unduh ulang dengan cabang lain dari genesis: ID di ujung yang diingat berbeda.
+    let other = headers_of(&chain_on(genesis, 1, 8, 5));
+    let mut presync = Presync::default();
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers).unwrap(),
+        PresyncOutcome::Redownload { fork: genesis }
+    );
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &other).unwrap(),
+        PresyncOutcome::Mismatch
+    );
+    // Unduh ulang yang melompati header, atau berhenti sebelum ujungnya.
+    let mut presync = Presync::default();
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers).unwrap(),
+        PresyncOutcome::Redownload { fork: genesis }
+    );
+    assert_eq!(
+        b.node
+            .presync_headers(&mut presync, &[headers[0], headers[2]])
+            .unwrap(),
+        PresyncOutcome::Mismatch
+    );
+    let mut presync = Presync::default();
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers).unwrap(),
+        PresyncOutcome::Redownload { fork: genesis }
+    );
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers[..3]).unwrap(),
+        PresyncOutcome::Continue {
+            after: id_of(&long[2])
+        }
+    );
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &[]).unwrap(),
+        PresyncOutcome::Mismatch
+    );
+    // Tidak ada header yang tersimpan dari unduh ulang yang gagal sebelum komitmen.
+    assert!(header_set(&b).is_empty());
+}
+
+#[test]
+fn presync_checks_commitment_every_interval() {
+    assert_eq!(PRESYNC_COMMIT_INTERVAL, 1_000);
+    let b = open_limited(NodeLimits {
+        max_headers: 3,
+        ..NodeLimits::DEFAULT
+    });
+    let genesis = params().network_id();
+    // Chain aktif 1_001 blok (chainwork 2_004); cabang dari genesis baru lebih berat di tinggi 1_002.
+    extend(&b, genesis, 1, 1_001, 2);
+    let long = chain_on(genesis, 1, 1_003, 4);
+    let headers = headers_of(&long);
+    let ids: Vec<Hash32> = long.iter().map(id_of).collect();
+    // Cabang yang sama sampai tinggi 1_001, lalu berbeda.
+    let mut forked = long[..1_001].to_vec();
+    forked.extend(chain_on(ids[1_000], 1_002, 2, 5));
+    let forked = headers_of(&forked);
+
+    let mut presync = Presync::default();
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers).unwrap(),
+        PresyncOutcome::Redownload { fork: genesis }
+    );
+    // Komitmen tinggi 1_000 cocok: 1_000 header disimpan sebagai header terbukti; ujungnya berbeda, presync berhenti.
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &forked).unwrap(),
+        PresyncOutcome::Mismatch
+    );
+    assert_eq!(header_set(&b), set(ids[..1_000].iter().copied()));
+    // Header terbukti itu tidak lebih berat daripada chain aktif, jadi kembali menjadi header biasa.
+    assert!(b.node.missing_blocks(16).unwrap().is_empty());
+    let proven = |fx: &Fixture<MemoryStore>| {
+        fx.node
+            .lock()
+            .unwrap()
+            .headers
+            .values()
+            .filter(|entry| entry.proven)
+            .count()
+    };
+    assert_eq!(proven(&b), 0);
+
+    // Presync ulang dengan cabang yang benar: sisanya disimpan, badan blok diminta dari yang terendah.
+    let mut presync = Presync::default();
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers).unwrap(),
+        PresyncOutcome::Redownload { fork: genesis }
+    );
+    assert_eq!(
+        b.node.presync_headers(&mut presync, &headers).unwrap(),
+        PresyncOutcome::Done { added: 2 }
+    );
+    assert_eq!(header_set(&b).len(), 1_002);
+    assert_eq!(b.node.missing_blocks(16).unwrap(), ids[..16].to_vec());
+    assert_eq!(proven(&b), 1_002);
 }
 
 #[test]

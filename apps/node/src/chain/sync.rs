@@ -4,8 +4,13 @@
 //! Pesan dan rekan diurus [`crate::p2p`]; modul ini hanya membaca dan mengubah state chain. Header diperiksa V2, V3,
 //! dan V5 sampai V8 dengan fungsi MOD-04; V4 (Merkle root) dan V9 sampai V10 diperiksa saat badan blok tiba lewat
 //! [`Node::receive_block`].
+//!
+//! Presync header (TSK-M35 bagian B): jika indeks header penuh sebelum cabang rekan terbukti lebih berat, header rekan
+//! itu diperiksa tanpa disimpan ([`Presync`]), lalu diunduh ulang dan disimpan sebagai header terbukti setelah chainwork
+//! cabangnya melebihi chain aktif. Dengan begitu cabang sedalam apa pun bisa disinkronkan tanpa batas memori dari header
+//! murah.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
 
 use homeostasis_consensus::{
     ParentContext, U256, check_future_timestamp, check_header_context, check_header_context_free,
@@ -25,6 +30,9 @@ pub const MAX_LOCATOR_IDS: usize = 64;
 
 /// Jumlah ID pertama locator yang berjarak satu blok.
 const DENSE_LOCATOR_IDS: usize = 10;
+
+/// Jarak tinggi antar komitmen presync: ID header di setiap tinggi kelipatan ini diingat (TSK-M35 bagian B).
+pub const PRESYNC_COMMIT_INTERVAL: u64 = 1_000;
 
 /// Tinggi blok locator untuk ujung setinggi `tip` (Spesifikasi P2P Bagian 5): `tip` sampai `tip − 9`, lalu jaraknya
 /// digandakan (`tip − 11`, `tip − 15`, `tip − 23`, dan seterusnya), ditutup genesis. Paling banyak 64 tinggi, urut
@@ -84,13 +92,113 @@ pub enum HeadersOutcome {
     },
 }
 
+/// Presync header dengan satu rekan (TSK-M35 bagian B, Spesifikasi P2P Bagian 5), dipakai saat indeks header penuh.
+///
+/// Tahap hitung: header rekan diperiksa V2, V3, dan V5 sampai V8 tanpa disimpan; yang diingat hanya ujung, chainwork,
+/// 11 cap waktu terakhir, dan ID header di setiap tinggi kelipatan [`PRESYNC_COMMIT_INTERVAL`]. Tahap unduh ulang
+/// (setelah chainwork cabang melebihi chain aktif): header diminta lagi dari titik cabang, ditampung paling banyak
+/// [`PRESYNC_COMMIT_INTERVAL`] header, dan disimpan di indeks header sebagai header terbukti setiap kali ID di tinggi
+/// komitmen cocok. Memori: 40 byte per [`PRESYNC_COMMIT_INTERVAL`] header ditambah tampungan unduh ulang.
+#[derive(Clone, Debug, Default)]
+pub struct Presync {
+    phase: Phase,
+}
+
+/// Tahap presync.
+#[derive(Clone, Debug, Default)]
+enum Phase {
+    /// Belum ada header.
+    #[default]
+    Start,
+    /// Menghitung chainwork tanpa menyimpan header.
+    Counting(Counting),
+    /// Mengunduh ulang dan menyimpan header yang cocok dengan komitmen.
+    Redownload(Redownload),
+}
+
+/// Keadaan tahap hitung.
+#[derive(Clone, Debug)]
+struct Counting {
+    /// Induk header pertama (blok atau header yang dikenal).
+    fork: Hash32,
+    /// Tinggi titik cabang.
+    fork_height: u64,
+    /// Chainwork titik cabang.
+    fork_chainwork: U256,
+    /// ID header terakhir.
+    last: Hash32,
+    /// Tinggi header terakhir.
+    height: u64,
+    /// Chainwork header terakhir.
+    chainwork: U256,
+    /// Cap waktu sampai 11 header terakhir, urut dari lama ke baru.
+    timestamps: Vec<u64>,
+    /// (tinggi, ID) di setiap tinggi kelipatan [`PRESYNC_COMMIT_INTERVAL`] dan di ujung yang terbukti lebih berat.
+    commitments: Vec<(u64, Hash32)>,
+}
+
+/// Keadaan tahap unduh ulang.
+#[derive(Clone, Debug)]
+struct Redownload {
+    /// Induk yang wajib dimiliki header berikutnya.
+    expected_prev: Hash32,
+    /// Tinggi header terakhir (mula-mula tinggi titik cabang).
+    height: u64,
+    /// Chainwork header terakhir.
+    chainwork: U256,
+    /// Komitmen yang belum dicapai, urut naik.
+    commitments: VecDeque<(u64, Hash32)>,
+    /// Header sejak komitmen terakhir yang cocok, dengan chainwork kumulatif.
+    buffer: Vec<(Hash32, Header, U256)>,
+    /// Jumlah header baru di indeks header.
+    added: usize,
+}
+
+/// Hasil memproses satu pesan `Headers` dalam presync.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PresyncOutcome {
+    /// Header lolos, presync belum selesai. Minta header sesudah `after` jika pesannya penuh; jika tidak penuh, rekan
+    /// tidak punya lanjutannya dan presync berhenti tanpa sanksi.
+    Continue {
+        /// ID header terakhir yang diproses.
+        after: Hash32,
+    },
+    /// Chainwork cabang melebihi chain aktif. Minta header lagi sesudah `fork` untuk diunduh ulang.
+    Redownload {
+        /// Titik cabang: induk header pertama presync.
+        fork: Hash32,
+    },
+    /// Unduh ulang selesai dan cocok dengan komitmen; header disimpan sebagai header terbukti. Badan blok bisa diminta.
+    Done {
+        /// Jumlah header baru di indeks header.
+        added: usize,
+    },
+    /// Pesan kosong di tahap hitung: rekan tidak punya cabang yang lebih berat. Presync berhenti tanpa sanksi.
+    NotHeavier,
+    /// Header unduh ulang berbeda dari tahap hitung atau berhenti sebelum ujungnya (rekan mungkin baru reorg). Presync
+    /// berhenti tanpa sanksi; header yang sudah cocok dengan komitmen tetap disimpan.
+    Mismatch,
+    /// Header gagal V8 (terlalu jauh di masa depan untuk jam lokal). Presync berhenti tanpa sanksi.
+    Deferred,
+    /// Header pertama tidak menyambung ke blok atau header yang dikenal, atau tidak menyambung ke header sebelumnya.
+    /// Rekan disanksi.
+    Disconnected,
+    /// Header tidak sah (V2, V3, V5 sampai V7, atau leluhurnya tidak sah). Rekan disanksi.
+    Invalid {
+        /// Nama aturan yang dilanggar.
+        rule: &'static str,
+    },
+}
+
 impl<S> ChainState<S> {
     /// Menyimpan header di indeks header dengan nomor urut kedatangan berikutnya. Jika indeks penuh
     /// (`NodeLimits::max_headers`), header daun dengan chainwork paling kecil dibuang lebih dulu, asalkan chainwork-nya
     /// lebih kecil daripada header baru dan bukan induk header baru (jika sama, yang paling akhir diterima). Jika tidak
     /// ada, header baru tidak disimpan dan hasilnya `false`.
     fn store_header(&mut self, id: Hash32, header: Header, chainwork: U256) -> bool {
-        if self.headers.len() >= self.limits.max_headers {
+        if self.headers.len() >= self.limits.max_headers
+            && self.unproven_headers() >= self.limits.max_headers
+        {
             let prev = header.prev_block_id();
             let parents: BTreeSet<Hash32> = self
                 .headers
@@ -101,7 +209,10 @@ impl<S> ChainState<S> {
                 .headers
                 .iter()
                 .filter(|(other, entry)| {
-                    **other != prev && !parents.contains(*other) && entry.chainwork < chainwork
+                    **other != prev
+                        && !entry.proven
+                        && !parents.contains(*other)
+                        && entry.chainwork < chainwork
                 })
                 .min_by(|(_, a), (_, b)| {
                     a.chainwork
@@ -122,9 +233,99 @@ impl<S> ChainState<S> {
                 header,
                 chainwork,
                 sequence,
+                proven: false,
             },
         );
         true
+    }
+
+    /// Jumlah header di indeks header yang bukan header terbukti (yang dihitung dalam `NodeLimits::max_headers`).
+    fn unproven_headers(&self) -> usize {
+        self.headers.values().filter(|entry| !entry.proven).count()
+    }
+
+    /// Menyimpan header terbukti dari presync. Header yang bloknya sudah dikenal dilewati; header yang sudah di indeks
+    /// ditandai terbukti. Mengembalikan `true` jika header baru masuk indeks.
+    fn store_proven(&mut self, id: Hash32, header: Header, chainwork: U256) -> bool {
+        if self.known(&id) {
+            return false;
+        }
+        if let Some(entry) = self.headers.get_mut(&id) {
+            entry.proven = true;
+            return false;
+        }
+        let sequence = self.next_sequence;
+        self.next_sequence = sequence.saturating_add(1);
+        self.headers.insert(
+            id,
+            HeaderEntry {
+                header,
+                chainwork,
+                sequence,
+                proven: true,
+            },
+        );
+        true
+    }
+
+    /// Tahap unduh ulang presync untuk isi satu pesan `Headers`. Setiap header wajib menyambung ke header sebelumnya
+    /// dan tingginya naik satu; header ditampung sampai tinggi komitmen berikutnya, lalu disimpan sebagai header terbukti
+    /// jika ID-nya cocok. Karena ID header mengikat induknya, kecocokan itu membuktikan semua header yang ditampung sama
+    /// dengan yang diperiksa di tahap hitung.
+    fn redownload_headers(
+        &mut self,
+        mut redownload: Redownload,
+        headers: &[Header],
+    ) -> Result<(Phase, PresyncOutcome), RpcError> {
+        if headers.is_empty() {
+            return Ok((Phase::Start, PresyncOutcome::Mismatch));
+        }
+        for header in headers {
+            let height = header.height().get();
+            let (Some(work), Some(&(commit_height, commit_id))) =
+                (header_work(header), redownload.commitments.front())
+            else {
+                return Ok((Phase::Start, PresyncOutcome::Mismatch));
+            };
+            if header.prev_block_id() != redownload.expected_prev
+                || redownload.height.checked_add(1) != Some(height)
+                || height > commit_height
+            {
+                return Ok((Phase::Start, PresyncOutcome::Mismatch));
+            }
+            let id = block_id(header);
+            redownload.chainwork = redownload
+                .chainwork
+                .checked_add(work)
+                .ok_or_else(|| internal("chainwork meluap"))?;
+            redownload.expected_prev = id;
+            redownload.height = height;
+            redownload.buffer.push((id, *header, redownload.chainwork));
+            if height == commit_height {
+                if id != commit_id {
+                    return Ok((Phase::Start, PresyncOutcome::Mismatch));
+                }
+                redownload.commitments.pop_front();
+                for (id, header, chainwork) in std::mem::take(&mut redownload.buffer) {
+                    if self.store_proven(id, header, chainwork) {
+                        redownload.added = redownload.added.saturating_add(1);
+                    }
+                }
+                if redownload.commitments.is_empty() {
+                    return Ok((
+                        Phase::Start,
+                        PresyncOutcome::Done {
+                            added: redownload.added,
+                        },
+                    ));
+                }
+            }
+        }
+        let after = redownload.expected_prev;
+        Ok((
+            Phase::Redownload(redownload),
+            PresyncOutcome::Continue { after },
+        ))
     }
 
     /// Data induk untuk header baru: seperti [`ChainState::parent_info`], tetapi induk dan leluhurnya juga boleh
@@ -173,8 +374,9 @@ impl<S> ChainState<S> {
     }
 
     /// Membuang header yang bloknya sudah dikenal atau tidak sah, lalu header yang induknya tidak sah (ditandai
-    /// [`INVALID_ANCESTOR_RULE`]).
-    fn prune_headers(&mut self) {
+    /// [`INVALID_ANCESTOR_RULE`]). Jika tidak ada header terbukti yang lebih berat daripada chain aktif, semua header
+    /// terbukti kembali menjadi header biasa (dihitung dalam batas dan boleh dibuang).
+    fn prune_headers(&mut self) -> Result<(), RpcError> {
         let stale: Vec<Hash32> = self
             .headers
             .keys()
@@ -184,6 +386,16 @@ impl<S> ChainState<S> {
         for id in &stale {
             self.headers.remove(id);
         }
+        let (_, tip) = self.tip()?;
+        if !self
+            .headers
+            .values()
+            .any(|entry| entry.proven && entry.chainwork > tip.chainwork)
+        {
+            for entry in self.headers.values_mut() {
+                entry.proven = false;
+            }
+        }
         let orphaned: Vec<Hash32> = self
             .headers
             .iter()
@@ -191,7 +403,7 @@ impl<S> ChainState<S> {
             .map(|(id, _)| *id)
             .collect();
         if orphaned.is_empty() {
-            return;
+            return Ok(());
         }
         let mut dropped = self.descendants(&orphaned);
         dropped.extend(orphaned);
@@ -199,6 +411,7 @@ impl<S> ChainState<S> {
             self.headers.remove(&id);
             self.note_invalid(id, INVALID_ANCESTOR_RULE);
         }
+        Ok(())
     }
 }
 
@@ -359,7 +572,7 @@ impl<S: ChainStore> Node<S> {
     pub fn missing_blocks(&self, max: usize) -> Result<Vec<Hash32>, RpcError> {
         let mut guard = self.lock()?;
         let state = &mut *guard;
-        state.prune_headers();
+        state.prune_headers()?;
         let (_, tip) = state.tip()?;
         let Some((best, chainwork)) = state.best_header() else {
             return Ok(Vec::new());
@@ -376,5 +589,140 @@ impl<S: ChainStore> Node<S> {
         path.reverse();
         path.truncate(max);
         Ok(path)
+    }
+
+    /// Memproses isi pesan `Headers` dalam presync `presync` (TSK-M35 bagian B, lihat [`Presync`]). Dipakai P2P untuk
+    /// rekan yang headernya membuat indeks header penuh ([`HeadersOutcome::Full`]).
+    ///
+    /// # Errors
+    ///
+    /// [`RpcError::Internal`] jika state node rusak.
+    pub fn presync_headers(
+        &self,
+        presync: &mut Presync,
+        headers: &[Header],
+    ) -> Result<PresyncOutcome, RpcError> {
+        let now = (self.clock)();
+        let mut guard = self.lock()?;
+        let state = &mut *guard;
+        let (phase, outcome) = match std::mem::take(&mut presync.phase) {
+            Phase::Redownload(redownload) => state.redownload_headers(redownload, headers)?,
+            Phase::Counting(counting) => self.count_headers(state, Some(counting), headers, now)?,
+            Phase::Start => self.count_headers(state, None, headers, now)?,
+        };
+        presync.phase = phase;
+        Ok(outcome)
+    }
+
+    /// Tahap hitung presync untuk isi satu pesan `Headers`: setiap header diperiksa seperti di
+    /// [`Node::accept_headers`] terhadap header sebelumnya, tanpa disimpan. Jika chainwork melebihi ujung chain aktif,
+    /// presync pindah ke tahap unduh ulang.
+    fn count_headers(
+        &self,
+        state: &ChainState<S>,
+        mut counting: Option<Counting>,
+        headers: &[Header],
+        now: u64,
+    ) -> Result<(Phase, PresyncOutcome), RpcError> {
+        if headers.is_empty() {
+            return Ok((Phase::Start, PresyncOutcome::NotHeavier));
+        }
+        let (_, tip) = state.tip()?;
+        for header in headers {
+            let id = block_id(header);
+            let prev = header.prev_block_id();
+            if let Some(&rule) = state.invalid.get(&id) {
+                return Ok((Phase::Start, PresyncOutcome::Invalid { rule }));
+            }
+            if state.invalid.contains_key(&prev) {
+                return Ok((
+                    Phase::Start,
+                    PresyncOutcome::Invalid {
+                        rule: INVALID_ANCESTOR_RULE,
+                    },
+                ));
+            }
+            let mut current = match counting.take() {
+                Some(current) if current.last == prev => current,
+                Some(_) => return Ok((Phase::Start, PresyncOutcome::Disconnected)),
+                None => {
+                    let Some(parent) = state.header_parent(&prev)? else {
+                        return Ok((Phase::Start, PresyncOutcome::Disconnected));
+                    };
+                    Counting {
+                        fork: prev,
+                        fork_height: parent.height,
+                        fork_chainwork: parent.chainwork,
+                        last: prev,
+                        height: parent.height,
+                        chainwork: parent.chainwork,
+                        timestamps: parent.timestamps,
+                        commitments: Vec::new(),
+                    }
+                }
+            };
+            if let Err(error) = check_header_context_free(header, &self.params) {
+                return Ok((
+                    Phase::Start,
+                    PresyncOutcome::Invalid {
+                        rule: block_rule(&error, "V2"),
+                    },
+                ));
+            }
+            let context = ParentContext {
+                block_id: prev,
+                height: BlockHeight::new(current.height),
+                timestamps: &current.timestamps,
+            };
+            if let Err(error) = check_header_context(header, &context, &self.params) {
+                return Ok((
+                    Phase::Start,
+                    PresyncOutcome::Invalid {
+                        rule: block_rule(&error, "V6"),
+                    },
+                ));
+            }
+            if check_future_timestamp(header, now).is_err() {
+                return Ok((Phase::Start, PresyncOutcome::Deferred));
+            }
+            let work = header_work(header).ok_or_else(|| internal("target header tidak sah"))?;
+            current.chainwork = current
+                .chainwork
+                .checked_add(work)
+                .ok_or_else(|| internal("chainwork meluap"))?;
+            current.height = header.height().get();
+            current.last = id;
+            current.timestamps.push(header.timestamp());
+            if current.timestamps.len() > MEDIAN_TIME_SPAN {
+                current.timestamps.remove(0);
+            }
+            let heavier = current.chainwork > tip.chainwork;
+            if heavier || current.height.checked_rem(PRESYNC_COMMIT_INTERVAL) == Some(0) {
+                current.commitments.push((current.height, id));
+            }
+            if heavier {
+                let fork = current.fork;
+                let redownload = Redownload {
+                    expected_prev: fork,
+                    height: current.fork_height,
+                    chainwork: current.fork_chainwork,
+                    commitments: current.commitments.into(),
+                    buffer: Vec::new(),
+                    added: 0,
+                };
+                return Ok((
+                    Phase::Redownload(redownload),
+                    PresyncOutcome::Redownload { fork },
+                ));
+            }
+            counting = Some(current);
+        }
+        match counting {
+            Some(current) => {
+                let after = current.last;
+                Ok((Phase::Counting(current), PresyncOutcome::Continue { after }))
+            }
+            None => Ok((Phase::Start, PresyncOutcome::NotHeavier)),
+        }
     }
 }

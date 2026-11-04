@@ -5,7 +5,8 @@
 //! dengan locator, lalu badan blok 16 sekali minta. Blok yang menjadi ujung chain aktif baru dan transaksi baru di
 //! mempool disiarkan ke rekan lain, termasuk yang datang lewat RPC ([`Relay`]). Rekan yang mengirim header, blok,
 //! atau transaksi tidak sah disanksi (putus dan blokir 24 jam, MOD-06). Setiap 10 detik node mencoba lagi sinkronisasi
-//! yang belum selesai.
+//! yang belum selesai. Jika indeks header penuh sebelum cabang rekan terbukti lebih berat, node menjalankan presync
+//! header dengan rekan itu (TSK-M35 bagian B, [`Presync`]).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
@@ -28,7 +29,9 @@ use homeostasis_storage::ChainStore;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::time::MissedTickBehavior;
 
-use crate::chain::{HeadersOutcome, MAX_LOCATOR_IDS, Node, TxOutcome, transaction_result};
+use crate::chain::{
+    HeadersOutcome, MAX_LOCATOR_IDS, Node, Presync, PresyncOutcome, TxOutcome, transaction_result,
+};
 
 /// Selang percobaan ulang sinkronisasi (10 detik).
 pub const SYNC_INTERVAL: Duration = Duration::from_secs(10);
@@ -166,6 +169,9 @@ struct PeerState {
     headers_pending: bool,
     /// ID blok yang dijawab `Entry 00` atau gagal diambil dari rekan ini; dikosongkan setiap selang sinkronisasi.
     missing_bodies: BTreeSet<Hash32>,
+    /// Presync header yang sedang berjalan dengan rekan ini (TSK-M35 bagian B). Selama ada, jawaban `Headers` dari rekan
+    /// ini diproses presync, dan sinkronisasi header biasa dengan rekan ini tidak dimulai.
+    presync: Option<Presync>,
 }
 
 impl PeerState {
@@ -327,7 +333,7 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
         let Some(state) = self.peers.get_mut(&peer) else {
             return;
         };
-        if state.headers_pending && after.is_none() {
+        if after.is_none() && (state.headers_pending || state.presync.is_some()) {
             return;
         }
         state.headers_pending = true;
@@ -345,7 +351,9 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
         let best = self
             .peers
             .iter()
-            .filter(|(_, state)| state.chainwork > local && !state.headers_pending)
+            .filter(|(_, state)| {
+                state.chainwork > local && !state.headers_pending && state.presync.is_none()
+            })
             .max_by_key(|(_, state)| state.chainwork)
             .map(|(peer, _)| *peer);
         if let Some(peer) = best {
@@ -354,8 +362,13 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
     }
 
     fn on_headers(&mut self, peer: PeerId, headers: &Headers) {
-        if let Some(state) = self.peers.get_mut(&peer) {
+        let presync = self.peers.get_mut(&peer).and_then(|state| {
             state.headers_pending = false;
+            state.presync.take()
+        });
+        if let Some(presync) = presync {
+            self.on_presync_headers(peer, presync, headers);
+            return;
         }
         let outcome = match self.node.accept_headers(&headers.headers) {
             Ok(outcome) => outcome,
@@ -368,13 +381,71 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
             HeadersOutcome::Accepted {
                 last: Some(last), ..
             } if headers.headers.len() >= MAX_HEADERS => self.request_headers(peer, Some(*last)),
-            HeadersOutcome::Accepted { .. }
-            | HeadersOutcome::Deferred { .. }
-            | HeadersOutcome::Full { .. } => {
+            HeadersOutcome::Full { .. } => {
+                tracing::info!(%peer, "indeks header penuh; presync header dengan rekan dimulai");
+                self.start_presync(peer);
+                self.fetch_bodies();
+            }
+            HeadersOutcome::Accepted { .. } | HeadersOutcome::Deferred { .. } => {
                 self.fetch_bodies();
             }
             HeadersOutcome::Disconnected | HeadersOutcome::Invalid { .. } => {
                 tracing::warn!(%peer, ?outcome, "header tidak sah dari rekan");
+                self.net.punish(&peer);
+            }
+        }
+    }
+
+    /// Memulai presync header dengan `peer`: header diminta dengan locator chain aktif, dan presync dicatat hanya jika
+    /// permintaannya terkirim.
+    fn start_presync(&mut self, peer: PeerId) {
+        self.request_headers(peer, None);
+        if let Some(state) = self.peers.get_mut(&peer)
+            && state.headers_pending
+        {
+            state.presync = Some(Presync::default());
+        }
+    }
+
+    /// Meminta header sesudah `after` untuk presync `presync`; presync disimpan hanya jika permintaannya terkirim.
+    fn continue_presync(&mut self, peer: PeerId, presync: Presync, after: Hash32) {
+        self.request_headers(peer, Some(after));
+        if let Some(state) = self.peers.get_mut(&peer)
+            && state.headers_pending
+        {
+            state.presync = Some(presync);
+        }
+    }
+
+    /// Memproses jawaban `Headers` dari rekan yang sedang presync (Spesifikasi P2P Bagian 5).
+    fn on_presync_headers(&mut self, peer: PeerId, mut presync: Presync, headers: &Headers) {
+        let outcome = match self.node.presync_headers(&mut presync, &headers.headers) {
+            Ok(outcome) => outcome,
+            Err(error) => {
+                tracing::warn!(%error, "presync header gagal diproses");
+                return;
+            }
+        };
+        match &outcome {
+            PresyncOutcome::Continue { after } if headers.headers.len() >= MAX_HEADERS => {
+                self.continue_presync(peer, presync, *after);
+            }
+            PresyncOutcome::Redownload { fork } => {
+                tracing::info!(%peer, "cabang rekan terbukti lebih berat; header diunduh ulang");
+                self.continue_presync(peer, presync, *fork);
+            }
+            PresyncOutcome::Done { added } => {
+                tracing::info!(%peer, added = *added, "presync header selesai");
+                self.fetch_bodies();
+            }
+            PresyncOutcome::Continue { .. }
+            | PresyncOutcome::NotHeavier
+            | PresyncOutcome::Mismatch
+            | PresyncOutcome::Deferred => {
+                tracing::info!(%peer, ?outcome, "presync header berhenti tanpa sanksi");
+            }
+            PresyncOutcome::Disconnected | PresyncOutcome::Invalid { .. } => {
+                tracing::warn!(%peer, ?outcome, "header presync tidak sah dari rekan");
                 self.net.punish(&peer);
             }
         }
@@ -514,6 +585,7 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
             ProtocolKind::Headers => {
                 if let Some(state) = self.peers.get_mut(&peer) {
                     state.headers_pending = false;
+                    state.presync = None;
                 }
             }
             ProtocolKind::Blocks => {

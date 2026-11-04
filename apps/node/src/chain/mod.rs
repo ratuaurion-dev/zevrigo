@@ -48,7 +48,10 @@ use thiserror::Error;
 
 mod sync;
 
-pub use sync::{HeadersOutcome, MAX_LOCATOR_IDS, locator_heights};
+pub use sync::{
+    HeadersOutcome, MAX_LOCATOR_IDS, PRESYNC_COMMIT_INTERVAL, Presync, PresyncOutcome,
+    locator_heights,
+};
 
 /// Nama aturan untuk blok yang induk atau leluhurnya tidak sah: blok itu tidak punya induk sah (V5).
 pub const INVALID_ANCESTOR_RULE: &str = "V5";
@@ -310,6 +313,9 @@ struct HeaderEntry {
     header: Header,
     chainwork: U256,
     sequence: u64,
+    /// Header terbukti lewat presync (TSK-M35 bagian B): tidak dihitung dalam `NodeLimits::max_headers` dan tidak
+    /// dibuang selama ada header terbukti yang lebih berat daripada chain aktif.
+    proven: bool,
 }
 
 /// Data induk untuk V5 sampai V7 dan chainwork blok baru.

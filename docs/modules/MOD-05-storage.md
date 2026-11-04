@@ -3,7 +3,7 @@
 - **ID:** `MOD-05`
 - **Path:** `crates/storage`
 - **Paket:** `homeostasis-storage`
-- **Status:** 🟡 sedang berjalan (TSK-M10, TSK-M11, TSK-M26, dan TSK-M35 bagian A selesai; sisa: pruning TSK-M23)
+- **Status:** 🟡 sedang berjalan (TSK-M10, TSK-M11, TSK-M26, dan TSK-M35 selesai; sisa: pruning TSK-M23)
 - **Bergantung pada:** `MOD-01`
 - **Dipakai oleh:** `MOD-11`, `MOD-14`, `MOD-17`
 
@@ -31,5 +31,5 @@ Menyimpan chain aktif secara deterministik dan atomik: blok, set UTXO, dan undo 
 - [TSK-M10](../tasks/TSK-M10-storage-memory.md) — 🟢 selesai (trait ChainStore dan MemoryStore)
 - [TSK-M11](../tasks/TSK-M11-storage-redb.md) — 🟢 selesai (RedbStore dengan redb 4.4.0)
 - [TSK-M26](../tasks/TSK-M26-storage-scan-utxo.md) — 🟢 selesai (pencarian UTXO per payload)
-- [TSK-M35](../tasks/TSK-M35-cabang-di-disk.md) — 🟡 bagian A selesai (badan blok cabang); bagian B (presync header) di MOD-11
+- [TSK-M35](../tasks/TSK-M35-cabang-di-disk.md) — 🟢 selesai (badan blok cabang di MOD-05; presync header di MOD-11)
 - [TSK-M23](../tasks/README.md) — ⚪ pruning badan blok, kartu menyusul

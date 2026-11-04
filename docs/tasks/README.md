@@ -4,11 +4,11 @@
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.2), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M32, M33, M34, M36, M37, M38, M39, M40, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal) |
-| 🟡 Siap dikerjakan | TSK-M35 bagian B (presync header), TSK-M23 (pruning) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.2), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M32, M33, M34, M35, M36, M37, M38, M39, M40, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal) |
+| 🟡 Siap dikerjakan | TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | — (DEC-01 tetap terbuka untuk testnet) |
-| ➡️ Langkah berikutnya | TSK-M35 bagian B (presync header). Sesudah itu pilihan pencipta: DEC-01 (PoW mainnet, membuka FTR-06 testnet), TSK-M23, atau FTR-07 wallet desktop. TSK-M35 bagian A (badan blok cabang di penyimpanan), paket Docker (TSK-M33), dan batas laju API (TSK-M40) selesai |
+| ➡️ Langkah berikutnya | Pilihan pencipta: DEC-01 (PoW mainnet, membuka FTR-06 testnet), DEC-02 lisensi, TSK-M23, atau FTR-07 wallet desktop. TSK-M35 (badan blok cabang di penyimpanan dan presync header), paket Docker (TSK-M33), dan batas laju API (TSK-M40) selesai |
 
 ## Tiga jenis task
 
@@ -70,7 +70,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M32 | MOD-14 (`web/`) | Aplikasi web React: halaman, dua bahasa, format jumlah, uji vitest, `make web-check`, pemakaian pertama npm (Spesifikasi Explorer Web Bagian 1 sampai 6, 8) | TSK-M31, DEC-26 | 🟢 selesai ([kartu](TSK-M32-explorer-web-react.md)) |
 | TSK-M33 | MOD-14, repo | Paket Docker regtest: node + explorer + web, image dasar dikunci digest, compose, opsi `--http-bind` (Spesifikasi Docker v0.1) | TSK-M39, DEC-10 bagian 9 | 🟢 selesai ([kartu](TSK-M33-paket-docker.md)) |
 | TSK-M34 | MOD-11 | Batas memori blok cabang, indeks header, dan catatan blok tidak sah (Spesifikasi P2P Bagian 9) | TSK-M28 | 🟢 selesai ([kartu](TSK-M34-batas-memori-node.md)) |
-| TSK-M35 | MOD-05, MOD-11 | A: badan blok cabang di penyimpanan; B: presync header, menghapus batas sinkronisasi cabang dalam | TSK-M34 | 🟡 bagian A selesai ([kartu](TSK-M35-cabang-di-disk.md)) |
+| TSK-M35 | MOD-05, MOD-11 | A: badan blok cabang di penyimpanan; B: presync header, menghapus batas sinkronisasi cabang dalam | TSK-M34 | 🟢 selesai ([kartu](TSK-M35-cabang-di-disk.md)) |
 | TSK-M37 | MOD-09, MOD-12 | Enkripsi file wallet dengan password (Argon2id + XChaCha20-Poly1305), penghapusan rahasia dari memori, `wallet-encrypt`, `wallet-show-phrase` (Spesifikasi Wallet Bagian 7) | TSK-M19, DEC-27 | 🟢 selesai ([kartu](TSK-M37-enkripsi-wallet.md)) |
 | TSK-M38 | MOD-14 (`web/`, `src/web`) | Antarmuka web Next.js + Tailwind + shadcn/ui hasil Google AI Studio (tanpa peta node karangan), penyajian static export dan CSP dengan hash skrip inline (Spesifikasi Explorer Web v0.2) | TSK-M32, DEC-26 | 🟢 selesai ([kartu](TSK-M38-explorer-web-nextjs.md)) |
 | TSK-M39 | MOD-14, MOD-17 | Explorer hanya data sistem: tanpa alamat, saldo, jejak koin, dan alokasi genesis di API dan web; `Shared::read_index`; QR dihapus (DEC-28) | TSK-M38, DEC-28 | 🟢 selesai ([kartu](TSK-M39-explorer-data-sistem.md)) |

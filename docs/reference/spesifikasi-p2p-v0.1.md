@@ -98,6 +98,19 @@ chain aktif sesudah blok itu, berurutan, sampai 2_000 header, ujung, atau `stop`
 4. Setelah header habis, jika ada ujung header dengan chainwork lebih besar daripada ujung chain aktif, ambil badan blok
    chain itu yang belum dimiliki dengan `GetBlocks`, 16 ID sekali minta, berurutan dari yang terendah.
 
+**Presync header (TSK-M35 bagian B).** Jika indeks header penuh (`Full`, Bagian 9) sebelum cabang rekan terbukti lebih
+berat, node menjalankan presync dengan rekan itu. Tahap hitung: header diminta dengan locator chain aktif lalu
+`GetHeaders` lanjutan, setiap header diperiksa V2, V3, dan V5 sampai V8 terhadap header sebelumnya tanpa disimpan; yang
+diingat hanya ujung, chainwork, 11 cap waktu terakhir, dan ID header di setiap tinggi kelipatan 1_000 (komitmen).
+Tahap unduh ulang dimulai begitu chainwork melebihi ujung chain aktif (ujung itu juga jadi komitmen): header diminta
+lagi sesudah titik cabang, wajib menyambung dan naik satu tinggi, ditampung paling banyak 1_000, dan disimpan di indeks
+header sebagai header terbukti setiap kali ID di tinggi komitmen cocok (ID header mengikat induknya, jadi seluruh
+tampungan sama dengan yang dihitung). Header terbukti tidak dihitung dalam batas indeks dan tidak dibuang selama ada
+header terbukti yang lebih berat daripada chain aktif; sesudah itu kembali menjadi header biasa. Header yang tidak
+menyambung atau tidak sah di tahap hitung disanksi; pesan kosong, V8, ID yang tidak cocok, atau rekan yang berhenti
+sebelum ujung menghentikan presync tanpa sanksi. Selama presync, sinkronisasi header biasa dengan rekan itu tidak
+dimulai; permintaan yang gagal menghentikan presync, lalu sinkronisasi dicoba lagi pada selang berikutnya.
+
 **Memproses `Blocks`.** Setiap blok diproses seperti blok dari `block` (Bagian 6). `Entry` `00` untuk ID yang sudah
 diumumkan rekan dihitung pelanggaran ringan: rekan itu dilewati dan blok diminta dari rekan lain.
 
@@ -181,10 +194,11 @@ ditulis lewat `--connect` juga bisa diblokir.
 
   Blok yang dibuang dilupakan (bukan `duplicate` jika dikirim lagi). Pembuangan blok cabang dan header keturunan blok
   tidak sah memakai satu peta induk ke anak, tidak berulang per tingkat.
-- **Batas yang tersisa:** cabang bersaing yang lebih dari 100_000 blok di bawah ujungnya belum lebih berat daripada chain
-  aktif tidak bisa disinkronkan lewat P2P, karena indeks header penuh sebelum cabang itu terbukti lebih berat. Aturan
-  konsensus tetap tanpa batas reorg; batas ini hilang dengan presync header (TSK-M35 bagian B): header cabang diperiksa
-  tanpa disimpan sampai cabang terbukti lebih berat, lalu diunduh ulang dan disimpan.
+- **Cabang yang sangat dalam (TSK-M35 bagian B):** cabang bersaing yang lebih dari 100_000 blok di bawah ujungnya belum
+  lebih berat daripada chain aktif disinkronkan lewat presync header (Bagian 5), tanpa menyimpan header murah. Memori
+  presync per rekan: 40 byte per 1_000 header ditambah tampungan unduh ulang paling banyak 1_000 header. Jumlah header
+  yang bisa diperiksa dibatasi aturan cap waktu (V7, V8) dan ASERT, bukan oleh batas node. Aturan konsensus tetap tanpa
+  batas reorg dan tanpa checkpoint.
 
 ---
 
@@ -195,7 +209,7 @@ ditulis lewat `--connect` juga bisa diblokir.
 | Blok cabang (indeks di memori node; badannya di MOD-05 sejak TSK-M35), pemilihan chain berdasarkan chainwork, reorg, blok yang induknya belum dikenal | MOD-11 | TSK-M27 |
 | Indeks header tanpa badan blok (untuk sinkronisasi header dulu) | MOD-11 | TSK-M28 |
 | Batas memori blok cabang, indeks header, dan catatan blok tidak sah (`NodeLimits`) | MOD-11 | TSK-M34 |
-| Badan blok cabang di penyimpanan (bagian A); presync header untuk cabang dalam (bagian B, menghapus batas Bagian 9) | MOD-05, MOD-11 | TSK-M35 |
+| Badan blok cabang di penyimpanan (bagian A); presync header untuk cabang yang sangat dalam (bagian B) | MOD-05, MOD-11 | TSK-M35 |
 | Swarm libp2p, 5 protokol, codec pesan, kunci rekan, batas koneksi, sanksi | MOD-06 | TSK-M14 |
 | Sinkronisasi header lalu blok, siaran, opsi daemon | MOD-11 | TSK-M28 |
 | 4 node atau lebih tetap sinkron, jaringan terpisah lalu tersambung (reorg dalam), node yang tertinggal mengejar | MOD-17 | TSK-F04 |

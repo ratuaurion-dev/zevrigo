@@ -1,4 +1,4 @@
-# TSK-M35 · Badan blok cabang di penyimpanan dan presync header · 🟡 bagian A selesai · Prioritas: Tinggi
+# TSK-M35 · Badan blok cabang di penyimpanan dan presync header · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-05 (crates/storage), MOD-11 (apps/node) · **Untuk:** persiapan testnet (FTR-06)
 - **Bergantung pada:** TSK-M34 · **Memblokir:** TSK-F06
 - **Estimasi:** M · **Ditulis:** Quick (kode dan test), 4 November 2026
@@ -17,11 +17,16 @@ Menghapus batas yang tersisa di Spesifikasi P2P v0.1 Bagian 9, tanpa batas reorg
 - **Indeks blok cabang tidak dipulihkan saat node dibuka.** Badan blok cabang lama dibuang (`clear_side_blocks`), sama
   seperti perilaku v0.1: cabang diterima lagi dari rekan. Tanpa migrasi skema redb: tabel `side_blocks` dibuat saat
   dibuka, versi skema tetap 1.
-- **Bagian B, presync header (rencana):** saat indeks header penuh (`HeadersOutcome::Full`), header rekan itu diperiksa
+- **Bagian B, presync header:** saat indeks header penuh (`HeadersOutcome::Full`), header rekan itu diperiksa
   V2, V3, V5 sampai V8 tanpa disimpan; yang diingat hanya ujung, chainwork, 11 cap waktu terakhir, dan ID setiap 1_000
   header. Setelah chainwork cabang melebihi chain aktif, header diunduh ulang dari titik cabang, dicocokkan dengan ID yang
   diingat, lalu disimpan sebagai header terbukti (tidak dibuang dan tidak dihitung dalam `max_headers`). Memori presync
-  32 byte per 1_000 header.
+  40 byte per 1_000 header (tinggi + ID) ditambah tampungan unduh ulang paling banyak 1_000 header.
+- **ID penuh sebagai komitmen**, bukan bit acak: lebih sederhana, dan memorinya tetap kecil.
+- **ID yang tidak cocok tidak disanksi**: rekan jujur yang baru reorg di antara dua tahap juga menghasilkan ketidakcocokan.
+  Biayanya hanya bandwidth; memori tetap terbatas. Header tidak sah di tahap hitung tetap disanksi.
+- **Header terbukti dilepas** (jadi header biasa) begitu tidak ada lagi header terbukti yang lebih berat daripada chain
+  aktif, agar header terbukti dari cabang yang kalah tidak menempati memori selamanya.
 
 ## Bagian A (selesai)
 | Bagian | Isi |
@@ -39,6 +44,18 @@ Menghapus batas yang tersisa di Spesifikasi P2P v0.1 Bagian 9, tanpa batas reorg
 - MOD-05 (26 → 28): `side_blocks_are_kept_apart_from_active_chain` (MemoryStore dan RedbStore sama), `side_blocks_persist_until_cleared_and_old_files_open` (file redb dibuka ulang, file skema 1 tanpa tabel `side_blocks`).
 - MOD-11 (32 → 34): `side_block_bodies_live_in_store_and_are_cleared_on_reopen` (RedbStore: badan blok cabang di penyimpanan, reorg bolak-balik, `GetBlocks`, dibuka ulang), `trimmed_and_invalid_side_blocks_leave_store` (blok yang dipangkas dan blok tidak sah beserta keturunannya hilang dari penyimpanan, chain lama tidak tertinggal di sana).
 
-## Bagian B (berikutnya)
-Presync header di `chain/sync.rs` dan `p2p/mod.rs`, test cabang yang lebih panjang dari `max_headers`, dan rekan yang
-mengirim header berbeda saat unduh ulang disanksi. Spesifikasi P2P Bagian 5 dan 9 diperbarui.
+## Bagian B (selesai)
+| Bagian | Isi |
+|---|---|
+| `Presync` (publik) | Tahap `Start` → `Counting` (ujung, chainwork, 11 cap waktu, komitmen per `PRESYNC_COMMIT_INTERVAL` = 1_000) → `Redownload` (induk yang diharapkan, tampungan, komitmen tersisa) |
+| `Node::presync_headers` | `PresyncOutcome::{Continue{after}, Redownload{fork}, Done{added}, NotHeavier, Mismatch, Deferred, Disconnected, Invalid{rule}}` |
+| Indeks header | `HeaderEntry::proven`; `store_header` hanya menghitung dan membuang header biasa; `store_proven`; `prune_headers` melepas header terbukti jika tidak ada yang lebih berat daripada chain aktif |
+| P2P | `PeerState::presync`; `HeadersOutcome::Full` → `start_presync`; jawaban `Headers` rekan itu ke presync; `Continue` lanjut jika pesan penuh; `Redownload` minta sesudah titik cabang; `Done` → unduh badan blok; `Disconnected`/`Invalid` disanksi; permintaan gagal menghentikan presync; sinkronisasi header biasa tidak dimulai selama presync |
+
+### Test (workspace 388 → 391, MOD-11 34 → 37)
+- `presync_syncs_branch_longer_than_header_index`: batas indeks 3 header, cabang 8 blok baru lebih berat di tinggi 6: tanpa presync macet (`Full`, tidak ada badan blok diminta); dengan presync hitung dua pesan, unduh ulang dua pesan, 6 header terbukti melebihi batas, badan blok diunduh, reorg, sisanya lewat sinkronisasi biasa.
+- `presync_stops_on_bad_or_changed_headers`: tidak menyambung, V5, pesan kosong, V8, cabang lain saat unduh ulang, header dilompati, rekan berhenti sebelum ujung; tidak ada header tersimpan.
+- `presync_checks_commitment_every_interval`: chain aktif 1_001 blok, cabang 1_003 blok; unduh ulang yang berbeda sesudah tinggi 1_001: komitmen 1_000 cocok (1_000 header terbukti), ujung tidak cocok; header terbukti dilepas karena tidak lebih berat; presync ulang menambah 2 header, badan blok diminta dari yang terendah.
+
+Jalur P2P (`p2p/mod.rs`) diperiksa lewat kompilasi, clippy, dan uji multi-node yang ada; uji ujung ke ujung dengan cabang
+lebih dari 100_000 blok tidak dibuat karena butuh menambang ratusan ribu blok.

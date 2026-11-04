@@ -11,8 +11,8 @@ pub mod p2p;
 
 pub use chain::{
     BlockReceipt, Clock, HeadersOutcome, INVALID_ANCESTOR_RULE, MAX_LOCATOR_IDS, Node, NodeError,
-    NodeLimits, TipSummary, TxOutcome, block_rule, locator_heights, mempool_reason,
-    transaction_result,
+    NodeLimits, PRESYNC_COMMIT_INTERVAL, Presync, PresyncOutcome, TipSummary, TxOutcome,
+    block_rule, locator_heights, mempool_reason, transaction_result,
 };
 pub use daemon::{ArgError, Command, Config, DaemonError, parse_args};
 pub use p2p::{Announcement, P2pService, Relay, block_ack, local_status, tx_ack};
