@@ -10,13 +10,14 @@ use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
 
 use crate::store::{BlockUndo, ChainStore, StoreError};
 
-/// Penyimpanan chain aktif di dalam memori.
+/// Penyimpanan chain aktif dan badan blok cabang di dalam memori.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct MemoryStore {
     utxos: BTreeMap<OutPoint, UtxoEntry>,
     blocks: BTreeMap<Hash32, Block>,
     active: Vec<Hash32>,
     undo: BTreeMap<Hash32, BlockUndo>,
+    side: BTreeMap<Hash32, Block>,
 }
 
 impl ChainStore for MemoryStore {
@@ -209,6 +210,25 @@ impl ChainStore for MemoryStore {
         self.blocks.remove(&tip_block_id);
 
         Ok((tip_block_id, block))
+    }
+
+    fn put_side_block(&mut self, block_id: Hash32, block: &Block) -> Result<(), StoreError> {
+        self.side.insert(block_id, block.clone());
+        Ok(())
+    }
+
+    fn side_block(&self, block_id: &Hash32) -> Result<Option<Block>, StoreError> {
+        Ok(self.side.get(block_id).cloned())
+    }
+
+    fn remove_side_block(&mut self, block_id: &Hash32) -> Result<(), StoreError> {
+        self.side.remove(block_id);
+        Ok(())
+    }
+
+    fn clear_side_blocks(&mut self) -> Result<(), StoreError> {
+        self.side.clear();
+        Ok(())
     }
 }
 

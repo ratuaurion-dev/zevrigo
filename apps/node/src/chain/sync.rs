@@ -257,7 +257,8 @@ impl<S: ChainStore> Node<S> {
         Ok(headers)
     }
 
-    /// Jawaban `GetBlocks`: blok untuk setiap ID (chain aktif atau cabang), `None` jika node tidak punya.
+    /// Jawaban `GetBlocks`: blok untuk setiap ID (chain aktif atau cabang; badan blok cabang dibaca dari penyimpanan),
+    /// `None` jika node tidak punya.
     ///
     /// # Errors
     ///
@@ -266,8 +267,8 @@ impl<S: ChainStore> Node<S> {
         let state = self.lock()?;
         let mut blocks = Vec::with_capacity(ids.len());
         for id in ids {
-            let block = if let Some(entry) = state.side.get(id) {
-                Some(entry.block.clone())
+            let block = if state.side.contains_key(id) {
+                state.store.side_block(id).map_err(internal)?
             } else if state.heights.contains_key(id) {
                 state.store.block(id).map_err(internal)?
             } else {

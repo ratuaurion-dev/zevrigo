@@ -337,6 +337,93 @@ fn open_rejects_unknown_schema_version() {
     let _ = std::fs::remove_file(&path);
 }
 
+/// Pemeriksaan badan blok cabang yang sama untuk `MemoryStore` dan `RedbStore`; `store` berisi genesis `g`.
+fn check_side_blocks<S: ChainStore>(
+    store: &mut S,
+    g: &Block,
+    g_id: Hash32,
+    b1: &Block,
+    b1_id: Hash32,
+) {
+    let tip = store.tip();
+    assert_eq!(store.side_block(&b1_id), Ok(None));
+    assert_eq!(store.remove_side_block(&b1_id), Ok(()));
+    assert_eq!(store.put_side_block(b1_id, b1), Ok(()));
+    assert_eq!(store.side_block(&b1_id), Ok(Some(b1.clone())));
+    // Chain aktif tidak tersentuh: ujung, blok, dan undo data tetap.
+    assert_eq!(store.tip(), tip);
+    assert_eq!(store.block(&b1_id), Ok(None));
+    assert_eq!(store.undo_data(&b1_id), Ok(None));
+    // ID yang sama ditimpa; menghapus dua kali bukan galat.
+    assert_eq!(store.put_side_block(b1_id, g), Ok(()));
+    assert_eq!(store.side_block(&b1_id), Ok(Some(g.clone())));
+    assert_eq!(store.remove_side_block(&b1_id), Ok(()));
+    assert_eq!(store.side_block(&b1_id), Ok(None));
+    assert_eq!(store.remove_side_block(&b1_id), Ok(()));
+    // Mengosongkan semua badan blok cabang, chain aktif tetap.
+    assert_eq!(store.put_side_block(b1_id, b1), Ok(()));
+    assert_eq!(store.put_side_block(h(0xc2), g), Ok(()));
+    assert_eq!(store.clear_side_blocks(), Ok(()));
+    assert_eq!(store.side_block(&b1_id), Ok(None));
+    assert_eq!(store.side_block(&h(0xc2)), Ok(None));
+    assert_eq!(store.tip(), tip);
+    assert_eq!(store.block(&g_id), Ok(Some(g.clone())));
+}
+
+#[test]
+fn side_blocks_are_kept_apart_from_active_chain() {
+    let (g, g_id, g_txids, _, _) = make_genesis();
+    let (b1, b1_id, _) = scripted_block_1();
+    let mut mem = MemoryStore::default();
+    let mut rdb = RedbStore::in_memory().expect("in_memory");
+    assert_eq!(mem.apply_block(&g, g_id, &g_txids), Ok(()));
+    assert_eq!(rdb.apply_block(&g, g_id, &g_txids), Ok(()));
+    check_side_blocks(&mut mem, &g, g_id, &b1, b1_id);
+    check_side_blocks(&mut rdb, &g, g_id, &b1, b1_id);
+}
+
+#[test]
+fn side_blocks_persist_until_cleared_and_old_files_open() {
+    let path = std::env::temp_dir().join("homeostasis-tsk-m35-side.redb");
+    let _ = std::fs::remove_file(&path);
+    let (b1, b1_id, _) = scripted_block_1();
+    {
+        let mut rdb = RedbStore::create(&path).expect("create");
+        assert_eq!(rdb.put_side_block(b1_id, &b1), Ok(()));
+    }
+    {
+        let mut rdb = RedbStore::open(&path).expect("open");
+        assert_eq!(rdb.side_block(&b1_id), Ok(Some(b1.clone())));
+        assert_eq!(rdb.clear_side_blocks(), Ok(()));
+    }
+    {
+        let rdb = RedbStore::open(&path).expect("open lagi");
+        assert_eq!(rdb.side_block(&b1_id), Ok(None));
+    }
+    let _ = std::fs::remove_file(&path);
+
+    // File dari versi sebelum TSK-M35 (skema 1 tanpa tabel side_blocks) tetap terbuka.
+    {
+        let db = redb::Database::create(&path).expect("redb create");
+        let write_txn = db.begin_write().expect("begin_write");
+        {
+            let mut meta = write_txn
+                .open_table(TableDefinition::<&str, u64>::new("meta"))
+                .expect("open meta");
+            meta.insert("schema", 1_u64).expect("insert schema");
+        }
+        write_txn.commit().expect("commit");
+    }
+    {
+        let mut rdb = RedbStore::open(&path).expect("open file lama");
+        assert_eq!(rdb.tip(), Ok(None));
+        assert_eq!(rdb.side_block(&b1_id), Ok(None));
+        assert_eq!(rdb.put_side_block(b1_id, &b1), Ok(()));
+        assert_eq!(rdb.side_block(&b1_id), Ok(Some(b1)));
+    }
+    let _ = std::fs::remove_file(&path);
+}
+
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(64))]
     #[test]

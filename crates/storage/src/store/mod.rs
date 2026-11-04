@@ -1,5 +1,5 @@
 //! Antarmuka penyimpanan chain (`ChainStore`), tipe undo data (`BlockUndo`),
-//! dan tipe error (`StoreError`).
+//! dan tipe error (`StoreError`). `ChainStore` juga menyimpan badan blok cabang (TSK-M35).
 
 use homeostasis_primitives::block::Block;
 use homeostasis_primitives::hash::Hash32;
@@ -113,7 +113,7 @@ pub enum StoreError {
     },
 }
 
-/// Antarmuka penyimpanan chain aktif, set UTXO, dan undo data.
+/// Antarmuka penyimpanan chain aktif, set UTXO, dan undo data, serta badan blok cabang menurut ID.
 pub trait ChainStore {
     /// Mengembalikan tinggi dan ID blok pada ujung chain aktif, atau `None` jika chain kosong.
     fn tip(&self) -> Result<Option<(BlockHeight, Hash32)>, StoreError>;
@@ -150,4 +150,19 @@ pub trait ChainStore {
 
     /// Membatalkan blok paling ujung dari chain aktif dan mengembalikan ID serta blok yang dibatalkan.
     fn undo_tip(&mut self) -> Result<(Hash32, Block), StoreError>;
+
+    /// Menyimpan badan blok cabang `block_id` (blok yang tidak di chain aktif, TSK-M35); ID yang sama ditimpa.
+    ///
+    /// Terpisah dari chain aktif: tidak mengubah ujung, set UTXO, blok chain aktif, maupun undo data. Indeks dan
+    /// pemilihan cabang diurus pemanggil (MOD-11).
+    fn put_side_block(&mut self, block_id: Hash32, block: &Block) -> Result<(), StoreError>;
+
+    /// Mengambil badan blok cabang berdasarkan ID, atau `None` jika tidak ada.
+    fn side_block(&self, block_id: &Hash32) -> Result<Option<Block>, StoreError>;
+
+    /// Menghapus badan blok cabang berdasarkan ID; ID yang tidak ada bukan galat.
+    fn remove_side_block(&mut self, block_id: &Hash32) -> Result<(), StoreError>;
+
+    /// Menghapus semua badan blok cabang.
+    fn clear_side_blocks(&mut self) -> Result<(), StoreError>;
 }

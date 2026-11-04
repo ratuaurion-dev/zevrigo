@@ -1,4 +1,4 @@
-//! MOD-05: Penyimpanan blok, set UTXO, dan undo data. Berisi trait ChainStore, MemoryStore (TSK-M10), RedbStore berbasis redb (TSK-M11, DEC-03), dan pencarian UTXO per payload (TSK-M26).
+//! MOD-05: Penyimpanan blok, set UTXO, dan undo data. Berisi trait ChainStore, MemoryStore (TSK-M10), RedbStore berbasis redb (TSK-M11, DEC-03), pencarian UTXO per payload (TSK-M26), dan badan blok cabang (TSK-M35).
 
 #![forbid(unsafe_code)]
 #![deny(

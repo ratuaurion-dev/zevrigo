@@ -673,6 +673,17 @@ fn side_count<S: ChainStore>(fx: &Fixture<S>) -> usize {
     fx.node.lock().unwrap().side.len()
 }
 
+/// Apakah badan blok `block` tersimpan sebagai blok cabang di penyimpanan node.
+fn side_body_stored<S: ChainStore>(fx: &Fixture<S>, block: &Block) -> bool {
+    fx.node
+        .lock()
+        .unwrap()
+        .store
+        .side_block(&id_of(block))
+        .unwrap()
+        .is_some()
+}
+
 fn assert_active<S: ChainStore + Send + 'static>(fx: &Fixture<S>, blocks: &[Block]) {
     let info = fx.node.chain_info().unwrap();
     let height = u64::try_from(blocks.len()).unwrap();
@@ -860,7 +871,7 @@ fn memory_and_redb_agree_after_reorg_and_reopen() {
         rdb.node.scan_utxos(&payloads).unwrap()
     );
 
-    // Dibuka ulang: chain aktif (cabang B) utuh; blok cabang tidak disimpan di penyimpanan (v0.1).
+    // Dibuka ulang: chain aktif (cabang B) utuh; indeks blok cabang di memori, badan blok cabang lama dibuang (TSK-M35).
     let reopened = open(rdb.node.into_store().unwrap());
     assert_eq!(reopened.node.chain_info().unwrap(), info);
     assert_active(&reopened, &b);
@@ -1309,6 +1320,90 @@ fn invalid_block_records_are_bounded() {
     // Catatan tertua terlupa: blok itu diperiksa ulang dan tetap ditolak; kini catatan berikutnya yang terlupa.
     assert_eq!(submit(&fx, &bad[0]), rejected_block(&bad[0], "V5"));
     assert_eq!(invalid_set(&fx), set([id_of(&bad[2]), id_of(&bad[0])]));
+}
+
+#[test]
+fn side_block_bodies_live_in_store_and_are_cleared_on_reopen() {
+    let fx = open(RedbStore::in_memory().unwrap());
+    let (a, b) = reorg_scenario(&fx);
+    // Chain A yang dilepas menjadi blok cabang: badannya di penyimpanan; blok chain aktif B tidak.
+    for block in &a {
+        assert!(side_body_stored(&fx, block));
+    }
+    for block in &b {
+        assert!(!side_body_stored(&fx, block));
+    }
+    // GetBlocks membaca badan blok cabang dari penyimpanan.
+    assert_eq!(
+        fx.node.blocks_by_id(&[id_of(&a[0]), id_of(&b[0])]).unwrap(),
+        vec![Some(a[0].clone()), Some(b[0].clone())]
+    );
+
+    // Reorg kembali ke A: badan blok A dibaca dari penyimpanan lalu dihapus dari sana; B pindah ke penyimpanan.
+    let a4 = block_on(id_of(&a[2]), 4, 2, Vec::new(), 0);
+    assert_eq!(submit(&fx, &a4).status, SubmitStatus::Accepted);
+    assert!(side_body_stored(&fx, &a4));
+    let a5 = block_on(id_of(&a4), 5, 2, Vec::new(), 0);
+    assert_eq!(submit(&fx, &a5).status, SubmitStatus::Accepted);
+    let mut chain_a = a.clone();
+    chain_a.push(a4);
+    chain_a.push(a5);
+    assert_active(&fx, &chain_a);
+    for block in &chain_a {
+        assert!(!side_body_stored(&fx, block));
+    }
+    for block in &b {
+        assert!(side_body_stored(&fx, block));
+    }
+
+    // Dibuka ulang: chain aktif utuh, indeks dan badan blok cabang dibuang.
+    let reopened = open(fx.node.into_store().unwrap());
+    assert_active(&reopened, &chain_a);
+    assert_eq!(side_count(&reopened), 0);
+    for block in &b {
+        assert!(!side_body_stored(&reopened, block));
+    }
+}
+
+#[test]
+fn trimmed_and_invalid_side_blocks_leave_store() {
+    let fx = open_limited(NodeLimits {
+        max_side_blocks: 2,
+        ..NodeLimits::DEFAULT
+    });
+    let genesis = params().network_id();
+    let a = extend(&fx, genesis, 1, 2, 2);
+    // Tiga cabang satu blok dari genesis: yang paling akhir dibuang dari memori dan dari penyimpanan.
+    let forks: Vec<Block> = (5_u8..8)
+        .map(|owner| block_on(genesis, 1, owner, Vec::new(), 0))
+        .collect();
+    for fork in &forks {
+        assert_eq!(submit(&fx, fork).status, SubmitStatus::Accepted);
+    }
+    assert_eq!(side_set(&fx), set([id_of(&forks[0]), id_of(&forks[1])]));
+    assert!(side_body_stored(&fx, &forks[0]));
+    assert!(side_body_stored(&fx, &forks[1]));
+    assert!(!side_body_stored(&fx, &forks[2]));
+
+    // Di atas fork pertama: blok tinggi 2 mengklaim satu quanta terlalu banyak (V10). Headernya sah, jadi disimpan sebagai
+    // blok cabang; daun paling ringan (fork kedua) dibuang.
+    let bad = block_on(id_of(&forks[0]), 2, 5, Vec::new(), 1);
+    assert_eq!(submit(&fx, &bad).status, SubmitStatus::Accepted);
+    assert_eq!(side_set(&fx), set([id_of(&forks[0]), id_of(&bad)]));
+    assert!(!side_body_stored(&fx, &forks[1]));
+
+    // Anaknya membuat cabang lebih berat; reorg gagal di blok tinggi 2. Kedua blok dibuang dari memori dan dari
+    // penyimpanan, chain A dipulihkan dan blok A tidak tertinggal di penyimpanan.
+    let child = block_on(id_of(&bad), 3, 5, Vec::new(), 0);
+    assert_eq!(submit(&fx, &child), rejected_block(&child, "V5"));
+    assert_active(&fx, &a);
+    assert_eq!(side_set(&fx), set([id_of(&forks[0])]));
+    assert!(side_body_stored(&fx, &forks[0]));
+    assert!(!side_body_stored(&fx, &bad));
+    assert!(!side_body_stored(&fx, &child));
+    for block in &a {
+        assert!(!side_body_stored(&fx, block));
+    }
 }
 
 #[test]

@@ -105,7 +105,7 @@ diumumkan rekan dihitung pelanggaran ringan: rekan itu dilewati dan blok diminta
 (AGENTS.md). Jika chainwork sama, chain yang lebih dulu diterima tetap aktif. Reorg: `undo_tip` sampai titik cabang, lalu
 setiap blok chain baru diperiksa V1 sampai V10 dan diterapkan. Jika salah satu blok chain baru tidak sah, blok itu dan
 keturunannya ditandai tidak sah, dan node kembali ke chain dengan chainwork terbanyak yang masih sah. Transaksi dari blok
-yang dilepas dikembalikan ke mempool jika masih sah.
+yang dilepas dikembalikan ke mempool jika masih sah, berurutan, paling banyak sebesar batas mempool.
 
 ---
 
@@ -166,13 +166,16 @@ ditulis lewat `--connect` juga bisa diblokir.
 - Perlindungan eclipse dan sybil minimal (batas koneksi, sanksi). Wajib ditinjau ulang sebelum mainnet.
 - Blok dikirim utuh ke setiap rekan; cukup untuk blok 100_000 byte setiap 120 detik, tetapi boros jika rekan banyak.
 - Ring (kode C dan assembly) masuk lewat Noise (DEC-24). Reproducible build (TSK-F10) wajib mengunci versi compiler C.
-- Blok cabang, indeks header, dan catatan blok tidak sah disimpan di memori node dan hilang saat node dibuka ulang
-  (diterima lagi dari rekan lewat sinkronisasi). **Batas memori (TSK-M34, `NodeLimits`, kebijakan node, bukan
-  konsensus):**
+- Badan blok cabang disimpan di penyimpanan node (MOD-05, tabel `side_blocks`, TSK-M35 bagian A); di memori hanya
+  header dan ringkasannya. Blok yang dilepas saat reorg langsung dipindah ke sana dan badan blok cabang dibaca satu per
+  satu saat disambungkan, sehingga reorg sedalam apa pun tidak menahan badan blok di memori. Indeks blok cabang, indeks
+  header, dan catatan blok tidak sah tetap di memori dan hilang saat node dibuka ulang; badan blok cabang lama dibuang
+  saat node dibuka, dan cabang diterima lagi dari rekan lewat sinkronisasi. **Batas (TSK-M34, `NodeLimits`, kebijakan
+  node, bukan konsensus):**
 
   | Data | Batas bawaan | Jika penuh |
   |---|---|---|
-  | Blok cabang | 10_000 blok dan 64 MiB encoding | Dibuang daun (blok cabang tanpa anak cabang) dengan chainwork paling kecil, jika sama yang paling akhir diterima, sampai dalam batas. Blok cabang di jalur menuju header yang lebih berat daripada chain aktif tidak pernah dibuang, sehingga cabang yang sedang diunduh selalu bisa disambungkan |
+  | Blok cabang | 10_000 blok dan 64 MiB encoding (di penyimpanan) | Dibuang daun (blok cabang tanpa anak cabang) dengan chainwork paling kecil, jika sama yang paling akhir diterima, sampai dalam batas. Blok cabang di jalur menuju header yang lebih berat daripada chain aktif tidak pernah dibuang, sehingga cabang yang sedang diunduh selalu bisa disambungkan |
   | Indeks header tanpa badan blok | 100_000 header (sekitar 20 MB) | Header daun dengan chainwork paling kecil dibuang jika lebih ringan daripada header baru dan bukan induknya; jika tidak ada, pesan `Headers` berhenti tanpa sanksi (`Full`) dan sinkronisasi header berlanjut setelah badan blok diunduh |
   | Catatan blok tidak sah | 10_000 ID | Catatan tertua dilupakan; blok itu diperiksa ulang jika datang lagi |
 
@@ -180,7 +183,8 @@ ditulis lewat `--connect` juga bisa diblokir.
   tidak sah memakai satu peta induk ke anak, tidak berulang per tingkat.
 - **Batas yang tersisa:** cabang bersaing yang lebih dari 100_000 blok di bawah ujungnya belum lebih berat daripada chain
   aktif tidak bisa disinkronkan lewat P2P, karena indeks header penuh sebelum cabang itu terbukti lebih berat. Aturan
-  konsensus tetap tanpa batas reorg; batas ini hilang setelah indeks header dan blok cabang disimpan di disk (TSK-M35).
+  konsensus tetap tanpa batas reorg; batas ini hilang dengan presync header (TSK-M35 bagian B): header cabang diperiksa
+  tanpa disimpan sampai cabang terbukti lebih berat, lalu diunduh ulang dan disimpan.
 
 ---
 
@@ -188,10 +192,10 @@ ditulis lewat `--connect` juga bisa diblokir.
 
 | Isi | Modul | Task |
 |---|---|---|
-| Blok cabang (di memori node pada v0.1; MOD-05 tetap hanya chain aktif), pemilihan chain berdasarkan chainwork, reorg, blok yang induknya belum dikenal | MOD-11 | TSK-M27 |
+| Blok cabang (indeks di memori node; badannya di MOD-05 sejak TSK-M35), pemilihan chain berdasarkan chainwork, reorg, blok yang induknya belum dikenal | MOD-11 | TSK-M27 |
 | Indeks header tanpa badan blok (untuk sinkronisasi header dulu) | MOD-11 | TSK-M28 |
 | Batas memori blok cabang, indeks header, dan catatan blok tidak sah (`NodeLimits`) | MOD-11 | TSK-M34 |
-| Indeks header dan blok cabang di disk (menghapus batas Bagian 9) | MOD-05, MOD-11 | TSK-M35 |
+| Badan blok cabang di penyimpanan (bagian A); presync header untuk cabang dalam (bagian B, menghapus batas Bagian 9) | MOD-05, MOD-11 | TSK-M35 |
 | Swarm libp2p, 5 protokol, codec pesan, kunci rekan, batas koneksi, sanksi | MOD-06 | TSK-M14 |
 | Sinkronisasi header lalu blok, siaran, opsi daemon | MOD-11 | TSK-M28 |
 | 4 node atau lebih tetap sinkron, jaringan terpisah lalu tersambung (reorg dalam), node yang tertinggal mengejar | MOD-17 | TSK-F04 |

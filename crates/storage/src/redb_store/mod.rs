@@ -29,6 +29,9 @@ const BLOCKS: TableDefinition<&[u8; 32], &[u8]> = TableDefinition::new("blocks")
 const ACTIVE: TableDefinition<u64, &[u8; 32]> = TableDefinition::new("active");
 /// Tabel undo data: key block_id, value `encode_block_undo`.
 const UNDO: TableDefinition<&[u8; 32], &[u8]> = TableDefinition::new("undo");
+/// Tabel badan blok cabang (TSK-M35): key block_id, value encoding kanonis blok MOD-01. Ditambahkan tanpa menaikkan
+/// versi skema: file lama tanpa tabel ini tetap terbuka, tabelnya dibuat saat dibuka.
+const SIDE: TableDefinition<&[u8; 32], &[u8]> = TableDefinition::new("side_blocks");
 /// Key versi skema di tabel meta.
 const SCHEMA_KEY: &str = "schema";
 /// Versi skema yang ditulis dan diterima oleh kode ini.
@@ -41,9 +44,9 @@ fn redb_error(e: impl Display) -> StoreError {
     }
 }
 
-/// Penyimpanan chain aktif, set UTXO, dan undo data di database redb.
+/// Penyimpanan chain aktif, set UTXO, undo data, dan badan blok cabang di database redb.
 ///
-/// Setiap `apply_block` dan `undo_tip` adalah satu write transaction redb. Error di mana pun sebelum `commit`
+/// Setiap `apply_block`, `undo_tip`, dan operasi badan blok cabang adalah satu write transaction redb. Error di mana pun sebelum `commit`
 /// membatalkan transaksi itu, sehingga isi store tidak berubah.
 pub struct RedbStore {
     db: Database,
@@ -84,7 +87,7 @@ impl RedbStore {
         Self::init(db)
     }
 
-    /// Write transaction inisialisasi: membuka kelima tabel, lalu menulis atau memeriksa versi skema.
+    /// Write transaction inisialisasi: membuka keenam tabel, lalu menulis atau memeriksa versi skema.
     /// Jika versi tidak didukung, kembali dengan `UnsupportedSchema` tanpa commit.
     fn init(db: Database) -> Result<Self, StoreError> {
         let write_txn = db.begin_write().map_err(redb_error)?;
@@ -94,6 +97,7 @@ impl RedbStore {
             let _ = write_txn.open_table(BLOCKS).map_err(redb_error)?;
             let _ = write_txn.open_table(ACTIVE).map_err(redb_error)?;
             let _ = write_txn.open_table(UNDO).map_err(redb_error)?;
+            let _ = write_txn.open_table(SIDE).map_err(redb_error)?;
             let stored = meta
                 .get(SCHEMA_KEY)
                 .map_err(redb_error)?
@@ -398,6 +402,55 @@ impl ChainStore for RedbStore {
         }
         write_txn.commit().map_err(redb_error)?;
         Ok((tip_id, block))
+    }
+
+    fn put_side_block(&mut self, block_id: Hash32, block: &Block) -> Result<(), StoreError> {
+        let bytes = block.to_bytes();
+        let write_txn = self.db.begin_write().map_err(redb_error)?;
+        {
+            let mut table = write_txn.open_table(SIDE).map_err(redb_error)?;
+            table
+                .insert(block_id.as_bytes(), bytes.as_slice())
+                .map_err(redb_error)?;
+        }
+        write_txn.commit().map_err(redb_error)?;
+        Ok(())
+    }
+
+    fn side_block(&self, block_id: &Hash32) -> Result<Option<Block>, StoreError> {
+        let read_txn = self.db.begin_read().map_err(redb_error)?;
+        let table = read_txn.open_table(SIDE).map_err(redb_error)?;
+        let Some(guard) = table.get(block_id.as_bytes()).map_err(redb_error)? else {
+            return Ok(None);
+        };
+        decode_block(guard.value()).map(Some)
+    }
+
+    fn remove_side_block(&mut self, block_id: &Hash32) -> Result<(), StoreError> {
+        let write_txn = self.db.begin_write().map_err(redb_error)?;
+        {
+            let mut table = write_txn.open_table(SIDE).map_err(redb_error)?;
+            table.remove(block_id.as_bytes()).map_err(redb_error)?;
+        }
+        write_txn.commit().map_err(redb_error)?;
+        Ok(())
+    }
+
+    fn clear_side_blocks(&mut self) -> Result<(), StoreError> {
+        let write_txn = self.db.begin_write().map_err(redb_error)?;
+        {
+            let mut table = write_txn.open_table(SIDE).map_err(redb_error)?;
+            let mut keys: Vec<[u8; 32]> = Vec::new();
+            for item in table.iter().map_err(redb_error)? {
+                let (key_guard, _) = item.map_err(redb_error)?;
+                keys.push(*key_guard.value());
+            }
+            for key in &keys {
+                table.remove(key).map_err(redb_error)?;
+            }
+        }
+        write_txn.commit().map_err(redb_error)?;
+        Ok(())
     }
 }
 
