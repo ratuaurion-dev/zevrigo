@@ -12,7 +12,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 | FTR-03 | Kirim dan terima HSIS lewat CLI di regtest | MOD-01, 02, 04, 07, 08, 09, 11, 12 | TSK-F03 | 🟢 |
 | FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | 🟢 |
 | FTR-05 | Explorer minimal (hanya data sistem sejak DEC-28) | MOD-01, 02, 04, 08, 14 (DEC-25, DEC-28) | TSK-F05, TSK-M39 | 🟢 |
-| FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 DEC-01 |
+| FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 TSK-M06 |
 | FTR-07 | Wallet desktop (P0) | MOD-08, 09, 15 | TSK-F07 | ⚪ |
 | FTR-08 | Wallet mobile | MOD-09, 15 | TSK-F08 | ⚪ |
 | FTR-09 | Aplikasi pelaku usaha | MOD-08, 09, 10, 16 | TSK-F09 | ⚪ |
@@ -45,7 +45,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
   dengan benar (I1–I4); indexer tahan reorg.
 
 ### FTR-06 · Testnet publik · 🔴
-- **Terblokir oleh:** DEC-01 (PoW mainnet) dan parameter testnet.
+- **Terblokir oleh:** TSK-M06 (PoW RandomX; DEC-01 diputuskan 5 November 2026) dan parameter testnet.
 - **Selesai bila:** cakupan minimum L6 (Dokumen Konsep 5.11) tercapai.
 
 ### FTR-07 sampai FTR-10 · ⚪

@@ -8,7 +8,7 @@ Dokumentasi arsitektur, peta modul, keputusan desain, dan glosarium tersedia di 
 
 - Linux / WSL2 pada filesystem Linux asli (bukan `/mnt/c`)
 - Rust `1.99.0` melalui `rustup` (otomatis dikunci lewat `rust-toolchain.toml` beserta `rustfmt` dan `clippy`)
-- Perangkat sistem: `make`, `bash`, dan `git` (serta `g++`, `cmake`, `pkg-config` untuk tahapan native berikutnya bila diperlukan)
+- Perangkat sistem: `make`, `bash`, `git`, `cmake`, dan compiler C++ `g++` (wajib sejak PoW RandomX, DEC-01; di Ubuntu: `sudo apt-get install -y cmake g++`)
 
 ## Verifikasi
 

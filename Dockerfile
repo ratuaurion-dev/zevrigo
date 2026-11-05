@@ -12,6 +12,11 @@ ARG RUNTIME_IMAGE=debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576
 
 # 1. Program Rust (release, Cargo.lock dikunci). rust-toolchain.toml dan .cargo tidak disalin: versi Rust dari image.
 FROM ${RUST_IMAGE} AS rust-build
+# RandomX (DEC-01, DEC-10 bagian 10): randomx-rs membangun kode C++ resmi lewat cmake, make, dan g++
+# (image rust slim tidak berisi make).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends cmake make g++ \
+ && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates

@@ -3,8 +3,8 @@
 - **ID:** `MOD-03`
 - **Path:** `crates/pow`
 - **Paket:** `homeostasis-pow`
-- **Status:** 🟡 sedang berjalan (TSK-M05 selesai; sisa: PoW mainnet TSK-M06, menunggu `DEC-01`)
-- **Bergantung pada:** `MOD-01`, `MOD-02` (`DEC-14`)
+- **Status:** 🟡 sedang berjalan (TSK-M05 selesai; TSK-M06 bagian A: pustaka RandomX, `DEC-01` diputuskan 5 November 2026)
+- **Bergantung pada:** `MOD-01`, `MOD-02` (`DEC-14`); pustaka luar `randomx-rs` 1.6.0 (`DEC-10` bagian 10)
 - **Dipakai oleh:** `MOD-04`, `MOD-13`, `MOD-17`
 
 ## Tujuan
@@ -15,7 +15,7 @@ Menyediakan perhitungan dan verifikasi Proof of Work bagi konsensus dan penamban
 
 - Tipe `Target`: target kesulitan sebagai bilangan 256-bit big-endian (`DEC-15`).
 - PoW dev khusus regtest (`DEC-09`): hash `H(regtest pow, header 96 byte)` memakai `hash` dari `MOD-02`, pemeriksaan `hash ≤ target`, dan pencarian nonce untuk penambang regtest (TSK-M05).
-- PoW testnet dan mainnet: varian RandomX dengan pergantian kunci setiap `2_048` blok dan jeda `64` blok (TSK-M06, menunggu `DEC-01`).
+- PoW testnet dan mainnet (`DEC-01`, TSK-M06): varian RandomX (Konsep Bagian 5.10) lewat `randomx-rs`. `key_height`: kunci berganti setiap `2_048` blok dengan jeda `64` blok, sebelumnya kunci genesis. `RandomxVerifier`: mode ringan (cache 256 MiB) untuk satu kunci, `hash` atas 96 byte header, `verify` dengan `hash ≤ target`. Salt Argon2 masih resmi sampai TSK-M06 bagian C; penambangan mode cepat juga di bagian C.
 
 ## Bukan Tanggung Jawab
 
@@ -25,4 +25,4 @@ Menyediakan perhitungan dan verifikasi Proof of Work bagi konsensus dan penamban
 
 ## Task terkait
 - [TSK-M05](../tasks/TSK-M05-pow-dev.md) — 🟢 selesai (antarmuka PoW dan PoW dev regtest)
-- [TSK-M06](../tasks/README.md) — 🔴 menunggu `DEC-01` (PoW mainnet)
+- [TSK-M06](../tasks/TSK-M06-pow-randomx.md) — 🟡 bagian A (pustaka RandomX), lalu B (konsensus dan node) dan C (salt sendiri, penambang)

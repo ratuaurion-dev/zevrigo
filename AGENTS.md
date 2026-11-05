@@ -81,7 +81,7 @@ homeostasis_lab/
 |---|---|---|---|---|
 | MOD-01 | crates/primitives | homeostasis-primitives | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — |
 | MOD-02 | crates/crypto | homeostasis-crypto | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 |
-| MOD-03 | crates/pow | homeostasis-pow | Proof of Work: antarmuka dan PoW dev regtest (DEC-09); PoW mainnet menunggu DEC-01 | MOD-01, 02 (DEC-14) |
+| MOD-03 | crates/pow | homeostasis-pow | Proof of Work: antarmuka, PoW dev regtest (DEC-09), RandomX testnet/mainnet lewat randomx-rs (DEC-01) | MOD-01, 02 (DEC-14) |
 | MOD-04 | crates/consensus | homeostasis-consensus | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 |
 | MOD-05 | crates/storage | homeostasis-storage | Penyimpanan blok, set UTXO, pruning | MOD-01 |
 | MOD-06 | crates/network | homeostasis-network | P2P (rust-libp2p) | MOD-01 |
@@ -147,7 +147,7 @@ Berlaku untuk SEMUA kode milik proyek ini: setiap crate di `crates/`, setiap apl
    `#![deny(clippy::arithmetic_side_effects, clippy::float_arithmetic, clippy::indexing_slicing)]`
 3. **Tanpa panic di kode produksi.** Dilarang `unwrap`, `expect`, `panic!`, atau indexing yang bisa
    panic. Kembalikan `Result` dengan tipe error dari `thiserror`.
-4. **Tanpa `unsafe`**, tanpa pengecualian (lihat larangan mutlak di atas). Di crate `pow`, hanya PoW dev regtest (TSK-M05, DEC-09) yang boleh dikerjakan. PoW mainnet menunggu DEC-01; jangan mulai mengerjakannya.
+4. **Tanpa `unsafe`**, tanpa pengecualian (lihat larangan mutlak di atas). Di crate `pow`: PoW dev regtest (TSK-M05, DEC-09) dan RandomX lewat crate `randomx-rs` (DEC-01, TSK-M06). Hanya MOD-03 yang boleh memakai `randomx-rs`; `unsafe` dan float hanya ada di dalam pustaka itu.
 5. **Encoding kanonis.** Satu nilai hanya boleh punya satu representasi byte.
 6. Jangan menulis aturan konsensus di luar crate `consensus`.
 

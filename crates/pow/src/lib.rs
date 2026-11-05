@@ -1,4 +1,5 @@
-//! MOD-03: Proof of Work. Berisi Target 256-bit dan PoW dev regtest (DEC-09); PoW mainnet menunggu DEC-01.
+//! MOD-03: Proof of Work. Berisi Target 256-bit, PoW dev regtest (DEC-09), dan PoW RandomX untuk testnet dan mainnet
+//! (DEC-01, TSK-M06).
 
 #![forbid(unsafe_code)]
 #![deny(
@@ -7,9 +8,11 @@
     clippy::indexing_slicing
 )]
 
+pub mod randomx;
 pub mod regtest;
 pub mod target;
 
+pub use randomx::{RandomxError, RandomxVerifier, key_height};
 pub use regtest::{PowError, mine_regtest, regtest_pow_hash, verify_regtest_pow};
 pub use target::Target;
 

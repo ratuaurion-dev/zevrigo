@@ -24,6 +24,8 @@ Paket Docker hanya membungkus program yang sudah ada. Tidak ada aturan chain, ku
 - Digest dibaca dari registry Docker Hub dengan `docker buildx imagetools inspect` (Q93, 3 November 2026).
 - Rust 1.99.0 sama dengan `rust-toolchain.toml`; Node.js 24.22.0 sama dengan lingkungan WSL pencipta.
 - Mengganti image dasar = mengganti digest di `Dockerfile` dan di tabel ini, lewat skrip gerbang.
+- Tahap build Rust memasang `cmake`, `make`, dan `g++` dari repositori Debian untuk kode C++ RandomX (DEC-01, DEC-10 bagian 10).
+  Versi paket Debian belum dikunci; dikunci bersama compiler C++ di TSK-F10.
 
 ## 2. Isi image
 

@@ -9,6 +9,7 @@ license.workspace = true
 [dependencies]
 homeostasis-crypto.workspace = true
 homeostasis-primitives.workspace = true
+randomx-rs.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]

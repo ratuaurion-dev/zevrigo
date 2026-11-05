@@ -71,6 +71,9 @@ libp2p-tcp = { version = "0.45.0", default-features = false }
 # Fitur bawaan keduanya dimatikan; fitur ditambah di crate saat pemakaian pertama (TSK-M29, TSK-M30).
 axum = { version = "0.8.9", default-features = false }
 rusqlite = { version = "0.41.1", default-features = false }
+# DEC-01 (DEC-10 bagian 10): hanya MOD-03 pow. randomx-rs membangun kode C++ resmi RandomX lewat cmake (butuh program
+# cmake dan compiler C++). Salt Argon2 masih nilai resmi sampai TSK-M06 bagian C.
+randomx-rs = { version = "1.6.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -96,4 +99,9 @@ suboptimal_flops = "deny"
 opt-level = 3
 
 [profile.dev.package.blake2]
+opt-level = 3
+
+# DEC-01: kode C++ RandomX (build script randomx-rs, CMake RelWithDebInfo) dioptimalkan juga di profil dev dan test, agar
+# cache 256 MiB dan hash di test tidak lambat. Tidak mengubah Cargo.lock maupun build rilis.
+[profile.dev.package.randomx-rs]
 opt-level = 3
