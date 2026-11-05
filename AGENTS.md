@@ -45,7 +45,7 @@ JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti 
 | Ukuran blok maksimum | 100_000 byte |
 | Hash umum | BLAKE3 |
 | Tanda tangan | Schnorr BIP340 di kurva secp256k1. MuSig2 untuk multi-tanda tangan |
-| PoW | varian RandomX (hanya salt Argon2 yang diganti). Kunci diganti setiap 2_048 blok, jeda 64 blok |
+| PoW | varian RandomX (hanya salt Argon2 yang diganti: `RandomHSIS\x01`, DEC-01). Kunci diganti setiap 2_048 blok, jeda 64 blok |
 | Penyesuaian kesulitan | ASERT per blok, waktu paruh 720 blok |
 | Cap waktu blok | harus > median 11 blok terakhir dan ≤ waktu lokal node + 3_600 detik |
 | Pemilihan chain | chain sah dengan kerja kumulatif terbanyak. TANPA batas kedalaman reorg. Tanpa checkpoint |
@@ -53,7 +53,7 @@ JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti 
 
 Nilai berikut baru ditetapkan saat testnet. JANGAN dikarang. Tulis sebagai konstanta
 bertanda `// TODO(param): <nama>` dengan nilai placeholder yang jelas tidak valid:
-salt RandomX, kesulitan awal, alamat penerima alokasi genesis, hash blok Bitcoin jangkar
+kesulitan awal mainnet, alamat penerima alokasi genesis mainnet, hash blok Bitcoin jangkar
 beserta tingginya, magic bytes/ID jaringan, dan nomor SLIP-44 mainnet untuk jalur turunan wallet.
 Format alamat sudah ditetapkan (bech32m, DEC-11, Spesifikasi Format Bagian 8).
 
@@ -73,6 +73,7 @@ homeostasis_lab/
 │   ├── integration/          # MOD-17: uji lintas crate
 │   └── vectors/              # vektor uji konsensus (data)
 ├── scripts/                  # skrip pemeriksaan (check-forbidden)
+├── vendor/                   # salinan kode pihak ketiga: randomx-rs + RandomX dengan salt HSIS (DEC-01, vendor/README.md)
 ├── docs/                     # README, system-map, modules, features, tasks, decisions, glossary, reference
 └── .github/workflows/        # CI (asumsi GitHub)
 ```

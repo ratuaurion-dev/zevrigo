@@ -7,8 +7,10 @@ use super::{
 };
 use crate::target::Target;
 
-/// Vektor resmi RandomX (tevador/RandomX, src/tests/tests.cpp, "Hash test 1a" sampai "1f"), salt resmi `RandomX\x03`.
-/// Kolom: kunci, input (hex), hash yang diharapkan.
+/// Kunci dan input vektor resmi RandomX (tevador/RandomX, src/tests/tests.cpp, "Hash test 1a" sampai "1f"). Hash yang
+/// diharapkan adalah hash varian HSIS (salt `RandomHSIS\x01`, DEC-01), dihitung Q101 dengan program uji C++ terhadap
+/// pustaka vendor/randomx-rs; program yang sama menghasilkan vektor resmi persis dari sumber asli (salt `RandomX\x03`),
+/// dengan flag bawaan dan flag anjuran CPU (JIT).
 const KEY_000: &[u8] = b"test key 000";
 const KEY_001: &[u8] = b"test key 001";
 /// Kunci test 1f: 31 byte (`initCache` membaca sampai byte nol).
@@ -37,21 +39,21 @@ fn check(key: &[u8], cases: &[(Vec<u8>, &str)]) {
 }
 
 #[test]
-fn official_vectors_light_mode() {
+fn hsis_vectors_light_mode() {
     check(
         KEY_000,
         &[
             (
                 b"This is a test".to_vec(),
-                "639183aae1bf4c9a35884cb46b09cad9175f04efd7684e7262a0ac1c2f0b4e3f",
+                "bffb4d6af107280fc2bbc8d2ac409abda2514d163ea823e67c1f3497b0b7d543",
             ),
             (
                 b"Lorem ipsum dolor sit amet".to_vec(),
-                "300a0adb47603dedb42228ccb2b211104f4da45af709cd7547cd049e9489c969",
+                "2e2e6ff4bce9197701346efccac90331809b808095ddf9889245323062a25c68",
             ),
             (
                 TEST_C_INPUT.to_vec(),
-                "c36d4ed4191e617309867ed66a443be4075014e2b061bcdaf9ce7b721d2b77a8",
+                "8e9204a0246ba7765f516e0ea8c93b1fc126b9198ebd80dc55b3dc9ed5bc2f27",
             ),
         ],
     );
@@ -60,11 +62,11 @@ fn official_vectors_light_mode() {
         &[
             (
                 TEST_C_INPUT.to_vec(),
-                "e9ff4503201c0c2cca26d285c93ae883f9b1d30c9eb240b820756f2d5a7905fc",
+                "5c72e1144bfcbc5882c4da50db8ee4cc12fbc9d875fe8d7f953fb994b1d6b630",
             ),
             (
                 bytes(TEST_E_INPUT),
-                "c56414121acda1713c2f2a819d8ae38aed7c80c35c2a769298d34f03833cd5f1",
+                "2f91f0fa8d4ab0a1e76ade33285ef58444725ee94c54ff248a2e0eb88199e35c",
             ),
         ],
     );
@@ -74,7 +76,7 @@ fn official_vectors_light_mode() {
         &key_1f,
         &[(
             bytes(TEST_F_INPUT),
-            "78af2a1864c42abce36d2e8983e13df99b2af0ce1362999af09fab004d4435a8",
+            "988e0c3a9b01f9ca198ae7acbdf4ace714bd535ffdf298c46c756acbb5df9cd5",
         )],
     );
 }
@@ -116,6 +118,10 @@ fn header_hash_and_target_rule() {
         42,
     );
     let pow_hash = verifier.hash(&header).expect("hash header");
+    // Vektor h1 Q101 (header ini, kunci 0x33 × 32, salt HSIS).
+    let h1 = Hash32::from_hex("97a628c587d1c1a463da37f83a33a66c60cf304300392992f3993a708fd62e53")
+        .expect("h1");
+    assert_eq!(pow_hash, h1);
     let vm = light_vm(key.as_bytes()).expect("VM kedua");
     assert_eq!(hash_with(&vm, &header.to_array()), Ok(pow_hash));
     assert_ne!(pow_hash, Hash32::ZERO);

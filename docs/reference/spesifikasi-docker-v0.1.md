@@ -37,8 +37,8 @@ Paket Docker hanya membungkus program yang sudah ada. Tidak ada aturan chain, ku
 | Data | Volume `/data`: chain `regtest/chain.redb`, indeks `regtest/explorer.sqlite`, wallet `regtest/wallet.json` |
 | Perintah bawaan | `homeostasis-node --regtest --datadir /data` |
 
-Konteks build hanya `Cargo.toml`, `Cargo.lock`, `crates/`, `apps/` (tanpa `node_modules`, `.next`, `out`), dan `tests/`
-(`.dockerignore`). `rust-toolchain.toml` dan `.cargo/` tidak disalin.
+Konteks build hanya `Cargo.toml`, `Cargo.lock`, `crates/`, `apps/` (tanpa `node_modules`, `.next`, `out`), `tests/`, dan
+`vendor/` (salinan RandomX dengan salt HSIS, DEC-01) (`.dockerignore`). `rust-toolchain.toml` dan `.cargo/` tidak disalin.
 
 ## 3. Compose (`compose.yaml`)
 

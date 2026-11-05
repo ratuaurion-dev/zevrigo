@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | Format target compact (Bagian 3), ASERT bilangan bulat (4), chainwork (5), cap waktu (6), aturan transaksi (7), coinbase (8), urutan validasi blok (9), genesis regtest (10) |
 | 🟢 Diputuskan | DEC-17: coinbase wajib mengklaim **tepat** subsidy + total biaya (tanpa pembakaran) |
-| ⏳ Menunggu | Salt Argon2 RandomX sendiri (TSK-M06 bagian C). Genesis, `pow_limit`, dan target awal testnet/mainnet (`TODO(param)`) |
+| ⏳ Menunggu | Genesis, `pow_limit`, dan target awal testnet (TSK-M06 bagian C2, nilai disetujui pencipta 5 November 2026) dan mainnet (`TODO(param)`) |
 | ➡️ Langkah berikutnya | TSK-M25 (`Network` di MOD-01), TSK-M08 (Bagian 3–6 dan 10), lalu TSK-M09 (Bagian 7–9) |
 
 Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter testnet
@@ -29,6 +29,7 @@ Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter test
 | Parameter | Regtest | Testnet | Mainnet |
 |---|---|---|---|
 | Fungsi PoW | `regtest_pow_hash` (DEC-09) | RandomX dengan kunci (DEC-01, V3) | RandomX dengan kunci (DEC-01, V3) |
+| Salt Argon2 RandomX | — | `RandomHSIS\x01` (11 byte) | `RandomHSIS\x01` (11 byte) |
 | `pow_limit` (compact) | `0x207fffff` | `TODO(param)` | `TODO(param)` |
 | Target genesis (compact) | `0x207fffff` | `TODO(param)` (kesulitan awal) | `TODO(param)` |
 | Genesis | Bagian 10 (tetap) | `TODO(param)` | `TODO(param)` |

@@ -1,4 +1,4 @@
-# TSK-M06 · PoW RandomX untuk testnet dan mainnet · 🟡 bagian B · Prioritas: Tinggi
+# TSK-M06 · PoW RandomX untuk testnet dan mainnet · 🟡 bagian C · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-03 (bagian A); MOD-04, MOD-11, MOD-13 (bagian B dan C) · **Untuk:** FTR-06 testnet publik
 - **Bergantung pada:** DEC-01, DEC-10 bagian 10, DEC-14, DEC-15 · **Memblokir:** TSK-F06
 - **Estimasi:** A S, B L, C M · **Ditulis:** Quick, 5 November 2026
@@ -20,7 +20,7 @@ lebih dulu dengan vektor resmi RandomX.
 Test (workspace 391 → 395): `official_vectors_light_mode` (vektor resmi 1a–1f), `key_height_follows_interval_and_lag`,
 `header_hash_and_target_rule`, `empty_key_and_input_are_rejected`.
 
-## Bagian B: konsensus dan node (Q100)
+## Bagian B: konsensus dan node (🟢 `7df31b4`, Q100)
 | Bagian | Isi |
 |---|---|
 | MOD-03 | `RandomxService`: satu utas pemilik `RandomxVerifier` untuk `SERVICE_KEYS` = 2 kunci terakhir (aktif dan sebelumnya), handle `Send + Sync`, `hash(key, header)`; `RandomxError::Service` |
@@ -38,12 +38,19 @@ genesis testnet (bagian C).
 Batas yang dicatat: header diperiksa RandomX sambil state node terkunci (mode ringan, beberapa milidetik per header), jadi
 sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurutan di satu utas.
 
-## Bagian C: salt sendiri, penambang, parameter testnet
-- Kode `randomx-rs` dan RandomX disalin ke repo (Konsep Bagian 5.12); satu baris `RANDOMX_ARGON_SALT` diganti nilai chain
-  ini (`TODO(param)`, diusulkan bersama parameter testnet). Vektor baru diuji silang dengan program uji resmi RandomX yang
-  dibangun dengan salt yang sama.
-- MOD-13: mode cepat (dataset sekitar 2 GB) dan multi-utas.
-- `pow_limit`, target awal, dan genesis testnet.
+## Bagian C: salt sendiri, parameter testnet, penambang (paket parameter disetujui pencipta 5 November 2026)
+- **C1 (Q101 hitung, Q102 commit):** `vendor/randomx-rs` = `randomx-rs` 1.6.0 dari crates.io tanpa `Cargo.lock` paket, dua
+  perubahan: `RANDOMX_ARGON_SALT` = `"RandomHSIS\x01"` dan `[profile.release]` paket dihapus (vendor/README.md). Dipakai lewat
+  `[patch.crates-io]`, `exclude = ["vendor"]`; Cargo.lock hanya kehilangan `source` dan `checksum` randomx-rs. Q101: isi vendor
+  dibandingkan `diff -r` dengan sumber asli; RandomX C++ asli dan vendor dibangun cmake terpisah; program uji
+  `vektor_rx.cpp` (flag bawaan dan JIT harus sama) menghasilkan vektor resmi 1a–1f persis dari sumber asli, lalu vektor HSIS
+  dari vendor. Test `hsis_vectors_light_mode` (pengganti `official_vectors_light_mode`) dan vektor header h1.
+- **C2:** testnet `pow_limit` `0x1f369d03` (sekitar 10 hash/detik), target genesis `0x1e8bcf64` (sekitar 1_000 hash/detik,
+  120_000 hash per blok); genesis testnet berbentuk genesis regtest dengan `extra` = ASCII `homeostasis testnet 1` diisi nol
+  sampai 32 byte (tanpa jangkar Bitcoin), alokasi `G` ke kunci NUMS BIP341
+  `50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0` (tidak bisa dibelanjakan), cap waktu = saat peluncuran;
+  `--testnet` di node, explorer, miner, CLI.
+- **C3:** MOD-13 mode cepat (dataset sekitar 2 GB) dan multi-utas.
 
 ## Batas yang ditulis jujur
 - Varian hanya penghalang kecil: CPU dan server sewaan tetap bisa berpindah (Konsep P13).

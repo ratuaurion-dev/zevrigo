@@ -17,6 +17,8 @@ members = [
     "apps/explorer",
     "tests/integration",
 ]
+# DEC-01: salinan randomx-rs + RandomX dengan salt HSIS (vendor/README.md), dipakai lewat [patch.crates-io], bukan anggota.
+exclude = ["vendor"]
 
 [workspace.package]
 version = "0.1.0"
@@ -74,6 +76,11 @@ rusqlite = { version = "0.41.1", default-features = false }
 # DEC-01 (DEC-10 bagian 10): hanya MOD-03 pow. randomx-rs membangun kode C++ resmi RandomX lewat cmake (butuh program
 # cmake dan compiler C++). Salt Argon2 masih nilai resmi sampai TSK-M06 bagian C.
 randomx-rs = { version = "1.6.0", default-features = false }
+
+# DEC-01 (Konsep Bagian 5.10 dan L5): randomx-rs dibangun dari salinan di repo, satu-satunya perubahan algoritma adalah
+# salt Argon2 RandomX ("RandomHSIS\x01"). Lihat vendor/README.md.
+[patch.crates-io]
+randomx-rs = { path = "vendor/randomx-rs" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

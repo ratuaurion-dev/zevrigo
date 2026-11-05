@@ -1,12 +1,13 @@
 //! PoW RandomX untuk testnet dan mainnet (DEC-01): mode ringan (cache 256 MiB) untuk verifikasi, rumus tinggi kunci, dan
 //! layanan satu utas pemilik cache ([`RandomxService`], TSK-M06 bagian B).
 //!
-//! Hash dihitung pustaka C++ resmi RandomX lewat crate `randomx-rs` (DEC-10 bagian 10). `unsafe` dan floating point
+//! Hash dihitung pustaka C++ resmi RandomX lewat crate `randomx-rs` (DEC-10 bagian 10), dibangun dari salinan di
+//! `vendor/randomx-rs`. `unsafe` dan floating point
 //! hanya ada di dalam pustaka itu; modul ini tetap tanpa keduanya. Hash PoW dari 96 byte header dibaca sebagai bilangan
 //! 256-bit big-endian dan harus ≤ target, sama dengan PoW regtest.
 //!
-//! Salt Argon2 masih nilai resmi RandomX. Salt sendiri chain ini (Konsep Bagian 5.10) ditetapkan bersama parameter
-//! testnet (TSK-M06 bagian C). Pemilihan jaringan dan sumber kunci adalah aturan konsensus MOD-04 (TSK-M06 bagian B).
+//! Varian HSIS (Konsep Bagian 5.10, DEC-01): salt Argon2 `RandomHSIS\x01`, satu-satunya perbedaan dari RandomX resmi
+//! (vendor/README.md). Pemilihan jaringan dan sumber kunci adalah aturan konsensus MOD-04 (TSK-M06 bagian B).
 
 use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
 use std::thread;

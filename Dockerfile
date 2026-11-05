@@ -22,6 +22,8 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY apps ./apps
 COPY tests ./tests
+# Salinan randomx-rs + RandomX dengan salt HSIS (DEC-01), dipakai lewat [patch.crates-io].
+COPY vendor ./vendor
 RUN cargo build --release --locked \
       -p homeostasis-node -p homeostasis-explorer -p homeostasis-miner -p homeostasis-cli \
  && mkdir /out \
