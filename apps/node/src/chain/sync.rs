@@ -13,16 +13,18 @@
 use std::collections::{BTreeSet, VecDeque};
 
 use homeostasis_consensus::{
-    ParentContext, U256, check_future_timestamp, check_header_context, check_header_context_free,
+    ParentContext, U256, check_future_timestamp, check_header_context, check_header_pow,
+    randomx_key_height,
 };
 use homeostasis_crypto::block_id;
-use homeostasis_primitives::params::MEDIAN_TIME_SPAN;
-use homeostasis_primitives::{Block, BlockHeight, Hash32, Header};
+use homeostasis_primitives::params::{MEDIAN_TIME_SPAN, RANDOMX_KEY_INTERVAL};
+use homeostasis_primitives::{Block, BlockHeight, Hash32, Header, Network};
 use homeostasis_rpc::RpcError;
 use homeostasis_storage::ChainStore;
 
 use super::{
-    ChainState, HeaderEntry, INVALID_ANCESTOR_RULE, Node, Parent, block_rule, header_work, internal,
+    ChainState, HeaderEntry, INVALID_ANCESTOR_RULE, Node, Parent, block_rule, header_work,
+    internal, pow_checked,
 };
 
 /// Jumlah ID locator paling banyak (Spesifikasi P2P Bagian 3).
@@ -33,6 +35,10 @@ const DENSE_LOCATOR_IDS: usize = 10;
 
 /// Jarak tinggi antar komitmen presync: ID header di setiap tinggi kelipatan ini diingat (TSK-M35 bagian B).
 pub const PRESYNC_COMMIT_INTERVAL: u64 = 1_000;
+
+/// Jumlah ID header tahap hitung di tinggi kelipatan `RANDOMX_KEY_INTERVAL` yang diingat presync: cukup dua terakhir,
+/// karena tinggi kunci header berikutnya paling jauh satu interval di bawah header terakhir yang tercatat.
+const PRESYNC_KEYS: usize = 2;
 
 /// Tinggi blok locator untuk ujung setinggi `tip` (Spesifikasi P2P Bagian 5): `tip` sampai `tip − 9`, lalu jaraknya
 /// digandakan (`tip − 11`, `tip − 15`, `tip − 23`, dan seterusnya), ditutup genesis. Paling banyak 64 tinggi, urut
@@ -98,7 +104,9 @@ pub enum HeadersOutcome {
 /// 11 cap waktu terakhir, dan ID header di setiap tinggi kelipatan [`PRESYNC_COMMIT_INTERVAL`]. Tahap unduh ulang
 /// (setelah chainwork cabang melebihi chain aktif): header diminta lagi dari titik cabang, ditampung paling banyak
 /// [`PRESYNC_COMMIT_INTERVAL`] header, dan disimpan di indeks header sebagai header terbukti setiap kali ID di tinggi
-/// komitmen cocok. Memori: 40 byte per [`PRESYNC_COMMIT_INTERVAL`] header ditambah tampungan unduh ulang.
+/// komitmen cocok. Memori: 40 byte per [`PRESYNC_COMMIT_INTERVAL`] header ditambah tampungan unduh ulang. Untuk PoW
+/// RandomX (testnet dan mainnet), tahap hitung juga mengingat ID dua header terakhir di tinggi kelipatan 2_048, yaitu
+/// kunci RandomX header sesudahnya.
 #[derive(Clone, Debug, Default)]
 pub struct Presync {
     phase: Phase,
@@ -135,6 +143,9 @@ struct Counting {
     timestamps: Vec<u64>,
     /// (tinggi, ID) di setiap tinggi kelipatan [`PRESYNC_COMMIT_INTERVAL`] dan di ujung yang terbukti lebih berat.
     commitments: Vec<(u64, Hash32)>,
+    /// (tinggi, ID) header tahap hitung di tinggi kelipatan `RANDOMX_KEY_INTERVAL`, paling banyak [`PRESYNC_KEYS`]
+    /// terakhir: kunci RandomX header yang tinggi kuncinya di atas titik cabang.
+    keys: Vec<(u64, Hash32)>,
 }
 
 /// Keadaan tahap unduh ulang.
@@ -528,7 +539,9 @@ impl<S: ChainStore> Node<S> {
             let Some(parent) = state.header_parent(&prev)? else {
                 return Ok(HeadersOutcome::Disconnected);
             };
-            if let Err(error) = check_header_context_free(header, &self.params) {
+            let key = self.pow_key(state, &prev, parent.height.saturating_add(1))?;
+            let checked = check_header_pow(header, &self.params, &key, self.randomx());
+            if let Err(error) = pow_checked(checked)? {
                 return Ok(HeadersOutcome::Invalid {
                     rule: block_rule(&error, "V2"),
                 });
@@ -614,6 +627,29 @@ impl<S: ChainStore> Node<S> {
         Ok(outcome)
     }
 
+    /// Kunci RandomX untuk header presync setinggi `height` (tinggi header sebelumnya + 1): leluhur titik cabang jika
+    /// tinggi kuncinya tidak di atas titik cabang, atau ID header tahap hitung yang tercatat. Regtest tanpa kunci.
+    fn presync_key(
+        &self,
+        state: &ChainState<S>,
+        counting: &Counting,
+        height: u64,
+    ) -> Result<Hash32, RpcError> {
+        if matches!(self.params.network(), Network::Regtest) {
+            return Ok(Hash32::ZERO);
+        }
+        let key_height = randomx_key_height(BlockHeight::new(height)).get();
+        if key_height <= counting.fork_height {
+            return state.ancestor(&counting.fork, key_height);
+        }
+        counting
+            .keys
+            .iter()
+            .find(|(at, _)| *at == key_height)
+            .map(|(_, id)| *id)
+            .ok_or_else(|| internal("kunci RandomX presync tidak tercatat"))
+    }
+
     /// Tahap hitung presync untuk isi satu pesan `Headers`: setiap header diperiksa seperti di
     /// [`Node::accept_headers`] terhadap header sebelumnya, tanpa disimpan. Jika chainwork melebihi ujung chain aktif,
     /// presync pindah ke tahap unduh ulang.
@@ -658,10 +694,13 @@ impl<S: ChainStore> Node<S> {
                         chainwork: parent.chainwork,
                         timestamps: parent.timestamps,
                         commitments: Vec::new(),
+                        keys: Vec::new(),
                     }
                 }
             };
-            if let Err(error) = check_header_context_free(header, &self.params) {
+            let key = self.presync_key(state, &current, current.height.saturating_add(1))?;
+            let checked = check_header_pow(header, &self.params, &key, self.randomx());
+            if let Err(error) = pow_checked(checked)? {
                 return Ok((
                     Phase::Start,
                     PresyncOutcome::Invalid {
@@ -692,6 +731,12 @@ impl<S: ChainStore> Node<S> {
                 .ok_or_else(|| internal("chainwork meluap"))?;
             current.height = header.height().get();
             current.last = id;
+            if current.height.checked_rem(RANDOMX_KEY_INTERVAL) == Some(0) {
+                current.keys.push((current.height, id));
+                if current.keys.len() > PRESYNC_KEYS {
+                    current.keys.remove(0);
+                }
+            }
             current.timestamps.push(header.timestamp());
             if current.timestamps.len() > MEDIAN_TIME_SPAN {
                 current.timestamps.remove(0);

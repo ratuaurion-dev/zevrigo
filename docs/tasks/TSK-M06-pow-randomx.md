@@ -1,4 +1,4 @@
-# TSK-M06 · PoW RandomX untuk testnet dan mainnet · 🟡 bagian A · Prioritas: Tinggi
+# TSK-M06 · PoW RandomX untuk testnet dan mainnet · 🟡 bagian B · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-03 (bagian A); MOD-04, MOD-11, MOD-13 (bagian B dan C) · **Untuk:** FTR-06 testnet publik
 - **Bergantung pada:** DEC-01, DEC-10 bagian 10, DEC-14, DEC-15 · **Memblokir:** TSK-F06
 - **Estimasi:** A S, B L, C M · **Ditulis:** Quick, 5 November 2026
@@ -8,7 +8,7 @@ PoW testnet dan mainnet sesuai Konsep Bagian 5.10 (dikunci): RandomX resmi denga
 setiap 2_048 blok dengan jeda 64 blok. Dikerjakan bertahap, supaya rantai build C++ (cmake, compiler, Docker) terbukti
 lebih dulu dengan vektor resmi RandomX.
 
-## Bagian A: pustaka di MOD-03
+## Bagian A: pustaka di MOD-03 (🟢 `0285052`, Q99c)
 | Bagian | Isi |
 |---|---|
 | Dependensi | `randomx-rs` 1.6.0 (DEC-10 bagian 10), hanya MOD-03; `opt-level = 3` di profil dev; `Dockerfile` memasang `cmake` dan `g++` |
@@ -20,13 +20,23 @@ lebih dulu dengan vektor resmi RandomX.
 Test (workspace 391 → 395): `official_vectors_light_mode` (vektor resmi 1a–1f), `key_height_follows_interval_and_lag`,
 `header_hash_and_target_rule`, `empty_key_and_input_are_rejected`.
 
-## Bagian B: konsensus dan node
-- MOD-04: V3 testnet dan mainnet memakai RandomX dengan kunci `block_id` di `key_height(h)` (sebelum pergantian pertama:
-  `block_id` genesis), diberikan pemanggil. PoW regtest tetap ditolak di testnet dan mainnet, dan RandomX tidak dipakai di
-  regtest (DEC-09).
-- MOD-11: satu utas pemeriksa yang memiliki `RandomxVerifier` (tipe tidak `Send`); cache untuk kunci aktif dan kunci
-  sebelumnya (reorg melewati batas kunci); sinkronisasi header dan presync membawa `block_id` di tinggi kunci.
-- Uji: chain testnet buatan dengan target mudah, pergantian kunci di tinggi 2_113, reorg melewati batas kunci.
+## Bagian B: konsensus dan node (Q100)
+| Bagian | Isi |
+|---|---|
+| MOD-03 | `RandomxService`: satu utas pemilik `RandomxVerifier` untuk `SERVICE_KEYS` = 2 kunci terakhir (aktif dan sebelumnya), handle `Send + Sync`, `hash(key, header)`; `RandomxError::Service` |
+| MOD-04 | `RandomxHasher` (trait), `randomx_hasher()` (layanan MOD-03), `randomx_key_height`; `check_header_pow` dan `check_block_pow` (V2–V4 dengan kunci dan penghitung); `BlockError::PowHashFailed`. `check_header_context_free`/`check_block_context_free` = tanpa penghitung (regtest; testnet/mainnet `PowUnavailable`) |
+| MOD-11 | `Randomx`, `Node::open_with_pow`; `open_with_limits` memulai layanan untuk testnet/mainnet. Kunci = leluhur di tinggi kunci dari induk (`ChainState::ancestor`: chain aktif, blok cabang, indeks header; paling banyak 2_112 langkah). Testnet/mainnet: V2–V4 sesudah induk dikenal. Presync tahap hitung mencatat ID dua header terakhir di tinggi kelipatan 2_048. `PowHashFailed` → galat internal |
+
+Tanpa dependensi baru: MOD-11 memakai RandomX lewat MOD-04 (tabel dependensi tetap). Test (395 → 402):
+MOD-03 `service_matches_verifier_and_keeps_recent_keys`; MOD-04 `key_height_is_the_pow_rule`,
+`testnet_and_mainnet_check_randomx_hash_with_key`, `regtest_ignores_key_and_hasher`, `service_hash_decides_testnet_pow`;
+MOD-11 `randomx_key_comes_from_the_blocks_own_branch` (penghitung uji BLAKE3(kunci ‖ header), chain A 2_120 blok dan cabang
+B dari tinggi 2_040: header lewat indeks header, blok cabang, kunci salah ditolak V3, reorg, presync melewati tinggi 2_048
+dan 2_113) dan `testnet_node_checks_real_randomx` (layanan sungguhan). Node testnet sungguhan baru bisa dibuka sesudah
+genesis testnet (bagian C).
+
+Batas yang dicatat: header diperiksa RandomX sambil state node terkunci (mode ringan, beberapa milidetik per header), jadi
+sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurutan di satu utas.
 
 ## Bagian C: salt sendiri, penambang, parameter testnet
 - Kode `randomx-rs` dan RandomX disalin ke repo (Konsep Bagian 5.12); satu baris `RANDOMX_ARGON_SALT` diganti nilai chain

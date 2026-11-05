@@ -1,8 +1,10 @@
 //! Validasi transaksi dan blok (Spesifikasi Validasi v0.1 Bagian 7 sampai 9, DEC-09, DEC-17).
 //!
 //! Tiga tahap, dipanggil berurutan oleh node:
-//! 1. Bebas konteks, V1–V4: [`decode_block`] dan [`check_block_context_free`]. Untuk header tanpa badan blok
-//!    (sinkronisasi header P2P, TSK-M28): V2–V3 di [`check_header_context_free`].
+//! 1. V1–V4: [`decode_block`] lalu [`check_block_pow`]. Untuk header tanpa badan blok (sinkronisasi header P2P,
+//!    TSK-M28): V2–V3 di [`check_header_pow`]. PoW testnet dan mainnet (RandomX, DEC-01) butuh kunci dari chain induk
+//!    dan penghitung [`RandomxHasher`]; [`check_block_context_free`] dan [`check_header_context_free`] memeriksa tanpa
+//!    keduanya (cukup untuk regtest).
 //! 2. Konteks header, V5–V7: [`check_header_context`]. V8 terpisah di [`check_future_timestamp`], karena hanya
 //!    menunda blok baru dan tidak dipakai saat memeriksa ulang chain yang tersimpan.
 //! 3. Konteks UTXO, V9–V10: [`check_block_transactions`], dengan T1–T6 per transaksi di [`check_transaction`].
@@ -27,6 +29,7 @@ use crate::difficulty::{
     DifficultyError, asert_target, decode_compact, encode_compact, median_time_past,
     timestamp_within_future_limit,
 };
+use crate::randomx::RandomxHasher;
 use crate::supply::{SupplyError, block_subsidy};
 
 /// Galat validasi satu transaksi biasa (Spesifikasi Validasi Bagian 7, T1–T6).
@@ -106,7 +109,8 @@ pub enum BlockError {
     /// V2: target header di atas `pow_limit` jaringan.
     #[error("target header di atas pow_limit")]
     TargetAboveLimit,
-    /// V3: PoW jaringan ini belum ada (DEC-01). Hash PoW regtest tidak pernah diterima di sini (DEC-09).
+    /// V3: PoW testnet atau mainnet tidak bisa diperiksa karena penghitung RandomX tidak diberikan (misalnya lewat
+    /// [`check_header_context_free`]). Hash PoW regtest tidak pernah diterima di jaringan ini (DEC-09).
     #[error("PoW untuk jaringan {network:?} belum tersedia")]
     PowUnavailable {
         /// Jaringan yang PoW-nya belum ada.
@@ -115,6 +119,10 @@ pub enum BlockError {
     /// V3: hash PoW di atas target.
     #[error("hash PoW di atas target")]
     HighHash,
+    /// V3: hash RandomX tidak bisa dihitung (pustaka atau utasnya gagal). Bukan tanda blok tidak sah; node
+    /// melaporkannya sebagai galat internal.
+    #[error("hash PoW RandomX gagal dihitung")]
+    PowHashFailed,
     /// V4: Merkle root header tidak sama dengan isi blok.
     #[error("merkle root header tidak sama dengan isi blok")]
     MerkleRootMismatch,
@@ -240,13 +248,33 @@ pub fn decode_block(bytes: &[u8]) -> Result<Block, BlockError> {
 /// V2–V3 untuk header saja: target sah dan ≤ `pow_limit`, lalu PoW. Dipakai sinkronisasi header P2P (Spesifikasi P2P
 /// Bagian 5), saat badan blok belum ada; [`check_block_context_free`] memanggil fungsi ini lalu memeriksa V4.
 ///
-/// PoW regtest hanya diterima jika `params.network()` adalah regtest. Testnet dan mainnet selalu
-/// [`BlockError::PowUnavailable`] sampai DEC-01 (DEC-09).
+/// Tanpa kunci dan penghitung RandomX: sama dengan [`check_header_pow`] tanpa penghitung, sehingga testnet dan mainnet
+/// selalu [`BlockError::PowUnavailable`]. Cukup untuk regtest (PoW dev, DEC-09).
 ///
 /// # Errors
 ///
 /// Galat aturan pertama yang dilanggar, berurutan V2, V3.
 pub fn check_header_context_free(header: &Header, params: &ChainParams) -> Result<(), BlockError> {
+    check_header_pow(header, params, &Hash32::ZERO, None)
+}
+
+/// V2–V3 untuk semua jaringan: target sah dan ≤ `pow_limit`, lalu PoW.
+///
+/// Regtest memakai PoW dev (DEC-09); `key` dan `randomx` diabaikan. Testnet dan mainnet memakai RandomX (DEC-01): hash
+/// dari `randomx` dengan `key` = `block_id` leluhur di [`crate::randomx_key_height`] pada chain header ini (sampai tinggi
+/// 2_112: genesis, yaitu `network_id`), dan hash itu wajib ≤ target. Hash PoW regtest tidak pernah diterima di testnet
+/// dan mainnet.
+///
+/// # Errors
+///
+/// Galat aturan pertama yang dilanggar, berurutan V2, V3. [`BlockError::PowUnavailable`] untuk testnet dan mainnet
+/// tanpa `randomx`; [`BlockError::PowHashFailed`] jika hash tidak bisa dihitung.
+pub fn check_header_pow(
+    header: &Header,
+    params: &ChainParams,
+    key: &Hash32,
+    randomx: Option<&dyn RandomxHasher>,
+) -> Result<(), BlockError> {
     let target = decode_compact(header.target())?;
     if target > params.pow_limit() {
         return Err(BlockError::TargetAboveLimit);
@@ -256,20 +284,40 @@ pub fn check_header_context_free(header: &Header, params: &ChainParams) -> Resul
             verify_regtest_pow(header, &target).map_err(|_| BlockError::HighHash)?;
         }
         network @ (Network::Testnet | Network::Mainnet) => {
-            return Err(BlockError::PowUnavailable { network });
+            let hasher = randomx.ok_or(BlockError::PowUnavailable { network })?;
+            let pow_hash = hasher
+                .randomx_hash(key, header)
+                .ok_or(BlockError::PowHashFailed)?;
+            if !target.is_met_by(&pow_hash) {
+                return Err(BlockError::HighHash);
+            }
         }
     }
     Ok(())
 }
 
-/// V2–V4: target sah dan ≤ `pow_limit`, PoW ([`check_header_context_free`]), lalu Merkle root.
+/// V2–V4 tanpa kunci dan penghitung RandomX ([`check_header_context_free`]), lalu Merkle root. Cukup untuk regtest.
 ///
 /// # Errors
 ///
 /// Galat aturan pertama yang dilanggar, berurutan V2, V3, V4.
 pub fn check_block_context_free(block: &Block, params: &ChainParams) -> Result<(), BlockError> {
+    check_block_pow(block, params, &Hash32::ZERO, None)
+}
+
+/// V2–V4 untuk semua jaringan: [`check_header_pow`] dengan `key` dan `randomx`, lalu Merkle root.
+///
+/// # Errors
+///
+/// Galat aturan pertama yang dilanggar, berurutan V2, V3, V4; lihat juga [`check_header_pow`].
+pub fn check_block_pow(
+    block: &Block,
+    params: &ChainParams,
+    key: &Hash32,
+    randomx: Option<&dyn RandomxHasher>,
+) -> Result<(), BlockError> {
     let header = block.header();
-    check_header_context_free(header, params)?;
+    check_header_pow(header, params, key, randomx)?;
     if block_merkle_root(block) != Some(header.merkle_root()) {
         return Err(BlockError::MerkleRootMismatch);
     }

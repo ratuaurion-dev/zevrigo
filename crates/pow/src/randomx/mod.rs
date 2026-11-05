@@ -1,4 +1,5 @@
-//! PoW RandomX untuk testnet dan mainnet (DEC-01): mode ringan (cache 256 MiB) untuk verifikasi, dan rumus tinggi kunci.
+//! PoW RandomX untuk testnet dan mainnet (DEC-01): mode ringan (cache 256 MiB) untuk verifikasi, rumus tinggi kunci, dan
+//! layanan satu utas pemilik cache ([`RandomxService`], TSK-M06 bagian B).
 //!
 //! Hash dihitung pustaka C++ resmi RandomX lewat crate `randomx-rs` (DEC-10 bagian 10). `unsafe` dan floating point
 //! hanya ada di dalam pustaka itu; modul ini tetap tanpa keduanya. Hash PoW dari 96 byte header dibaca sebagai bilangan
@@ -6,6 +7,9 @@
 //!
 //! Salt Argon2 masih nilai resmi RandomX. Salt sendiri chain ini (Konsep Bagian 5.10) ditetapkan bersama parameter
 //! testnet (TSK-M06 bagian C). Pemilihan jaringan dan sumber kunci adalah aturan konsensus MOD-04 (TSK-M06 bagian B).
+
+use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
+use std::thread;
 
 use homeostasis_primitives::block::Header;
 use homeostasis_primitives::hash::Hash32;
@@ -24,6 +28,10 @@ const LAG_FROM_BLOCK: u64 = RANDOMX_KEY_LAG + 1;
 /// Topeng kelipatan interval kunci (`!(2_048 - 1)`).
 const INTERVAL_MASK: u64 = !(RANDOMX_KEY_INTERVAL - 1);
 
+/// Jumlah kunci yang pemeriksanya disimpan [`RandomxService`]: kunci aktif dan kunci sebelumnya, supaya reorg melewati
+/// batas kunci tidak membangun cache ulang. Masing-masing 256 MiB.
+pub const SERVICE_KEYS: usize = 2;
+
 /// Galat PoW RandomX.
 #[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum RandomxError {
@@ -41,6 +49,9 @@ pub enum RandomxError {
         /// Target kesulitan yang harus dipenuhi.
         target: Target,
     },
+    /// Utas layanan RandomX tidak bisa dimulai atau sudah berhenti.
+    #[error("layanan RandomX gagal: {0}")]
+    Service(String),
 }
 
 fn library(error: RandomXError) -> RandomxError {
@@ -133,6 +144,89 @@ pub(crate) fn hash_with(vm: &RandomXVM, input: &[u8]) -> Result<Hash32, RandomxE
         .try_into()
         .map_err(|_| RandomxError::HashLength)?;
     Ok(Hash32::from_bytes(bytes))
+}
+
+/// Layanan RandomX mode ringan di satu utas sendiri (TSK-M06 bagian B).
+///
+/// Cache dan VM pustaka RandomX tidak boleh berpindah utas, jadi satu utas memiliki semuanya dan menjawab permintaan hash
+/// lewat kanal, berurutan. Utas menyimpan pemeriksa untuk [`SERVICE_KEYS`] kunci terakhir, dibuat saat kunci itu pertama
+/// kali diminta. Handle ini `Send` dan `Sync`; utasnya berhenti setelah handle dilepas.
+pub struct RandomxService {
+    sender: Sender<Request>,
+}
+
+/// Satu permintaan hash ke utas layanan.
+struct Request {
+    key: Hash32,
+    header: Header,
+    reply: SyncSender<Result<Hash32, RandomxError>>,
+}
+
+impl RandomxService {
+    /// Memulai utas layanan. Belum ada cache yang dibuat.
+    ///
+    /// # Errors
+    ///
+    /// [`RandomxError::Service`] jika utas tidak bisa dibuat.
+    pub fn start() -> Result<Self, RandomxError> {
+        let (sender, receiver) = mpsc::channel::<Request>();
+        // Utas tidak ditunggu: utas berhenti sendiri setelah semua handle dilepas.
+        let _worker = thread::Builder::new()
+            .name("homeostasis-randomx".to_owned())
+            .spawn(move || serve(&receiver))
+            .map_err(|error| RandomxError::Service(error.to_string()))?;
+        Ok(Self { sender })
+    }
+
+    /// Hash PoW RandomX dari 96 byte `header` dengan kunci `key`, dihitung utas layanan.
+    ///
+    /// # Errors
+    ///
+    /// [`RandomxError::Service`] jika utas sudah berhenti, atau galat [`RandomxVerifier`] untuk kunci itu.
+    pub fn hash(&self, key: Hash32, header: &Header) -> Result<Hash32, RandomxError> {
+        let (reply, answer) = mpsc::sync_channel(1);
+        self.sender
+            .send(Request {
+                key,
+                header: *header,
+                reply,
+            })
+            .map_err(|_| stopped())?;
+        answer.recv().map_err(|_| stopped())?
+    }
+}
+
+fn stopped() -> RandomxError {
+    RandomxError::Service("utas RandomX sudah berhenti".to_owned())
+}
+
+/// Isi utas layanan: menjawab permintaan sampai semua handle dilepas.
+fn serve(receiver: &Receiver<Request>) {
+    let mut verifiers: Vec<RandomxVerifier> = Vec::new();
+    while let Ok(request) = receiver.recv() {
+        let result = hash_cached(&mut verifiers, request.key, &request.header);
+        // Peminta yang sudah pergi tidak menghentikan layanan.
+        let _sent = request.reply.send(result);
+    }
+}
+
+/// Hash dengan pemeriksa untuk `key`; pemeriksa yang baru dipakai di depan, paling banyak [`SERVICE_KEYS`].
+fn hash_cached(
+    verifiers: &mut Vec<RandomxVerifier>,
+    key: Hash32,
+    header: &Header,
+) -> Result<Hash32, RandomxError> {
+    let verifier = match verifiers.iter().position(|verifier| verifier.key() == key) {
+        Some(index) => verifiers.remove(index),
+        None => {
+            verifiers.truncate(SERVICE_KEYS.saturating_sub(1));
+            RandomxVerifier::new(key)?
+        }
+    };
+    let result = verifier.hash(header);
+    verifiers.insert(0, verifier);
+    verifiers.truncate(SERVICE_KEYS);
+    result
 }
 
 #[cfg(test)]

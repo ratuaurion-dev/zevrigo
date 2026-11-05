@@ -2,7 +2,9 @@ use homeostasis_primitives::block::Header;
 use homeostasis_primitives::hash::Hash32;
 use homeostasis_primitives::height::BlockHeight;
 
-use super::{RandomxError, RandomxVerifier, hash_with, key_height, light_vm};
+use super::{
+    RandomxError, RandomxService, RandomxVerifier, SERVICE_KEYS, hash_with, key_height, light_vm,
+};
 use crate::target::Target;
 
 /// Vektor resmi RandomX (tevador/RandomX, src/tests/tests.cpp, "Hash test 1a" sampai "1f"), salt resmi `RandomX\x03`.
@@ -148,5 +150,38 @@ fn empty_key_and_input_are_rejected() {
     assert_eq!(
         RandomxError::HashLength.to_string(),
         "hash RandomX tidak 32 byte"
+    );
+}
+
+#[test]
+fn service_matches_verifier_and_keeps_recent_keys() {
+    fn shared<T: Send + Sync>(_: &T) {}
+    let service = RandomxService::start().expect("layanan RandomX");
+    shared(&service);
+    assert_eq!(SERVICE_KEYS, 2);
+
+    let header = Header::new(
+        BlockHeight::new(7),
+        Hash32::from_bytes([0x44; 32]),
+        Hash32::from_bytes([0x55; 32]),
+        1_800_000_000,
+        0x1d00_ffff,
+        9,
+    );
+    let key_a = Hash32::from_bytes([0x01; 32]);
+    let key_b = Hash32::from_bytes([0x02; 32]);
+    let expected_a = RandomxVerifier::new(key_a)
+        .expect("pemeriksa A")
+        .hash(&header)
+        .expect("hash A");
+    assert_eq!(service.hash(key_a, &header), Ok(expected_a));
+    let from_b = service.hash(key_b, &header).expect("hash B");
+    assert_ne!(from_b, expected_a);
+    // Kunci A masih disimpan bersama kunci B; hasilnya tetap sama.
+    assert_eq!(service.hash(key_a, &header), Ok(expected_a));
+    assert_eq!(service.hash(key_b, &header), Ok(from_b));
+    assert_eq!(
+        RandomxError::Service("x".to_owned()).to_string(),
+        "layanan RandomX gagal: x"
     );
 }

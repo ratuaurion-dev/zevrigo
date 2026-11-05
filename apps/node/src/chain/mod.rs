@@ -14,6 +14,10 @@
 //! diterima lagi dari rekan. Jumlah dan ukuran blok cabang, indeks header, dan catatan blok tidak sah dibatasi
 //! [`NodeLimits`] (TSK-M34).
 //!
+//! PoW testnet dan mainnet (RandomX, DEC-01, TSK-M06 bagian B): V2 sampai V4 diperiksa sesudah induk dikenal, karena
+//! kunci RandomX adalah `block_id` leluhur di tinggi kunci pada chain induk itu (chain aktif, blok cabang, atau indeks
+//! header). Hash dihitung [`Randomx`], di node sungguhan satu utas MOD-03 yang memiliki cache.
+//!
 //! Blok yang induknya belum dikenal dilaporkan `orphan` dan tidak disimpan. Blok yang gagal V8 dilaporkan `deferred`
 //! dan tidak disimpan; pengirim boleh mengirim ulang.
 //!
@@ -21,22 +25,23 @@
 //! di submodul `sync`; [`Node::receive_block`] dan [`Node::receive_transaction`] melaporkan juga apakah ujung chain
 //! berubah atau transaksi baru masuk mempool, untuk siaran ke rekan.
 
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Display;
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use homeostasis_consensus::{
-    BlockError, ChainParams, ParentContext, U256, asert_target, block_subsidy, block_work,
-    check_block_context_free, check_block_transactions, check_future_timestamp,
-    check_header_context, decode_block, decode_compact, encode_compact, median_time_past,
-    regtest_genesis, total_supply_after,
+    BlockError, ChainParams, ParentContext, RandomxHasher, U256, asert_target, block_subsidy,
+    block_work, check_block_context_free, check_block_pow, check_block_transactions,
+    check_future_timestamp, check_header_context, decode_block, decode_compact, encode_compact,
+    median_time_past, randomx_hasher, randomx_key_height, regtest_genesis, total_supply_after,
 };
 use homeostasis_crypto::{block_id, block_merkle_root, txid};
 use homeostasis_mempool::{Mempool, MempoolEntry, MempoolError, rule_name};
 use homeostasis_primitives::params::{MAX_BLOCK_SIZE, MEDIAN_TIME_SPAN};
 use homeostasis_primitives::{
-    Amount, Block, BlockHeight, Decode, Encode, Hash32, Header, OutPoint, Output, Transaction,
-    TxBody, UtxoEntry,
+    Amount, Block, BlockHeight, Decode, Encode, Hash32, Header, Network, OutPoint, Output,
+    Transaction, TxBody, UtxoEntry,
 };
 use homeostasis_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, HexBytes,
@@ -62,6 +67,10 @@ const TEMPLATE_RESERVE_BYTES: usize = 1_000;
 
 /// Jam lokal node dalam detik Unix, untuk aturan V8 dan cap waktu template. Disuntikkan agar test deterministik.
 pub type Clock = Box<dyn Fn() -> u64 + Send + Sync>;
+
+/// Penghitung hash RandomX bersama untuk V3 testnet dan mainnet (DEC-01). Node sungguhan memakai layanan MOD-03
+/// ([`homeostasis_consensus::randomx_hasher`]); test boleh memakai penghitung lain.
+pub type Randomx = Arc<dyn RandomxHasher + Send + Sync>;
 
 /// Batas data cabang node (Spesifikasi P2P v0.1 Bagian 9): blok cabang (badannya di penyimpanan sejak TSK-M35), indeks
 /// header tanpa badan blok, dan catatan blok tidak sah. Kebijakan node, bukan aturan konsensus.
@@ -113,6 +122,12 @@ pub enum NodeError {
         /// ID blok tinggi 0 di penyimpanan.
         found: Option<Hash32>,
     },
+    /// Layanan RandomX (testnet dan mainnet) tidak bisa dimulai.
+    #[error("layanan RandomX tidak bisa dimulai: {message}")]
+    Pow {
+        /// Keterangan galat.
+        message: String,
+    },
     /// Isi penyimpanan tidak konsisten.
     #[error("isi penyimpanan tidak konsisten di tinggi {height}: {message}")]
     Corrupt {
@@ -133,7 +148,9 @@ pub fn block_rule(error: &BlockError, difficulty_rule: &'static str) -> &'static
         BlockError::Decode(_) => "V1",
         BlockError::Difficulty(_) => difficulty_rule,
         BlockError::TargetAboveLimit => "V2",
-        BlockError::PowUnavailable { .. } | BlockError::HighHash => "V3",
+        BlockError::PowUnavailable { .. } | BlockError::HighHash | BlockError::PowHashFailed => {
+            "V3"
+        }
         BlockError::MerkleRootMismatch => "V4",
         BlockError::PrevBlockMismatch | BlockError::HeightMismatch { .. } => "V5",
         BlockError::TargetMismatch { .. } => "V6",
@@ -168,6 +185,14 @@ pub const fn mempool_reason(error: &MempoolError) -> &'static str {
 }
 
 /// Error internal node untuk RPC (`-32603`).
+/// Memisahkan galat PoW yang bukan tanda blok tidak sah: hash RandomX yang gagal dihitung menjadi galat internal.
+fn pow_checked(result: Result<(), BlockError>) -> Result<Result<(), BlockError>, RpcError> {
+    match result {
+        Err(BlockError::PowHashFailed) => Err(internal("hash RandomX gagal dihitung")),
+        other => Ok(other),
+    }
+}
+
 fn internal(error: impl Display) -> RpcError {
     RpcError::Internal {
         message: error.to_string(),
@@ -385,6 +410,35 @@ impl<S> ChainState<S> {
     /// Apakah blok `id` sudah dikenal (di chain aktif atau sebagai blok cabang).
     fn known(&self, id: &Hash32) -> bool {
         self.heights.contains_key(id) || self.side.contains_key(id)
+    }
+
+    /// ID leluhur setinggi `height` dari blok atau header `from` (termasuk `from` sendiri), mengikuti cabangnya lewat blok
+    /// cabang dan indeks header sampai chain aktif. Dipakai untuk kunci RandomX, sehingga paling banyak 2_112 langkah.
+    fn ancestor(&self, from: &Hash32, height: u64) -> Result<Hash32, RpcError> {
+        let mut cursor = *from;
+        loop {
+            if let Some(&active) = self.heights.get(&cursor) {
+                if height > active {
+                    return Err(internal("leluhur lebih tinggi daripada blok"));
+                }
+                let index = usize::try_from(height).map_err(internal)?;
+                return self
+                    .metas
+                    .get(index)
+                    .map(|meta| meta.id)
+                    .ok_or_else(|| internal("ringkasan chain tidak lengkap"));
+            }
+            let header = match (self.side.get(&cursor), self.headers.get(&cursor)) {
+                (Some(entry), _) => entry.header,
+                (None, Some(entry)) => entry.header,
+                (None, None) => return Err(internal("leluhur blok tidak dikenal")),
+            };
+            match header.height().get().cmp(&height) {
+                Ordering::Equal => return Ok(cursor),
+                Ordering::Less => return Err(internal("leluhur lebih tinggi daripada blok")),
+                Ordering::Greater => cursor = header.prev_block_id(),
+            }
+        }
     }
 
     /// Cap waktu blok chain aktif dari tinggi `height` mundur, paling banyak `count`, urut dari baru ke lama.
@@ -723,6 +777,8 @@ pub fn transaction_result(
 pub struct Node<S> {
     params: ChainParams,
     clock: Clock,
+    /// Penghitung RandomX untuk V3 testnet dan mainnet; `None` di regtest (PoW dev, DEC-09).
+    randomx: Option<Randomx>,
     state: Mutex<ChainState<S>>,
 }
 
@@ -744,17 +800,42 @@ impl<S: ChainStore> Node<S> {
     }
 
     /// Seperti [`Node::open`], dengan batas memori `limits` untuk blok cabang, indeks header, dan catatan blok tidak
-    /// sah.
+    /// sah. Testnet dan mainnet memulai layanan RandomX MOD-03 sendiri.
+    ///
+    /// # Errors
+    ///
+    /// Sama dengan [`Node::open`], ditambah [`NodeError::Pow`] jika layanan RandomX tidak bisa dimulai.
+    pub fn open_with_limits(
+        store: S,
+        params: ChainParams,
+        mempool_max_bytes: usize,
+        clock: Clock,
+        limits: NodeLimits,
+    ) -> Result<Self, NodeError> {
+        let randomx = match params.network() {
+            Network::Regtest => None,
+            Network::Testnet | Network::Mainnet => {
+                Some(randomx_hasher().map_err(|error| NodeError::Pow {
+                    message: error.message,
+                })?)
+            }
+        };
+        Self::open_with_pow(store, params, mempool_max_bytes, clock, limits, randomx)
+    }
+
+    /// Seperti [`Node::open_with_limits`], dengan penghitung RandomX `randomx` pilihan pemanggil (test, atau layanan
+    /// yang dipakai bersama). Testnet dan mainnet tanpa penghitung menolak semua blok dan header baru (V3).
     ///
     /// # Errors
     ///
     /// Sama dengan [`Node::open`].
-    pub fn open_with_limits(
+    pub fn open_with_pow(
         mut store: S,
         params: ChainParams,
         mempool_max_bytes: usize,
         clock: Clock,
         limits: NodeLimits,
+        randomx: Option<Randomx>,
     ) -> Result<Self, NodeError> {
         let genesis = regtest_genesis().map_err(|e| NodeError::Genesis {
             message: e.to_string(),
@@ -783,6 +864,7 @@ impl<S: ChainStore> Node<S> {
         Ok(Self {
             params,
             clock,
+            randomx,
             state: Mutex::new(ChainState {
                 store,
                 mempool: Mempool::new(mempool_max_bytes),
@@ -819,6 +901,26 @@ impl<S: ChainStore> Node<S> {
     /// Mengunci state node.
     fn lock(&self) -> Result<MutexGuard<'_, ChainState<S>>, RpcError> {
         self.state.lock().map_err(|_| internal("state node rusak"))
+    }
+
+    /// Penghitung RandomX node, jika ada.
+    fn randomx(&self) -> Option<&dyn RandomxHasher> {
+        let hasher: &dyn RandomxHasher = self.randomx.as_deref()?;
+        Some(hasher)
+    }
+
+    /// Kunci RandomX untuk blok atau header setinggi `height` (tinggi induk + 1) di atas `parent`: `block_id` leluhur di
+    /// [`randomx_key_height`] pada chain induk itu. Regtest tidak memakai kunci (PoW dev, DEC-09).
+    fn pow_key(
+        &self,
+        state: &ChainState<S>,
+        parent: &Hash32,
+        height: u64,
+    ) -> Result<Hash32, RpcError> {
+        if matches!(self.params.network(), Network::Regtest) {
+            return Ok(Hash32::ZERO);
+        }
+        state.ancestor(parent, randomx_key_height(BlockHeight::new(height)).get())
     }
 
     /// Target compact wajib untuk blok setelah induk di `parent_height` bercap waktu `parent_timestamp` (ASERT,
@@ -1030,8 +1132,9 @@ impl<S: ChainStore> Node<S> {
         if let Some(rule) = state.invalid.get(&id) {
             return Ok(invalid(Some(id), rule));
         }
-        // V2 sampai V4. Tidak dicatat sebagai tidak sah: blok seperti ini murah dibuat.
-        if let Err(error) = check_block_context_free(&block, &self.params) {
+        // V2 sampai V4 sebelum induk dicari (regtest). Tidak dicatat sebagai tidak sah: blok seperti ini murah dibuat.
+        let regtest = matches!(self.params.network(), Network::Regtest);
+        if regtest && let Err(error) = check_block_context_free(&block, &self.params) {
             return Ok(invalid(Some(id), block_rule(&error, "V2")));
         }
         let prev = header.prev_block_id();
@@ -1042,6 +1145,15 @@ impl<S: ChainStore> Node<S> {
         let Some(parent) = state.parent_info(&prev)? else {
             return Ok(outcome(SubmitStatus::Orphan, id));
         };
+        // Testnet dan mainnet: V2 sampai V4 sesudah induk dikenal, karena kunci RandomX diambil dari chain induk. Juga
+        // tidak dicatat sebagai tidak sah.
+        if !regtest {
+            let key = self.pow_key(state, &prev, parent.height.saturating_add(1))?;
+            let checked = check_block_pow(&block, &self.params, &key, self.randomx());
+            if let Err(error) = pow_checked(checked)? {
+                return Ok(invalid(Some(id), block_rule(&error, "V2")));
+            }
+        }
         // V5 sampai V7 terhadap induk, di chain aktif maupun cabang.
         let context = ParentContext {
             block_id: prev,
@@ -1285,3 +1397,6 @@ impl<S: ChainStore + Send + 'static> RpcBackend for Node<S> {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod randomx_tests;

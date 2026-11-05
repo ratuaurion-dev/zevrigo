@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | Format target compact (Bagian 3), ASERT bilangan bulat (4), chainwork (5), cap waktu (6), aturan transaksi (7), coinbase (8), urutan validasi blok (9), genesis regtest (10) |
 | 🟢 Diputuskan | DEC-17: coinbase wajib mengklaim **tepat** subsidy + total biaya (tanpa pembakaran) |
-| ⏳ Menunggu | PoW testnet dan mainnet (DEC-01). Genesis, `pow_limit`, dan target awal testnet/mainnet (`TODO(param)`) |
+| ⏳ Menunggu | Salt Argon2 RandomX sendiri (TSK-M06 bagian C). Genesis, `pow_limit`, dan target awal testnet/mainnet (`TODO(param)`) |
 | ➡️ Langkah berikutnya | TSK-M25 (`Network` di MOD-01), TSK-M08 (Bagian 3–6 dan 10), lalu TSK-M09 (Bagian 7–9) |
 
 Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter testnet
@@ -28,7 +28,7 @@ Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter test
 
 | Parameter | Regtest | Testnet | Mainnet |
 |---|---|---|---|
-| Fungsi PoW | `regtest_pow_hash` (DEC-09) | DEC-01 | DEC-01 |
+| Fungsi PoW | `regtest_pow_hash` (DEC-09) | RandomX dengan kunci (DEC-01, V3) | RandomX dengan kunci (DEC-01, V3) |
 | `pow_limit` (compact) | `0x207fffff` | `TODO(param)` | `TODO(param)` |
 | Target genesis (compact) | `0x207fffff` | `TODO(param)` (kesulitan awal) | `TODO(param)` |
 | Genesis | Bagian 10 (tetap) | `TODO(param)` | `TODO(param)` |
@@ -36,7 +36,7 @@ Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter test
 
 - `pow_limit` adalah target terbesar (kesulitan terendah) yang boleh dipakai di jaringan itu. Target genesis wajib ≤ `pow_limit`.
 - Regtest memakai aturan yang sama persis dengan mainnet, termasuk ASERT. Yang berbeda hanya fungsi PoW dan parameter di tabel ini.
-- Sebelum DEC-01, header testnet dan mainnet selalu ditolak (`PowUnavailable`). Hash PoW regtest **tidak pernah** diterima di testnet dan mainnet (DEC-09), dan ini wajib dibuktikan dengan test.
+- Testnet dan mainnet memakai RandomX (DEC-01): kunci blok setinggi `h` adalah `block_id` leluhurnya di `key_height(h)` pada chain blok itu sendiri: 0 (genesis, yaitu `network_id`) sampai `h = 2_112`, sesudahnya kelipatan 2_048 terbesar yang ≤ `h − 65`. Tanpa penghitung RandomX, header testnet dan mainnet ditolak (`PowUnavailable`). Hash PoW regtest **tidak pernah** diterima di testnet dan mainnet (DEC-09), dan ini wajib dibuktikan dengan test.
 
 ---
 
@@ -195,7 +195,7 @@ Genesis tidak divalidasi dengan aturan ini. Node memuat genesis jaringannya seba
 |---|---|
 | V1 | Decode kanonis `Block::from_bytes` lolos, termasuk ukuran ≤ 100_000 byte dan semua batas struktur Spesifikasi Format Bagian 10 |
 | V2 | `target` header sah menurut decode Bagian 3 dan ≤ `pow_limit` jaringan |
-| V3 | PoW: hash PoW jaringan atas 96 byte header ≤ decode(`target`). Regtest: `regtest_pow_hash`. Testnet/mainnet: `PowUnavailable` sampai DEC-01 |
+| V3 | PoW: hash PoW jaringan atas 96 byte header ≤ decode(`target`). Regtest: `regtest_pow_hash`. Testnet/mainnet: hash RandomX dengan kunci Bagian 2 (`check_header_pow`); hash yang gagal dihitung (`PowHashFailed`) bukan tanda blok tidak sah |
 | V4 | `merkle_root` header = `block_merkle_root(block)` |
 
 **Tahap 2, konteks header** (induk dan leluhur sudah dikenal dan sah):

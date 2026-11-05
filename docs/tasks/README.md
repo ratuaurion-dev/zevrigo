@@ -8,7 +8,7 @@
 | 🟡 Siap dikerjakan | TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-F06 oleh TSK-M06 (bagian B dan C) dan parameter testnet |
 | ❓ Keputusan dibutuhkan | — (DEC-01 diputuskan 5 November 2026) |
-| ➡️ Langkah berikutnya | TSK-M06 bagian A (pustaka RandomX di MOD-03, vektor resmi), lalu bagian B (konsensus dan node) dan C (salt sendiri, penambang mode cepat, parameter testnet), lalu TSK-F06 testnet publik. DEC-02 lisensi (MIT OR Apache-2.0), TSK-M35, TSK-M33, dan TSK-M40 selesai |
+| ➡️ Langkah berikutnya | TSK-M06 bagian A selesai (pustaka RandomX di MOD-03, vektor resmi); bagian B (konsensus dan node) dan C (salt sendiri, penambang mode cepat, parameter testnet), lalu TSK-F06 testnet publik. DEC-02 lisensi (MIT OR Apache-2.0), TSK-M35, TSK-M33, dan TSK-M40 selesai |
 
 ## Tiga jenis task
 
@@ -42,7 +42,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M03 | MOD-01 | Struktur transaksi dan blok, encoding kanonis (tanpa hashing) | TSK-M01, TSK-S01 | 🟢 selesai ([kartu](TSK-M03-primitives-encoding.md)) |
 | TSK-M04 | MOD-02 | Schnorr BIP340 (crate k256): kunci, tanda tangan, verifikasi, vektor uji resmi | TSK-M01 | 🟢 selesai ([kartu](TSK-M04-crypto-schnorr.md)) |
 | TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02, TSK-M03, DEC-14, DEC-15 | 🟢 selesai ([kartu](TSK-M05-pow-dev.md)) |
-| TSK-M06 | MOD-03 (bagian B dan C juga MOD-04, 11, 13) | PoW RandomX testnet dan mainnet | DEC-01 | 🟡 bagian A ([kartu](TSK-M06-pow-randomx.md)) |
+| TSK-M06 | MOD-03 (bagian B dan C juga MOD-04, 11, 13) | PoW RandomX testnet dan mainnet | DEC-01 | 🟡 A selesai, B berjalan ([kartu](TSK-M06-pow-randomx.md)) |
 | TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟢 selesai ([kartu](TSK-M07-consensus-pasokan.md)) |
 | TSK-M08 | MOD-04 | Target compact ke `Target` 256-bit (DEC-15), ASERT, median waktu, chainwork, parameter per jaringan, genesis regtest (Spesifikasi Validasi Bagian 2–6, 10) | TSK-M01, TSK-M05, TSK-M25, TSK-S02 | 🟢 selesai ([kartu](TSK-M08-consensus-target-asert.md)) |
 | TSK-M09 | MOD-04 | Validasi transaksi dan blok (Spesifikasi Validasi Bagian 7–9), termasuk penolakan PoW dev di testnet dan mainnet beserta test-nya (DEC-09) | TSK-M03, M04, M05, M07, M08, M21, M24, TSK-S02 | 🟢 selesai ([kartu](TSK-M09-consensus-validasi.md)) |
