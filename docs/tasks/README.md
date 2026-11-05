@@ -8,7 +8,7 @@
 | 🟡 Siap dikerjakan | TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-M06 dan TSK-F06 oleh DEC-01 |
 | ❓ Keputusan dibutuhkan | — (DEC-01 tetap terbuka untuk testnet) |
-| ➡️ Langkah berikutnya | Pilihan pencipta: DEC-01 (PoW mainnet, membuka FTR-06 testnet), DEC-02 lisensi, TSK-M23, atau FTR-07 wallet desktop. TSK-M35 (badan blok cabang di penyimpanan dan presync header), paket Docker (TSK-M33), dan batas laju API (TSK-M40) selesai |
+| ➡️ Langkah berikutnya | Pilihan pencipta: DEC-01 (PoW mainnet, membuka FTR-06 testnet), TSK-M23, atau FTR-07 wallet desktop. DEC-02 lisensi (MIT OR Apache-2.0), TSK-M35 (badan blok cabang di penyimpanan dan presync header), paket Docker (TSK-M33), dan batas laju API (TSK-M40) selesai |
 
 ## Tiga jenis task
 

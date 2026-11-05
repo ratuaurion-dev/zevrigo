@@ -9,7 +9,7 @@ Legenda: 🟢 selesai/diputuskan · 🟡 berjalan · 🔴 terblokir · ⚪ belum
 | ID | Keputusan | Menghambat | Status |
 |---|---|---|---|
 | DEC-01 | Strategi PoW di tengah larangan `unsafe` dan float: isolasi RandomX, ganti PoW, atau RandomX Rust murni | Implementasi MOD-03 | ❓ |
-| DEC-02 | Lisensi: MIT atau Apache 2.0 | Rilis publik | ❓ |
+| DEC-02 | **Dipilih pencipta:** lisensi ganda `MIT OR Apache-2.0` (pemakai memilih salah satu), sama dengan kebiasaan ekosistem Rust dan sebagian besar dependensi proyek. File `LICENSE-MIT` (pemegang hak cipta `ratuaurion-dev`, DEC-08) dan `LICENSE-APACHE` (teks resmi apache.org), `license = "MIT OR Apache-2.0"` di `[workspace.package]` dan semua crate, serta di `package.json` web. Lisensi tidak memberi hak atas nama atau merek (Apache-2.0 Bagian 6); chain, genesis, dan jaringan HSIS bukan bagian dari kode | — | 🟢 diputuskan 5 November 2026 |
 | DEC-03 | **Disetujui:** mesin penyimpanan persisten redb seri 4.x (4.4.0, lisensi MIT OR Apache-2.0, MSRV 1.90, Rust murni tanpa C/C++), hanya di MOD-05 (TSK-M11). `MemoryStore` (TSK-M10) menjadi model acuan, dan `RedbStore` diuji diferensial terhadapnya. Fitur: `default-features = false` ditambah `std` | — | 🟢 diputuskan 29 Oktober 2026 |
 | DEC-04 | UI mobile: Tauri 2 di semua platform atau UI native | MOD-15, MOD-16 | ❓ |
 | DEC-05 | Jalur distribusi mobile | Rilis mobile | ❓ |

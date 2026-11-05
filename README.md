@@ -116,3 +116,13 @@ docker compose down
 ```
 
 Aturan lengkap di [docs/reference/spesifikasi-docker-v0.1.md](docs/reference/spesifikasi-docker-v0.1.md).
+
+## Lisensi
+
+Dilisensikan dengan salah satu dari berikut, sesuai pilihan Anda (DEC-02):
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- MIT License ([LICENSE-MIT](LICENSE-MIT))
+
+Kontribusi yang dikirim untuk dimasukkan ke proyek ini, kecuali dinyatakan lain, dilisensikan ganda seperti di atas
+tanpa syarat tambahan.

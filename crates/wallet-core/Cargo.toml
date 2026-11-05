@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
+license.workspace = true
 
 [dependencies]
 # DEC-27: Argon2id dan XChaCha20-Poly1305 untuk frasa terenkripsi; zeroize untuk frasa, seed, dan kunci.
