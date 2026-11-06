@@ -3,7 +3,8 @@ use homeostasis_primitives::hash::Hash32;
 use homeostasis_primitives::height::BlockHeight;
 
 use super::{
-    RandomxError, RandomxService, RandomxVerifier, SERVICE_KEYS, hash_with, key_height, light_vm,
+    RandomxError, RandomxMiner, RandomxMode, RandomxService, RandomxVerifier, SERVICE_KEYS,
+    hash_with, key_height, light_vm,
 };
 use crate::target::Target;
 
@@ -190,4 +191,84 @@ fn service_matches_verifier_and_keeps_recent_keys() {
         RandomxError::Service("x".to_owned()).to_string(),
         "layanan RandomX gagal: x"
     );
+}
+
+/// Header vektor h1 (Q101) dan hash HSIS-nya dengan kunci 0x33 × 32.
+fn h1() -> (Header, Hash32) {
+    let header = Header::new(
+        BlockHeight::new(1),
+        Hash32::from_bytes([0x11; 32]),
+        Hash32::from_bytes([0x22; 32]),
+        1_800_000_000,
+        0x1d00_ffff,
+        42,
+    );
+    let hash = Hash32::from_hex("97a628c587d1c1a463da37f83a33a66c60cf304300392992f3993a708fd62e53")
+        .expect("h1");
+    (header, hash)
+}
+
+#[test]
+fn light_miner_hashes_and_searches_nonces() {
+    let key = Hash32::from_bytes([0x33; 32]);
+    let miner = RandomxMiner::new(key, RandomxMode::Light).expect("penambang ringan");
+    assert_eq!(miner.key(), key);
+    assert_eq!(miner.mode(), RandomxMode::Light);
+    let (header, expected) = h1();
+    assert_eq!(miner.hash(&header), Ok(expected));
+
+    // Target maksimum: nonce pertama langsung lolos, header tidak berubah.
+    assert_eq!(miner.mine(&header, &Target::MAX, 1), Ok(Some(header)));
+    // Target nol tidak pernah lolos; nol percobaan dan nonce yang meluap berhenti tanpa hasil.
+    assert_eq!(miner.mine(&header, &Target::ZERO, 3), Ok(None));
+    assert_eq!(miner.mine(&header, &Target::MAX, 0), Ok(None));
+    let last = Header::new(
+        header.height(),
+        header.prev_block_id(),
+        header.merkle_root(),
+        header.timestamp(),
+        header.target(),
+        u64::MAX,
+    );
+    assert_eq!(miner.mine(&last, &Target::ZERO, 3), Ok(None));
+
+    // Target setengah ruang: nonce yang ditemukan lolos pemeriksa, dan semua nonce sebelumnya gagal.
+    let mut half = [0xff_u8; 32];
+    if let Some(first) = half.first_mut() {
+        *first = 0x7f;
+    }
+    let half = Target::from_be_bytes(half);
+    let found = miner
+        .mine(&header, &half, 64)
+        .expect("penambangan")
+        .expect("nonce dalam 64 percobaan");
+    let verifier = RandomxVerifier::new(key).expect("pemeriksa");
+    assert_eq!(verifier.verify(&found, &half), Ok(()));
+    for nonce in header.nonce()..found.nonce() {
+        let earlier = Header::new(
+            header.height(),
+            header.prev_block_id(),
+            header.merkle_root(),
+            header.timestamp(),
+            header.target(),
+            nonce,
+        );
+        assert!(verifier.verify(&earlier, &half).is_err(), "nonce {nonce}");
+    }
+}
+
+/// Mode cepat memakai dataset sekitar 2 GiB dan menyusunnya sekitar satu menit, jadi tidak ikut `make check-all`.
+/// Dijalankan skrip gerbang dengan `cargo test -p homeostasis-pow --lib -- --ignored`.
+#[test]
+#[ignore = "dataset RandomX sekitar 2 GiB"]
+fn fast_miner_matches_light_hash() {
+    let key = Hash32::from_bytes([0x33; 32]);
+    let miner = RandomxMiner::new(key, RandomxMode::Fast).expect("penambang cepat");
+    assert_eq!(miner.mode(), RandomxMode::Fast);
+    let (header, expected) = h1();
+    assert_eq!(miner.hash(&header), Ok(expected));
+    let found = miner
+        .mine(&header, &Target::MAX, 1)
+        .expect("penambangan cepat");
+    assert_eq!(found, Some(header));
 }

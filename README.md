@@ -52,6 +52,9 @@ cargo run -p homeostasis-miner -- --payout <kunci x-only hex 64> --blocks 10
 Miner mengambil template dari node, mencari nonce dengan PoW dev regtest, dan mengirim blok. Hadiah coinbase bisa
 dibelanjakan setelah 100 blok. `--blocks 0` (bawaan) menambang terus sampai Ctrl-C.
 
+Untuk node `--testnet`, tambahkan `--testnet`: miner memakai RandomX mode cepat (butuh sekitar 2,5 GB RAM; dataset disusun
+sekitar satu menit setiap kunci berganti). `--light` memakai mode ringan (256 MB, jauh lebih lambat).
+
 ## Wallet CLI regtest
 
 ```bash

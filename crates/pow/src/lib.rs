@@ -12,7 +12,10 @@ pub mod randomx;
 pub mod regtest;
 pub mod target;
 
-pub use randomx::{RandomxError, RandomxService, RandomxVerifier, SERVICE_KEYS, key_height};
+pub use randomx::{
+    RandomxError, RandomxMiner, RandomxMode, RandomxService, RandomxVerifier, SERVICE_KEYS,
+    key_height,
+};
 pub use regtest::{PowError, mine_regtest, regtest_pow_hash, verify_regtest_pow};
 pub use target::Target;
 

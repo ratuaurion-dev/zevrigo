@@ -222,6 +222,10 @@ pub struct BlockTemplate {
     /// Target yang sama dalam bentuk 256-bit big-endian (hasil decode `target` oleh node), agar miner tidak perlu
     /// menulis ulang aturan decode compact MOD-04 (TSK-M20).
     pub full_target: Hex32,
+    /// Kunci RandomX blok berikutnya (testnet dan mainnet, TSK-M06 bagian C3): `block_id` leluhur di tinggi kunci
+    /// (Spesifikasi Validasi Bagian 2), dihitung node agar miner tidak menulis ulang aturan kunci. Regtest (PoW dev):
+    /// 32 byte nol.
+    pub pow_key: Hex32,
     /// Cap waktu minimum (`median_time_past + 1`).
     pub min_timestamp: u64,
     /// Subsidy blok.

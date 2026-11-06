@@ -1,18 +1,36 @@
-//! Loop penambangan: template dari node, cari nonce dengan PoW dev regtest (MOD-03), lalu kirim blok.
+//! Loop penambangan: template dari node, cari nonce dengan PoW dev regtest atau RandomX (MOD-03), lalu kirim blok.
+//!
+//! RandomX (testnet, TSK-M06 bagian C3) memakai kunci `pow_key` dari template, sehingga miner tidak menulis ulang aturan
+//! kunci. VM RandomX disimpan selama kuncinya sama; mode cepat menyusun dataset sekitar 2 GiB setiap kunci berganti.
 //!
 //! Satu putaran ([`Miner::round`]) mencoba paling banyak `attempts` nonce untuk satu template. Jika belum ketemu,
 //! putaran berikutnya mengambil template baru, yang memuat transaksi mempool dan cap waktu terbaru dari node,
 //! sehingga ruang pencarian berganti. Panggilan RPC memakai runtime tokio satu thread milik miner; pencarian nonce
 //! berjalan di luar runtime.
 
-use homeostasis_pow::{Target, mine_regtest};
-use homeostasis_primitives::{Block, Decode, Encode};
+use std::cell::RefCell;
+
+use homeostasis_pow::{RandomxMiner, RandomxMode, Target, mine_regtest};
+use homeostasis_primitives::{Block, Decode, Encode, Hash32, Header, Network};
 use homeostasis_rpc::{Hex32, KindNumber, RpcClient, SubmitStatus};
 use thiserror::Error;
 use tokio::runtime::Runtime;
 
-/// Jumlah nonce yang dicoba untuk satu template sebelum template diambil ulang.
+/// Jumlah nonce PoW dev regtest yang dicoba untuk satu template sebelum template diambil ulang.
 pub const ATTEMPTS_PER_TEMPLATE: u64 = 1_000_000;
+
+/// Jumlah nonce RandomX untuk satu template: beberapa detik di mode cepat, sekitar satu menit di mode ringan, sehingga
+/// template (cap waktu, transaksi mempool, ujung chain) cukup sering diperbarui.
+pub const RANDOMX_ATTEMPTS_PER_TEMPLATE: u64 = 2_000;
+
+/// PoW yang dipakai miner.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MinerPow {
+    /// PoW dev regtest (DEC-09).
+    Regtest,
+    /// RandomX testnet dan mainnet (DEC-01) dengan mode VM ini.
+    Randomx(RandomxMode),
+}
 
 /// Galat miner. Biner keluar dengan kode 1.
 #[derive(Debug, Error)]
@@ -37,6 +55,20 @@ pub enum MinerError {
     Rejected {
         /// Nama aturan yang dilanggar, dari node.
         reason: String,
+    },
+    /// Node berjalan di jaringan lain dari yang dipilih.
+    #[error("node berjalan di jaringan {actual}, miner untuk {expected}")]
+    WrongNetwork {
+        /// Jaringan yang dipilih untuk miner.
+        expected: String,
+        /// Jaringan node.
+        actual: String,
+    },
+    /// Pustaka RandomX gagal (alokasi cache, dataset, atau VM).
+    #[error("RandomX gagal: {message}")]
+    Pow {
+        /// Keterangan galat.
+        message: String,
     },
 }
 
@@ -76,17 +108,32 @@ fn bad_template(message: impl std::fmt::Display) -> MinerError {
     }
 }
 
-/// Miner yang terhubung ke satu node.
+/// Galat RandomX sebagai teks.
+fn pow_error(error: impl std::fmt::Display) -> MinerError {
+    MinerError::Pow {
+        message: error.to_string(),
+    }
+}
+
+/// Nama jaringan seperti di RPC.
+fn network_name(network: Network) -> String {
+    String::from(homeostasis_rpc::NetworkName::new(network))
+}
+
+/// Miner yang terhubung ke satu node. Tidak `Send` jika memakai RandomX (VM pustaka milik satu utas).
 pub struct Miner {
     client: RpcClient,
     runtime: Runtime,
     payout_kind: KindNumber,
     payout_payload: Hex32,
     attempts: u64,
+    pow: MinerPow,
+    /// VM RandomX untuk kunci terakhir.
+    randomx: RefCell<Option<RandomxMiner>>,
 }
 
 impl Miner {
-    /// Menyiapkan miner untuk node di `rpc_url`. Belum ada koneksi sampai putaran pertama.
+    /// Menyiapkan miner PoW dev regtest untuk node di `rpc_url`. Belum ada koneksi sampai putaran pertama.
     ///
     /// # Errors
     ///
@@ -96,6 +143,27 @@ impl Miner {
         payout_kind: KindNumber,
         payout_payload: Hex32,
         attempts: u64,
+    ) -> Result<Self, MinerError> {
+        Self::connect_with_pow(
+            rpc_url,
+            payout_kind,
+            payout_payload,
+            attempts,
+            MinerPow::Regtest,
+        )
+    }
+
+    /// Seperti [`Miner::connect`], dengan PoW `pow`.
+    ///
+    /// # Errors
+    ///
+    /// Sama dengan [`Miner::connect`].
+    pub fn connect_with_pow(
+        rpc_url: &str,
+        payout_kind: KindNumber,
+        payout_payload: Hex32,
+        attempts: u64,
+        pow: MinerPow,
     ) -> Result<Self, MinerError> {
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
@@ -109,7 +177,60 @@ impl Miner {
             payout_kind,
             payout_payload,
             attempts,
+            pow,
+            randomx: RefCell::new(None),
         })
+    }
+
+    /// PoW miner ini.
+    #[must_use]
+    pub const fn pow(&self) -> MinerPow {
+        self.pow
+    }
+
+    /// Memastikan node berjalan di jaringan `expected` (`get_chain_info`), agar miner tidak menambang dengan PoW yang
+    /// salah.
+    ///
+    /// # Errors
+    ///
+    /// [`MinerError::Rpc`] jika node tidak bisa dihubungi, [`MinerError::WrongNetwork`] jika jaringannya lain.
+    pub fn check_network(&self, expected: Network) -> Result<(), MinerError> {
+        let info = self
+            .runtime
+            .block_on(self.client.get_chain_info())
+            .map_err(rpc_error)?;
+        let actual = info.network.network();
+        if actual == expected {
+            Ok(())
+        } else {
+            Err(MinerError::WrongNetwork {
+                expected: network_name(expected),
+                actual: network_name(actual),
+            })
+        }
+    }
+
+    /// Mencari nonce RandomX dengan kunci `key`; VM dibuat ulang hanya jika kunci atau mode berganti.
+    fn mine_randomx(
+        &self,
+        mode: RandomxMode,
+        key: Hash32,
+        header: &Header,
+        target: &Target,
+    ) -> Result<Option<Header>, MinerError> {
+        let mut slot = self.randomx.borrow_mut();
+        let reuse = slot
+            .as_ref()
+            .is_some_and(|miner| miner.key() == key && miner.mode() == mode);
+        if !reuse {
+            // VM lama dilepas dulu, agar dataset lama (mode cepat, sekitar 2 GiB) tidak bertahan bersama yang baru.
+            *slot = None;
+            *slot = Some(RandomxMiner::new(key, mode).map_err(pow_error)?);
+        }
+        let Some(miner) = slot.as_ref() else {
+            return Err(pow_error("VM RandomX tidak tersedia"));
+        };
+        miner.mine(header, target, self.attempts).map_err(pow_error)
     }
 
     /// Satu putaran: ambil template, cari nonce, lalu kirim blok jika ketemu.
@@ -132,7 +253,13 @@ impl Miner {
             return Err(bad_template("header tidak sesuai dengan isi template"));
         }
         let target = Target::from_be_bytes(*template.full_target.bytes());
-        let Some(found) = mine_regtest(header, &target, self.attempts) else {
+        let found = match self.pow {
+            MinerPow::Regtest => mine_regtest(header, &target, self.attempts),
+            MinerPow::Randomx(mode) => {
+                self.mine_randomx(mode, template.pow_key.to_hash32(), header, &target)?
+            }
+        };
+        let Some(found) = found else {
             return Ok(Round::Exhausted);
         };
         let mined = Block::new(found, block.txs().to_vec()).map_err(bad_template)?;

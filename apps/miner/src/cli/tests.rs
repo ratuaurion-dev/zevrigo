@@ -1,4 +1,4 @@
-use homeostasis_primitives::OutputKind;
+use homeostasis_primitives::{Network, OutputKind};
 use homeostasis_rpc::{Hex32, KindNumber};
 
 use super::{ArgError, Command, MinerConfig, USAGE, default_rpc_url, parse_args};
@@ -18,10 +18,13 @@ fn parses_help_version_and_run() {
     assert_eq!(parse_args(args(&[])), Ok(Command::Help));
     assert_eq!(parse_args(args(&["--help"])), Ok(Command::Help));
     assert_eq!(parse_args(args(&["--version"])), Ok(Command::Version));
-    assert_eq!(default_rpc_url(), "http://127.0.0.1:28801");
+    assert_eq!(default_rpc_url(Network::Regtest), "http://127.0.0.1:28801");
+    assert_eq!(default_rpc_url(Network::Testnet), "http://127.0.0.1:18801");
     assert_eq!(
         parse_args(args(&["--payout", KEY])),
         Ok(Command::Run(MinerConfig {
+            network: Network::Regtest,
+            light: false,
             rpc_url: "http://127.0.0.1:28801".to_owned(),
             payout_kind: KindNumber::new(OutputKind::SingleKey),
             payout_payload: key(),
@@ -40,6 +43,8 @@ fn parses_help_version_and_run() {
             KEY,
         ])),
         Ok(Command::Run(MinerConfig {
+            network: Network::Regtest,
+            light: false,
             rpc_url: "http://127.0.0.1:9".to_owned(),
             payout_kind: KindNumber::new(OutputKind::ConditionHash),
             payout_payload: key(),
@@ -54,7 +59,7 @@ fn parses_help_version_and_run() {
 fn rejects_bad_arguments() {
     let upper = KEY.to_uppercase();
     let short = &KEY[..62];
-    let cases: [(Vec<&str>, ArgError); 10] = [
+    let cases: [(Vec<&str>, ArgError); 13] = [
         (vec!["--blocks", "1"], ArgError::MissingPayout),
         (vec!["--payout"], ArgError::MissingValue("--payout")),
         (
@@ -83,11 +88,62 @@ fn rejects_bad_arguments() {
         ),
         (vec!["--payout", KEY, "--version"], ArgError::Exclusive),
         (
-            vec!["--payout", KEY, "--regtest"],
-            ArgError::Unknown("--regtest".to_owned()),
+            vec!["--payout", KEY, "--mainnet"],
+            ArgError::Unknown("--mainnet".to_owned()),
+        ),
+        (
+            vec!["--payout", KEY, "--testnet", "--regtest"],
+            ArgError::NetworkConflict,
+        ),
+        (
+            vec!["--payout", KEY, "--light"],
+            ArgError::LightWithoutRandomx,
+        ),
+        (
+            vec!["--testnet", "--light", "--light", "--payout", KEY],
+            ArgError::Duplicate("--light"),
         ),
     ];
     for (list, expected) in cases {
         assert_eq!(parse_args(args(&list)), Err(expected), "{list:?}");
     }
+}
+
+#[test]
+fn parses_testnet_and_light() {
+    assert_eq!(
+        parse_args(args(&["--testnet", "--payout", KEY])),
+        Ok(Command::Run(MinerConfig {
+            network: Network::Testnet,
+            light: false,
+            rpc_url: "http://127.0.0.1:18801".to_owned(),
+            payout_kind: KindNumber::new(OutputKind::SingleKey),
+            payout_payload: key(),
+            blocks: 0,
+        }))
+    );
+    assert_eq!(
+        parse_args(args(&[
+            "--payout",
+            KEY,
+            "--light",
+            "--testnet",
+            "--blocks",
+            "2"
+        ])),
+        Ok(Command::Run(MinerConfig {
+            network: Network::Testnet,
+            light: true,
+            rpc_url: "http://127.0.0.1:18801".to_owned(),
+            payout_kind: KindNumber::new(OutputKind::SingleKey),
+            payout_payload: key(),
+            blocks: 2,
+        }))
+    );
+    assert_eq!(
+        parse_args(args(&["--regtest", "--payout", KEY])),
+        parse_args(args(&["--payout", KEY]))
+    );
+    assert!(USAGE.contains("--testnet"));
+    assert!(USAGE.contains("--light"));
 }

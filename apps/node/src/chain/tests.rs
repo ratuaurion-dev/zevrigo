@@ -223,6 +223,7 @@ fn mines_blocks_from_template() {
         template.full_target.bytes(),
         &params().pow_limit().to_be_bytes()
     );
+    assert_eq!(template.pow_key, Hex32::new([0; 32]));
     assert_eq!(template.min_timestamp, T0 + 1);
     assert_eq!(template.subsidy.amount(), Amount::from_quanta(SUBSIDY_1));
     assert_eq!(template.fees.amount(), Amount::ZERO);

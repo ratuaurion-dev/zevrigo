@@ -7,16 +7,20 @@ use thiserror::Error;
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
-    "homeostasis-miner (MOD-13): penambang CPU Homeostasis Coin (PoW dev, hanya regtest)\n",
+    "homeostasis-miner (MOD-13): penambang CPU Homeostasis Coin (regtest: PoW dev; testnet: RandomX)\n",
     "\n",
     "Pemakaian:\n",
     "  homeostasis-miner --payout <payload hex 64> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]\n",
+    "  homeostasis-miner --testnet [--light] --payout <payload hex 64> [opsi yang sama]\n",
     "  homeostasis-miner --help | --version\n",
     "\n",
     "Opsi:\n",
+    "  --regtest           jaringan regtest (bawaan)\n",
+    "  --testnet           jaringan testnet: RandomX mode cepat, dataset sekitar 2 GiB disusun setiap kunci berganti\n",
+    "  --light             testnet dengan RandomX mode ringan (256 MiB, jauh lebih lambat)\n",
     "  --payout <hex>      payload output penerima hadiah: kunci x-only (jenis 0) atau hash kondisi (jenis 1)\n",
     "  --payout-kind <k>   jenis output penerima, 0 atau 1 (bawaan 0)\n",
-    "  --rpc-url <url>     alamat RPC node (bawaan http://127.0.0.1:28801)\n",
+    "  --rpc-url <url>     alamat RPC node (bawaan regtest http://127.0.0.1:28801, testnet http://127.0.0.1:18801)\n",
     "  --blocks <n>        berhenti setelah n blok diterima node (bawaan 0 = terus sampai Ctrl-C)",
 );
 
@@ -34,6 +38,10 @@ pub enum Command {
 /// Konfigurasi miner.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MinerConfig {
+    /// Jaringan node yang ditambang: regtest (PoW dev) atau testnet (RandomX).
+    pub network: Network,
+    /// RandomX mode ringan (`--light`); hanya untuk testnet.
+    pub light: bool,
     /// Alamat RPC node.
     pub rpc_url: String,
     /// Jenis output penerima hadiah.
@@ -68,6 +76,12 @@ pub enum ArgError {
     /// Penerima hadiah tidak diisi.
     #[error("penerima hadiah wajib diisi: --payout <hex>")]
     MissingPayout,
+    /// Lebih dari satu jaringan dipilih.
+    #[error("hanya satu jaringan boleh dipilih: --regtest atau --testnet")]
+    NetworkConflict,
+    /// `--light` tanpa `--testnet`: regtest tidak memakai RandomX.
+    #[error("--light hanya untuk --testnet (RandomX)")]
+    LightWithoutRandomx,
     /// `--help` atau `--version` digabung dengan opsi lain.
     #[error("--help dan --version tidak boleh digabung dengan opsi lain")]
     Exclusive,
@@ -93,10 +107,26 @@ fn set_once<T>(slot: &mut Option<T>, value: T, option: &'static str) -> Result<(
     Ok(())
 }
 
-/// Alamat RPC bawaan regtest: `http://127.0.0.1:28801`.
+/// Alamat RPC bawaan jaringan: regtest `http://127.0.0.1:28801`, testnet `http://127.0.0.1:18801`.
 #[must_use]
-pub fn default_rpc_url() -> String {
-    format!("http://{DEFAULT_HOST}:{}", default_port(Network::Regtest))
+pub fn default_rpc_url(network: Network) -> String {
+    format!("http://{DEFAULT_HOST}:{}", default_port(network))
+}
+
+/// Mencatat pilihan jaringan dari `flag`. Opsi yang sama dua kali atau dua jaringan berbeda ditolak.
+fn choose_network(
+    slot: &mut Option<Network>,
+    chosen: Network,
+    flag: &'static str,
+) -> Result<(), ArgError> {
+    match *slot {
+        Some(previous) if previous == chosen => Err(ArgError::Duplicate(flag)),
+        Some(_) => Err(ArgError::NetworkConflict),
+        None => {
+            *slot = Some(chosen);
+            Ok(())
+        }
+    }
 }
 
 /// Membaca argumen (tanpa nama program). Tanpa argumen sama dengan `--help`.
@@ -112,6 +142,8 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         [only] if only.as_str() == "--version" => return Ok(Command::Version),
         _ => {}
     }
+    let mut network: Option<Network> = None;
+    let mut light = false;
     let mut payout: Option<Hex32> = None;
     let mut kind: Option<KindNumber> = None;
     let mut rpc_url: Option<String> = None;
@@ -119,6 +151,14 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
+            "--regtest" => choose_network(&mut network, Network::Regtest, "--regtest")?,
+            "--testnet" => choose_network(&mut network, Network::Testnet, "--testnet")?,
+            "--light" => {
+                if light {
+                    return Err(ArgError::Duplicate("--light"));
+                }
+                light = true;
+            }
             "--payout" => {
                 let value = value_of(&mut iter, "--payout")?;
                 let parsed = Hex32::try_from(value.as_str())
@@ -151,8 +191,14 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     }
     let payout_payload = payout.ok_or(ArgError::MissingPayout)?;
     let payout_kind = kind.unwrap_or(KindNumber::new(OutputKind::SingleKey));
+    let network = network.unwrap_or(Network::Regtest);
+    if light && network == Network::Regtest {
+        return Err(ArgError::LightWithoutRandomx);
+    }
     Ok(Command::Run(MinerConfig {
-        rpc_url: rpc_url.unwrap_or_else(default_rpc_url),
+        network,
+        light,
+        rpc_url: rpc_url.unwrap_or_else(|| default_rpc_url(network)),
         payout_kind,
         payout_payload,
         blocks: blocks.unwrap_or(0),

@@ -88,6 +88,7 @@ impl RpcBackend for Mock {
             prev_block_id: h(0xb1),
             target: CompactHex::new(0x207f_ffff),
             full_target: h(0x7f),
+            pow_key: h(0x6b),
             min_timestamp: 1_793_145_601,
             subsidy: Quanta::new(Amount::from_quanta(1_910_127_426_536_917)),
             fees: Quanta::new(Amount::ZERO),
@@ -200,6 +201,7 @@ async fn round_trip_all_methods() {
     expected.extend_from_slice(&[0x77; 32]);
     assert_eq!(template.hex.as_slice(), expected.as_slice());
     assert_eq!(template.height, 2);
+    assert_eq!(template.pow_key, h(0x6b));
 
     assert_eq!(
         client.submit_block(&[0x01]).await.expect("submit"),

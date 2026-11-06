@@ -1,5 +1,6 @@
-//! PoW RandomX untuk testnet dan mainnet (DEC-01): mode ringan (cache 256 MiB) untuk verifikasi, rumus tinggi kunci, dan
-//! layanan satu utas pemilik cache ([`RandomxService`], TSK-M06 bagian B).
+//! PoW RandomX untuk testnet dan mainnet (DEC-01): mode ringan (cache 256 MiB) untuk verifikasi, rumus tinggi kunci,
+//! layanan satu utas pemilik cache ([`RandomxService`], TSK-M06 bagian B), dan penambang mode ringan atau cepat
+//! ([`RandomxMiner`], bagian C3).
 //!
 //! Hash dihitung pustaka C++ resmi RandomX lewat crate `randomx-rs` (DEC-10 bagian 10), dibangun dari salinan di
 //! `vendor/randomx-rs`. `unsafe` dan floating point
@@ -16,7 +17,7 @@ use homeostasis_primitives::block::Header;
 use homeostasis_primitives::hash::Hash32;
 use homeostasis_primitives::height::BlockHeight;
 use homeostasis_primitives::params::{RANDOMX_KEY_INTERVAL, RANDOMX_KEY_LAG};
-use randomx_rs::{RandomXCache, RandomXError, RandomXFlag, RandomXVM};
+use randomx_rs::{RandomXCache, RandomXDataset, RandomXError, RandomXFlag, RandomXVM};
 
 use crate::target::Target;
 
@@ -128,6 +129,103 @@ impl RandomxVerifier {
             })
         }
     }
+}
+
+/// Mode VM RandomX untuk penambang.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RandomxMode {
+    /// Mode ringan: cache 256 MiB, sama dengan pemeriksa node. Lambat, untuk perangkat kecil.
+    Light,
+    /// Mode cepat: dataset sekitar 2 GiB disusun dari cache sekali per kunci (lama, satu utas), lalu hash jauh lebih
+    /// cepat. Hasil hash sama dengan mode ringan.
+    Fast,
+}
+
+/// Penambang RandomX untuk satu kunci (TSK-M06 bagian C3). Tidak `Send`: pemiliknya satu utas.
+///
+/// Pustaka `randomx-rs` tidak menandai cache dan dataset aman dipakai bersama antar utas, jadi satu penambang memakai
+/// satu utas. Beberapa utas mode cepat butuh dataset bersama dan menunggu perubahan pustaka itu.
+pub struct RandomxMiner {
+    key: Hash32,
+    mode: RandomxMode,
+    vm: RandomXVM,
+}
+
+impl RandomxMiner {
+    /// Menyiapkan VM untuk `key`. Mode cepat menyusun dataset dulu, yang bisa makan waktu sekitar satu menit.
+    ///
+    /// # Errors
+    ///
+    /// [`RandomxError::Library`] jika cache, dataset, atau VM tidak bisa dialokasikan.
+    pub fn new(key: Hash32, mode: RandomxMode) -> Result<Self, RandomxError> {
+        let vm = match mode {
+            RandomxMode::Light => light_vm(key.as_bytes())?,
+            RandomxMode::Fast => fast_vm(key.as_bytes())?,
+        };
+        Ok(Self { key, mode, vm })
+    }
+
+    /// Kunci penambang ini.
+    #[must_use]
+    pub const fn key(&self) -> Hash32 {
+        self.key
+    }
+
+    /// Mode VM penambang ini.
+    #[must_use]
+    pub const fn mode(&self) -> RandomxMode {
+        self.mode
+    }
+
+    /// Hash PoW RandomX dari 96 byte header.
+    ///
+    /// # Errors
+    ///
+    /// [`RandomxError::Library`] atau [`RandomxError::HashLength`] jika pustaka gagal.
+    pub fn hash(&self, header: &Header) -> Result<Hash32, RandomxError> {
+        hash_with(&self.vm, &header.to_array())
+    }
+
+    /// Mencari nonce agar hash RandomX ≤ `target`, mulai dari `header.nonce()`, paling banyak `max_attempts`
+    /// percobaan dengan `checked_add` (sama dengan `mine_regtest`). `None` jika `max_attempts == 0`, semua percobaan
+    /// gagal, atau nonce meluap.
+    ///
+    /// # Errors
+    ///
+    /// Galat [`RandomxMiner::hash`].
+    pub fn mine(
+        &self,
+        header: &Header,
+        target: &Target,
+        max_attempts: u64,
+    ) -> Result<Option<Header>, RandomxError> {
+        let start_nonce = header.nonce();
+        for i in 0..max_attempts {
+            let Some(nonce) = start_nonce.checked_add(i) else {
+                return Ok(None);
+            };
+            let candidate = Header::new(
+                header.height(),
+                header.prev_block_id(),
+                header.merkle_root(),
+                header.timestamp(),
+                header.target(),
+                nonce,
+            );
+            if target.is_met_by(&self.hash(&candidate)?) {
+                return Ok(Some(candidate));
+            }
+        }
+        Ok(None)
+    }
+}
+
+/// Dataset dan VM mode cepat untuk `key`: cache dengan flag anjuran pustaka, dataset penuh, VM `FLAG_FULL_MEM`.
+fn fast_vm(key: &[u8]) -> Result<RandomXVM, RandomxError> {
+    let flags = RandomXFlag::get_recommended_flags();
+    let cache = RandomXCache::new(flags, key).map_err(library)?;
+    let dataset = RandomXDataset::new(flags, cache, 0).map_err(library)?;
+    RandomXVM::new(flags | RandomXFlag::FLAG_FULL_MEM, None, Some(dataset)).map_err(library)
 }
 
 /// Cache dan VM mode ringan untuk kunci sembarang panjang (vektor uji resmi memakai kunci teks).

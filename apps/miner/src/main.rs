@@ -4,7 +4,11 @@
 
 use std::process::ExitCode;
 
-use homeostasis_miner::{ATTEMPTS_PER_TEMPLATE, Command, Miner, Round, USAGE, parse_args};
+use homeostasis_miner::{
+    ATTEMPTS_PER_TEMPLATE, Command, Miner, MinerPow, RANDOMX_ATTEMPTS_PER_TEMPLATE, RandomxMode,
+    Round, USAGE, parse_args,
+};
+use homeostasis_primitives::Network;
 
 const BIN_NAME: &str = "homeostasis-miner";
 
@@ -26,12 +30,30 @@ fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let result = Miner::connect(
+    let (pow, attempts) = match (config.network, config.light) {
+        (Network::Regtest, _) => (MinerPow::Regtest, ATTEMPTS_PER_TEMPLATE),
+        (_, true) => (
+            MinerPow::Randomx(RandomxMode::Light),
+            RANDOMX_ATTEMPTS_PER_TEMPLATE,
+        ),
+        (_, false) => {
+            println!(
+                "RandomX mode cepat: dataset sekitar 2 GiB disusun saat kunci baru, sekitar 1 menit"
+            );
+            (
+                MinerPow::Randomx(RandomxMode::Fast),
+                RANDOMX_ATTEMPTS_PER_TEMPLATE,
+            )
+        }
+    };
+    let result = Miner::connect_with_pow(
         &config.rpc_url,
         config.payout_kind,
         config.payout_payload,
-        ATTEMPTS_PER_TEMPLATE,
+        attempts,
+        pow,
     )
+    .and_then(|miner| miner.check_network(config.network).map(|()| miner))
     .and_then(|miner| {
         miner.run(config.blocks, |round| {
             if let Round::Accepted {

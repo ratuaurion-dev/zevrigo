@@ -13,7 +13,9 @@ use homeostasis_primitives::params::GENESIS_ALLOCATION;
 use homeostasis_primitives::{
     Amount, Block, BlockHeight, Encode, Hash32, Header, Network, Output, OutputKind, Transaction,
 };
-use homeostasis_rpc::{Hex32, RpcBackend, SubmitBlockResult, SubmitStatus};
+use homeostasis_rpc::{
+    GetBlockTemplateParams, Hex32, KindNumber, RpcBackend, SubmitBlockResult, SubmitStatus,
+};
 use homeostasis_storage::MemoryStore;
 
 use super::{Clock, HeadersOutcome, Node, NodeError, NodeLimits, Presync, PresyncOutcome, Randomx};
@@ -175,6 +177,15 @@ fn tip(node: &Node<MemoryStore>) -> Hex32 {
     node.chain_info().unwrap().best_block_id
 }
 
+/// Kunci RandomX di template blok berikutnya dari `node`.
+fn template_key(node: &Node<MemoryStore>) -> Hex32 {
+    let params = GetBlockTemplateParams {
+        payout_kind: KindNumber::new(OutputKind::SingleKey),
+        payout_payload: Hex32::new(payload(7)),
+    };
+    node.block_template(&params).unwrap().pow_key
+}
+
 fn headers_of(blocks: &[Block]) -> Vec<Header> {
     blocks.iter().map(|block| *block.header()).collect()
 }
@@ -198,6 +209,8 @@ fn randomx_key_comes_from_the_blocks_own_branch() {
     let node = open_testnet(Arc::clone(&hasher), NodeLimits::DEFAULT);
     accepted(&node, &a);
     assert_eq!(tip(&node), Hex32::from(ids_a[A_TIP]));
+    // Template tinggi 2_121: kunci blok A di tinggi 2_048.
+    assert_eq!(template_key(&node), Hex32::from(ids_a[2_048]));
     let headers_b = headers_of(&b);
     assert_eq!(
         node.accept_headers(&headers_b).unwrap(),
@@ -219,6 +232,8 @@ fn randomx_key_comes_from_the_blocks_own_branch() {
     assert_eq!(submit(&node, &stale).reason.as_deref(), Some("V3"));
     accepted(&node, &b[A_TIP - FORK..]);
     assert_eq!(tip(&node), Hex32::from(ids_b[A_TIP + 2]));
+    // Sesudah reorg, template mengikuti chain B.
+    assert_eq!(template_key(&node), Hex32::from(ids_b[2_048]));
 
     // Presync: tahap hitung mencatat ID header B di tinggi 2_048 sebagai kunci header B sesudah 2_112.
     let limited = open_testnet(
@@ -291,8 +306,9 @@ fn opens_testnet_genesis_and_rejects_unknown_genesis() {
     assert_eq!(info.network.network(), Network::Testnet);
     assert_eq!(info.height, 0);
     assert_eq!(info.best_block_id, Hex32::from(params.network_id()));
-    // Blok 1 di atas genesis bercap waktu 0 memakai target genesis (ASERT tepat jadwal).
+    // Blok 1 di atas genesis bercap waktu 0 memakai target genesis (ASERT tepat jadwal); kuncinya genesis.
     assert_eq!(info.next_target.get(), 0x1e8b_cf64);
+    assert_eq!(template_key(&node), Hex32::from(params.network_id()));
     assert_eq!(info.median_time_past, 0);
     assert_eq!(info.mined_total.amount(), Amount::ZERO);
     assert_eq!(info.total_supply.amount(), GENESIS_ALLOCATION);

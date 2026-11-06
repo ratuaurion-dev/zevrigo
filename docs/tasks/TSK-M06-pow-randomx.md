@@ -52,8 +52,13 @@ sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurut
   (`TODO(param)` `TESTNET_GENESIS_TIMESTAMP`, sementara `0`, ditetapkan di TSK-F06; mengubahnya mengubah `network_id`).
   Q103: MOD-04 `ChainParams::testnet`/`for_network`, `testnet_genesis`, `testnet_network_id`, `known_genesis`,
   `ParamsError::Unavailable`; MOD-11 genesis dipilih dari `network_id`, daemon `--testnet`; MOD-14 `--testnet`. Test 402 → 407.
-- **C3:** MOD-13 mode cepat (dataset sekitar 2 GB), multi-utas, dan `--testnet` (template RPC membawa kunci RandomX); CLI
-  wallet `--testnet` (alamat `thsis`, jalur turunan testnet).
+- **C2:** 🟢 `6c649d1` (Q103).
+- **C3a (Q104):** MOD-03 `RandomxMiner` + `RandomxMode` (ringan/cepat); MOD-08 field `pow_key` di `BlockTemplate` (Spesifikasi
+  RPC 3.4); MOD-11 mengisi `pow_key`; MOD-13 `--testnet`, `--light`, `MinerPow`, `connect_with_pow`, `check_network`,
+  `RANDOMX_ATTEMPTS_PER_TEMPLATE` 2_000, VM disimpan per kunci. Test 407 → 410, ditambah test mode cepat `#[ignore]`
+  (dataset 2 GiB) yang dijalankan skrip gerbang; skrip juga menambang 2 blok testnet sungguhan (node + miner mode cepat).
+  Multi-utas ditunda: `randomx-rs` tidak menandai dataset `Send`/`Sync`.
+- **C3b:** CLI wallet `--testnet` (alamat `thsis`, jalur turunan testnet).
 
 ## Batas yang ditulis jujur
 - Varian hanya penghalang kecil: CPU dan server sewaan tetap bisa berpindah (Konsep P13).

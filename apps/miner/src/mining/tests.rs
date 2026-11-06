@@ -1,18 +1,24 @@
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-use homeostasis_pow::{Target, regtest_pow_hash, verify_regtest_pow};
+use homeostasis_pow::{
+    RandomxMode, RandomxService, RandomxVerifier, Target, regtest_pow_hash, verify_regtest_pow,
+};
 use homeostasis_primitives::{
-    Amount, Block, BlockHeight, Decode, Encode, Hash32, Header, Output, OutputKind, Transaction,
+    Amount, Block, BlockHeight, Decode, Encode, Hash32, Header, Network, Output, OutputKind,
+    Transaction,
 };
 use homeostasis_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, HexBytes,
-    KindNumber, MempoolInfo, MempoolScan, Quanta, RpcBackend, RpcError, RpcServer,
+    KindNumber, MempoolInfo, MempoolScan, NetworkName, Quanta, RpcBackend, RpcError, RpcServer,
     SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
 use tokio::runtime::Runtime;
 
-use super::{Miner, MinerError, Round};
+use super::{Miner, MinerError, MinerPow, Round};
+
+/// Kunci RandomX di template node tiruan testnet.
+const POW_KEY: [u8; 32] = [0x33; 32];
 
 /// Target compact `pow_limit` regtest.
 const LIMIT: u32 = 0x207f_ffff;
@@ -37,6 +43,8 @@ enum Mode {
     Garbage,
     /// Selalu menolak blok sebagai tidak sah.
     Reject,
+    /// Node testnet: template berisi kunci RandomX, blok diperiksa dengan RandomX mode ringan.
+    Randomx,
 }
 
 struct State {
@@ -48,23 +56,42 @@ struct State {
 struct MockNode {
     mode: Mode,
     state: Mutex<State>,
+    /// Layanan RandomX untuk mode [`Mode::Randomx`] (pemeriksa biasa tidak boleh berpindah utas server RPC).
+    randomx: Option<RandomxService>,
 }
 
 impl MockNode {
     fn new(mode: Mode) -> Self {
+        let randomx = (mode == Mode::Randomx).then(|| RandomxService::start().unwrap());
         Self {
             mode,
             state: Mutex::new(State {
                 tip_id: Hash32::from_bytes([0xb0; 32]),
                 blocks: Vec::new(),
             }),
+            randomx,
         }
     }
 }
 
 impl RpcBackend for MockNode {
     fn chain_info(&self) -> Result<ChainInfo, RpcError> {
-        Err(RpcError::NotFound)
+        let network = if self.mode == Mode::Randomx {
+            Network::Testnet
+        } else {
+            Network::Regtest
+        };
+        Ok(ChainInfo {
+            network: NetworkName::new(network),
+            height: 0,
+            best_block_id: Hex32::new([0xb0; 32]),
+            chainwork: Hex32::new([0; 32]),
+            next_target: CompactHex::new(LIMIT),
+            median_time_past: 0,
+            mined_total: Quanta::new(Amount::ZERO),
+            total_supply: Quanta::new(Amount::ZERO),
+            mempool_count: 0,
+        })
     }
 
     fn block_hash(&self, _height: u64) -> Result<Hex32, RpcError> {
@@ -97,17 +124,23 @@ impl RpcBackend for MockNode {
         let block = Block::new(header, vec![coinbase]).unwrap();
         let hex = match self.mode {
             Mode::Garbage => vec![0x00, 0x01],
-            Mode::Honest | Mode::Impossible | Mode::Reject => block.to_bytes(),
+            Mode::Honest | Mode::Impossible | Mode::Reject | Mode::Randomx => block.to_bytes(),
         };
         let full_target = match self.mode {
             Mode::Impossible => [0_u8; 32],
-            Mode::Honest | Mode::Garbage | Mode::Reject => limit_bytes(),
+            Mode::Honest | Mode::Garbage | Mode::Reject | Mode::Randomx => limit_bytes(),
+        };
+        let pow_key = if self.mode == Mode::Randomx {
+            POW_KEY
+        } else {
+            [0_u8; 32]
         };
         Ok(BlockTemplate {
             height,
             prev_block_id: Hex32::from(state.tip_id),
             target: CompactHex::new(LIMIT),
             full_target: Hex32::new(full_target),
+            pow_key: Hex32::new(pow_key),
             min_timestamp: 1_800_000_000,
             subsidy: Quanta::new(Amount::from_quanta(50)),
             fees: Quanta::new(Amount::ZERO),
@@ -128,7 +161,14 @@ impl RpcBackend for MockNode {
             return Ok(invalid("V1"));
         };
         let header = *block.header();
-        if verify_regtest_pow(&header, &Target::from_be_bytes(limit_bytes())).is_err() {
+        let limit = Target::from_be_bytes(limit_bytes());
+        let pow_ok = match &self.randomx {
+            Some(service) => service
+                .hash(Hash32::from_bytes(POW_KEY), &header)
+                .is_ok_and(|hash| limit.is_met_by(&hash)),
+            None => verify_regtest_pow(&header, &limit).is_ok(),
+        };
+        if !pow_ok {
             return Ok(invalid("V3"));
         }
         let mut state = self.state.lock().unwrap();
@@ -176,6 +216,10 @@ struct Harness {
 
 impl Harness {
     fn start(mode: Mode, attempts: u64) -> Self {
+        Self::start_with(mode, attempts, MinerPow::Regtest)
+    }
+
+    fn start_with(mode: Mode, attempts: u64, pow: MinerPow) -> Self {
         let server_rt = Runtime::new().unwrap();
         let node = Arc::new(MockNode::new(mode));
         let addr = SocketAddr::from(([127, 0, 0, 1], 0));
@@ -183,11 +227,12 @@ impl Harness {
             .block_on(RpcServer::start(addr, Arc::clone(&node)))
             .unwrap();
         let url = format!("http://{}", server.local_addr());
-        let miner = Miner::connect(
+        let miner = Miner::connect_with_pow(
             &url,
             KindNumber::new(OutputKind::SingleKey),
             Hex32::new([0x22; 32]),
             attempts,
+            pow,
         )
         .unwrap();
         Self {
@@ -291,4 +336,37 @@ fn unreachable_node_is_rpc_error() {
         ),
         Err(MinerError::Rpc { .. })
     ));
+}
+
+#[test]
+fn mines_randomx_blocks_with_template_key() {
+    let harness = Harness::start_with(Mode::Randomx, 64, MinerPow::Randomx(RandomxMode::Light));
+    assert_eq!(harness.miner.pow(), MinerPow::Randomx(RandomxMode::Light));
+    assert!(harness.miner.check_network(Network::Testnet).is_ok());
+    let error = harness.miner.check_network(Network::Regtest).unwrap_err();
+    assert_eq!(
+        error.to_string(),
+        "node berjalan di jaringan testnet, miner untuk regtest"
+    );
+    assert_eq!(harness.miner.run(2, |_| {}).unwrap(), 2);
+
+    // Blok lolos pemeriksa RandomX dengan kunci template, dan PoW regtest tidak dipakai.
+    let verifier = RandomxVerifier::new(Hash32::from_bytes(POW_KEY)).unwrap();
+    let limit = Target::from_be_bytes(limit_bytes());
+    let blocks = harness.node.state.lock().unwrap().blocks.clone();
+    drop(harness);
+    assert_eq!(blocks.len(), 2);
+    for block in &blocks {
+        assert_eq!(verifier.verify(block.header(), &limit), Ok(()));
+    }
+    drop(verifier);
+
+    // Miner regtest di node testnet: PoW salah, node menolak (V3). Nonce regtest kadang kebetulan lolos RandomX
+    // (peluang setengah per blok), jadi dicoba sampai 64 putaran.
+    let regtest = Harness::start(Mode::Randomx, 1_000_000);
+    let wrong = (0..64).find_map(|_| match regtest.miner.round() {
+        Err(MinerError::Rejected { reason }) => Some(reason),
+        _ => None,
+    });
+    assert_eq!(wrong.as_deref(), Some("V3"));
 }
