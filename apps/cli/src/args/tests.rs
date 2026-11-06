@@ -4,7 +4,7 @@ use zevrigo_primitives::{Amount, Network};
 
 use super::{Action, ArgError, Command, Config, USAGE, default_rpc_url, parse_args};
 
-const ADDRESS: &str = "rhsis1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939msequa3ft3";
+const ADDRESS: &str = "rzvrg1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseq59qlxg";
 
 fn args(list: &[&str]) -> Vec<String> {
     list.iter().map(|arg| (*arg).to_owned()).collect()

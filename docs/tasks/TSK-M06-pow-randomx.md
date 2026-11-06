@@ -40,13 +40,13 @@ sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurut
 
 ## Bagian C: salt sendiri, parameter testnet, penambang (paket parameter disetujui pencipta 5 November 2026)
 - **C1 (🟢 `6f18f4f`, Q101 hitung, Q102 commit):** `vendor/randomx-rs` = `randomx-rs` 1.6.0 dari crates.io tanpa `Cargo.lock` paket, dua
-  perubahan: `RANDOMX_ARGON_SALT` = `"RandomHSIS\x01"` dan `[profile.release]` paket dihapus (vendor/README.md). Dipakai lewat
+  perubahan: `RANDOMX_ARGON_SALT` = `"RandomZVRG\x01"` dan `[profile.release]` paket dihapus (vendor/README.md). Dipakai lewat
   `[patch.crates-io]`, `exclude = ["vendor"]`; Cargo.lock hanya kehilangan `source` dan `checksum` randomx-rs. Q101: isi vendor
   dibandingkan `diff -r` dengan sumber asli; RandomX C++ asli dan vendor dibangun cmake terpisah; program uji
   `vektor_rx.cpp` (flag bawaan dan JIT harus sama) menghasilkan vektor resmi 1a–1f persis dari sumber asli, lalu vektor ZVRG
   dari vendor. Test `zvrg_vectors_light_mode` (pengganti `official_vectors_light_mode`) dan vektor header h1.
 - **C2:** testnet `pow_limit` `0x1f369d03` (sekitar 10 hash/detik), target genesis `0x1e8bcf64` (sekitar 1_000 hash/detik,
-  120_000 hash per blok); genesis testnet berbentuk genesis regtest dengan `extra` = ASCII `homeostasis testnet 1` diisi nol
+  120_000 hash per blok); genesis testnet berbentuk genesis regtest dengan `extra` = ASCII `zevrigo testnet 1` diisi nol
   sampai 32 byte (tanpa jangkar Bitcoin), alokasi `G` ke kunci NUMS BIP341
   `50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0` (tidak bisa dibelanjakan), cap waktu = saat peluncuran
   (`TODO(param)` `TESTNET_GENESIS_TIMESTAMP`, sementara `0`, ditetapkan di TSK-F06; mengubahnya mengubah `network_id`).

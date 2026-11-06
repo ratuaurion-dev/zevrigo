@@ -7,14 +7,14 @@ use crate::{
     account_key, decode_address, encode_address,
 };
 
-const W5: &str = "rhsis1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939msequa3ft3";
-const W6: &str = "rhsis1q3uesn8pvcdeeufxr98v794e07l8ghd85fyd3wclknj5xj04rfqrqvpxaeu";
-const W7: &str = "rhsis1qcuwd6ufjy3relleyk4km2fxz8pdv7ztj2cz7w3qdurp5yuhz406sx6fc5n";
+const W5: &str = "rzvrg1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseq59qlxg";
+const W6: &str = "rzvrg1q3uesn8pvcdeeufxr98v794e07l8ghd85fyd3wclknj5xj04rfqrqyeht59";
+const W7: &str = "rzvrg1qcuwd6ufjy3relleyk4km2fxz8pdv7ztj2cz7w3qdurp5yuhz406swzcwe2";
 const W8_PHRASE: &str =
     "legal winner thank year wave sausage worth useful legal winner thank yellow";
-const W8: &str = "rhsis1qpq864wpnc3u8h246ct450aj2ye20j2smwr9gmshsjeu30xkrv2ss0hnt4g";
-const W9: &str = "rhsis1q2x064qcn4zk84y9zjtpjt8e8ksjjja7peenap4lcse2d0vmw2xyqnjjhdv";
-const W10: &str = "thsis1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseqa3ymmj";
+const W8: &str = "rzvrg1qpq864wpnc3u8h246ct450aj2ye20j2smwr9gmshsjeu30xkrv2ss80zac3";
+const W9: &str = "rzvrg1q2x064qcn4zk84y9zjtpjt8e8ksjjja7peenap4lcse2d0vmw2xyqm2rpq4";
+const W10: &str = "tzvrg1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseq4f4dkt";
 
 fn receive_address(mnemonic: &Mnemonic, passphrase: &str, network: Network, index: u32) -> String {
     let seed = mnemonic.to_seed(passphrase).expect("passphrase ASCII");

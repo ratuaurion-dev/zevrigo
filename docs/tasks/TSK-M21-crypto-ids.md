@@ -49,13 +49,13 @@ pembuatnya sebagai komentar di atas setiap konstanta. Pola perintah:
 
 | ID | Fungsi | Bahan byte | Konteks |
 |---|---|---|---|
-| H1 | txid(V1) | V1b (121 byte) | `homeostasis 2026-10-28 txid` |
-| H2 | wtxid(V1) | V1 (186 byte) | `homeostasis 2026-10-28 wtxid` |
-| H3 | txid(V2) | V2 (53 byte) | `homeostasis 2026-10-28 txid` |
-| H4 | wtxid(V2) | V2 (53 byte) | `homeostasis 2026-10-28 wtxid` |
+| H1 | txid(V1) | V1b (121 byte) | `zevrigo 2026-10-28 txid` |
+| H2 | wtxid(V1) | V1 (186 byte) | `zevrigo 2026-10-28 wtxid` |
+| H3 | txid(V2) | V2 (53 byte) | `zevrigo 2026-10-28 txid` |
+| H4 | wtxid(V2) | V2 (53 byte) | `zevrigo 2026-10-28 wtxid` |
 | H5 | txid(V3) dan wtxid(V3) | V3 (89 byte) | keduanya |
-| H6 | block_id(V4) | V4 (96 byte) | `homeostasis 2026-10-28 block id` |
-| H7 | condition_hash(V5) | V5 (107 byte) | `homeostasis 2026-10-28 condition` |
+| H6 | block_id(V4) | V4 (96 byte) | `zevrigo 2026-10-28 block id` |
+| H7 | condition_hash(V5) | V5 (107 byte) | `zevrigo 2026-10-28 condition` |
 | H8 | block_merkle_root(V8) | daun = H4 lalu H2 (urutan transaksi V8: coinbase V2, lalu V1). Hitung leaf dan node di shell seperti TSK-M02 | `merkle leaf` dan `merkle node` |
 | H9 | block_id(header V8) | sama dengan H6 (header V8 adalah V4) | — |
 

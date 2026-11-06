@@ -62,9 +62,9 @@ const COND_FEE: u128 = COND_AMOUNT - COND_SPEND;
 
 /// Vektor blok 1 regtest (dihitung Quick dengan `blake3_ref.py`).
 const BLOCK1_COINBASE_TXID: &str =
-    "c1161c146ad64ba2cd8ce15d1648c56c8148d2ac0e0d57572d22ffef6525e6d2";
-const BLOCK1_MERKLE_ROOT: &str = "3f7259fe1f1269a7a10a16133f40d23bc6ff0d3ab99122d6671cf585d1eaba64";
-const BLOCK1_ID: &str = "a9005667894d2183803d0eb4263c1503e17c442df1bef5df9cb096e7b3732de9";
+    "4ac1bf0fc835bc714948307790cc8321583b7a00aa63248135d695fed8f74599";
+const BLOCK1_MERKLE_ROOT: &str = "d781146a3e65a5b86e69cdb39d53c66ea48793469821a8de5debd973610c2722";
+const BLOCK1_ID: &str = "32a2ce86de078ea37a2716e294e67eca2e74a9d34dd8207f70dbafc921d9a951";
 
 fn params() -> ChainParams {
     ChainParams::regtest().unwrap()
@@ -275,7 +275,7 @@ fn context_free_rejections_v2_to_v4() {
 
     let wrong_root =
         mine_regtest(&header_with(LIMIT, Hash32::ZERO), &params.pow_limit(), 64).unwrap();
-    assert_eq!(wrong_root.nonce(), 3);
+    assert_eq!(wrong_root.nonce(), 0);
     let wrong = Block::new(wrong_root, vec![coinbase]).unwrap();
     assert_eq!(
         check_block_context_free(&wrong, &params),

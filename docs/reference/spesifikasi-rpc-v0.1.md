@@ -31,7 +31,7 @@ RPC **bukan konsensus**. Perubahannya tidak memecah chain, cukup lewat versi bar
 
 | Jenis | Encoding JSON | Contoh |
 |---|---|---|
-| Hash 32 byte (txid, block_id, payload) | string hex huruf kecil, tepat 64 karakter | `"b933d7c5…6a04c5"` |
+| Hash 32 byte (txid, block_id, payload) | string hex huruf kecil, tepat 64 karakter | `"b858e5ce…6a04c5"` |
 | Data biner (blok, transaksi) | string hex huruf kecil dari encoding kanonis (Spesifikasi Format) | `"0100…"` |
 | Jumlah koin | string desimal dalam quanta, tanpa nol di depan, tanpa tanda, tanpa titik | `"1910127426536917"` |
 | Target compact | string hex 8 karakter dari `u32` | `"207fffff"` |

@@ -46,10 +46,10 @@ pub const TESTNET_GENESIS_TARGET_COMPACT: u32 = 0x1e8b_cf64;
 // TODO(param): cap waktu genesis testnet, ditetapkan saat peluncuran testnet publik (TSK-F06).
 pub const TESTNET_GENESIS_TIMESTAMP: u64 = 0;
 
-/// `extra` coinbase genesis testnet: ASCII `homeostasis testnet 1`, diisi nol sampai 32 byte. Tanpa jangkar blok
+/// `extra` coinbase genesis testnet: ASCII `zevrigo testnet 1`, diisi nol sampai 32 byte. Tanpa jangkar blok
 /// Bitcoin (khusus mainnet, Konsep L2).
 pub const TESTNET_GENESIS_EXTRA: [u8; GENESIS_EXTRA_LEN] =
-    *b"homeostasis testnet 1\0\0\0\0\0\0\0\0\0\0\0";
+    *b"zevrigo testnet 1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 
 /// Penerima alokasi genesis testnet: koordinat x titik NUMS `H` BIP341, yang kunci rahasianya tidak diketahui siapa pun.
 /// Alokasi `G` testnet tetap dihitung di pasokan, tetapi tidak bisa dibelanjakan.

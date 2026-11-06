@@ -9,7 +9,7 @@ Satu tipe jaringan yang dipakai bersama MOD-04 (parameter per jaringan, Spesifik
 
 ## API
 `pub enum Network { Mainnet, Testnet, Regtest }` di `params`, dengan `Network::ALL` dan `hrp()`
-(`hsis`, `thsis`, `rhsis`). Re-export dari `lib.rs`.
+(`zvrg`, `tzvrg`, `rzvrg`). Re-export dari `lib.rs`.
 
 ## Test (primitives 56 → 57)
 `src/params/tests.rs`: `network_variants_and_hrp_match_spec`.

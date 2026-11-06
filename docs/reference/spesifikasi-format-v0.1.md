@@ -74,14 +74,14 @@ Semua hash memakai **BLAKE3 mode derive_key** dengan string konteks tetap, mengh
 
 | Kegunaan | String konteks |
 |---|---|
-| ID transaksi (txid) | `homeostasis 2026-10-28 txid` |
-| ID transaksi lengkap (wtxid) | `homeostasis 2026-10-28 wtxid` |
-| Daun Merkle | `homeostasis 2026-10-28 merkle leaf` |
-| Simpul Merkle | `homeostasis 2026-10-28 merkle node` |
-| ID blok | `homeostasis 2026-10-28 block id` |
-| Hash kondisi output jenis 1 | `homeostasis 2026-10-28 condition` |
-| Sighash (lihat Bagian 9) | `homeostasis 2026-10-28 sighash v1` |
-| PoW dev regtest (DEC-09) | `homeostasis 2026-10-28 regtest pow` |
+| ID transaksi (txid) | `zevrigo 2026-10-28 txid` |
+| ID transaksi lengkap (wtxid) | `zevrigo 2026-10-28 wtxid` |
+| Daun Merkle | `zevrigo 2026-10-28 merkle leaf` |
+| Simpul Merkle | `zevrigo 2026-10-28 merkle node` |
+| ID blok | `zevrigo 2026-10-28 block id` |
+| Hash kondisi output jenis 1 | `zevrigo 2026-10-28 condition` |
+| Sighash (lihat Bagian 9) | `zevrigo 2026-10-28 sighash v1` |
+| PoW dev regtest (DEC-09) | `zevrigo 2026-10-28 regtest pow` |
 
 - String konteks ditulis persis seperti di tabel (ASCII, huruf kecil, satu spasi).
 - **Tampilan hex** memakai urutan byte apa adanya, huruf kecil. Tidak ada pembalikan byte seperti di Bitcoin.
@@ -279,11 +279,11 @@ Block {
 
 | Jaringan | HRP | Contoh jenis 0 (`…1q…`) | Panjang |
 |---|---|---|---|
-| Mainnet | `hsis` | `hsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusllxnc3` | 64 |
-| Testnet | `thsis` | `thsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusq7jsl6` | 65 |
-| Regtest | `rhsis` | `rhsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmuspj8z0e` | 65 |
+| Mainnet | `zvrg` | `zvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmush8h94g` | 64 |
+| Testnet | `tzvrg` | `tzvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusgxrxjr` | 65 |
+| Regtest | `rzvrg` | `rzvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusf2k5zq` | 65 |
 
-Contoh jenis 1 (`…1p…`), payload sama: `hsis1plycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusq5kk90`
+Contoh jenis 1 (`…1p…`), payload sama: `zvrg1plycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusgv8qgk`
 
 - Payload contoh: kunci publik vektor uji BIP340 #0 (`f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9`).
 - Konstanta checksum bech32m diverifikasi dengan vektor resmi BIP350 (`a1lqfn3a`).

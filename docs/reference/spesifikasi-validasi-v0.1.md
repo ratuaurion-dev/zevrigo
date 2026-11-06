@@ -29,11 +29,11 @@ Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter test
 | Parameter | Regtest | Testnet | Mainnet |
 |---|---|---|---|
 | Fungsi PoW | `regtest_pow_hash` (DEC-09) | RandomX dengan kunci (DEC-01, V3) | RandomX dengan kunci (DEC-01, V3) |
-| Salt Argon2 RandomX | — | `RandomHSIS\x01` (11 byte) | `RandomHSIS\x01` (11 byte) |
+| Salt Argon2 RandomX | — | `RandomZVRG\x01` (11 byte) | `RandomZVRG\x01` (11 byte) |
 | `pow_limit` (compact) | `0x207fffff` | `0x1f369d03` (kerja 1_200, sekitar 10 hash/detik) | `TODO(param)` |
 | Target genesis (compact) | `0x207fffff` | `0x1e8bcf64` (kerja 120_000, sekitar 1_000 hash/detik) | `TODO(param)` |
 | Genesis | Bagian 10 (tetap) | Bagian 10b (cap waktu saat peluncuran) | `TODO(param)` |
-| `network_id` | `b933d7c5…6a04c5` (Bagian 10) | block_id genesis | block_id genesis |
+| `network_id` | `b858e5ce…6a04c5` (Bagian 10) | block_id genesis | block_id genesis |
 
 - `pow_limit` adalah target terbesar (kesulitan terendah) yang boleh dipakai di jaringan itu. Target genesis wajib ≤ `pow_limit`.
 - Regtest memakai aturan yang sama persis dengan mainnet, termasuk ASERT. Yang berbeda hanya fungsi PoW dan parameter di tabel ini.
@@ -231,11 +231,11 @@ Kunci rahasia `1` sengaja publik: koin regtest tidak bernilai, dan test bisa mem
 | Hasil | Nilai |
 |---|---|
 | Coinbase (89 byte) | `0101000000000000000020` + `00`×32 + `01808080cccfadc9ccc680fe1c00` + payload |
-| txid | `d95c2ed4614a2eacece319bf129078c55a74b63fe555b94eeb0b3d1320814875` |
-| wtxid | `f0ea325014f4a3f4609f890c2379a1bed228d137959d795806fc136ea5bda614` |
-| merkle_root | `66255b2a4e2a87346a7ce7f57078c1325e444a50738f75ef8a6e6246c5c088d6` |
-| Header (96 byte) | `01000000` `0000000000000000` `00`×32 `66255b2a…c5c088d6` `003be16a00000000` `ffff7f20` `0000000000000000` |
-| block_id = `network_id` regtest | `b933d7c548dc78459ac7376499682cdb9b21ef93f732842ccc89c5d9a16a04c5` |
+| txid | `e48a0c67c87ee39224a5ed3b09f4c301d8fe9a9f623161bf5252f6dd7fdd2310` |
+| wtxid | `80917b98cd9844da532df6b15c6258b600aac9cfd6e20bc142a288a03ea96749` |
+| merkle_root | `ef801283525bb565114f5e2d0d10deddc9465d206abe2675ef524ccc61def782` |
+| Header (96 byte) | `01000000` `0000000000000000` `00`×32 `ef801283…c5c088d6` `003be16a00000000` `ffff7f20` `0000000000000000` |
+| block_id = `network_id` regtest | `b858e5ce2bf393d7f4c0be814152d66fecfaacda4b0add19e79c3c161f441b8f` |
 | Ukuran blok | 186 byte |
 
 ---
@@ -248,17 +248,17 @@ koin testnet tidak bernilai dan testnet di-reset sebelum mainnet (Konsep L6).
 | Field | Nilai |
 |---|---|
 | Header | version 1, height 0, `prev_block_id` nol, `timestamp` = saat peluncuran testnet publik (`TODO(param)`, sementara `0`), `target = 0x1e8bcf64`, `nonce = 0` |
-| Coinbase | height 0, `extra` = ASCII `homeostasis testnet 1` (21 byte) diisi nol sampai 32 byte, satu output `amount = G`, `kind = 0`, `payload` = titik NUMS `H` BIP341 `50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0` (kunci rahasianya tidak diketahui siapa pun: alokasi testnet tidak bisa dibelanjakan) |
+| Coinbase | height 0, `extra` = ASCII `zevrigo testnet 1` (17 byte) diisi nol sampai 32 byte, satu output `amount = G`, `kind = 0`, `payload` = titik NUMS `H` BIP341 `50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0` (kunci rahasianya tidak diketahui siapa pun: alokasi testnet tidak bisa dibelanjakan) |
 
 Dengan cap waktu sementara `0`, ASERT memberi `pow_limit` untuk blok sesudah genesis bercap waktu sekarang. Mengubah cap
 waktu tidak mengubah txid dan `merkle_root`, tetapi `block_id` dan `network_id` testnet berubah.
 
 | Hasil (cap waktu `0`) | Nilai |
 |---|---|
-| txid | `0d93648849e31f2ab8ae61804be580cd0feac5a5e2772a52789ccaec649cbfa1` |
-| wtxid | `0b3046d7091720edd3932035215833057ad5355cf56c4e5ac17a46d2850d67b3` |
-| merkle_root | `541b5bde4435fb223bf451d5ab73911f7cf521ba25f71e4afe3971769df6c6fd` |
-| block_id = `network_id` testnet | `11280b26cf1c372a39b5f387d30556def7dd7e633abfe84902f8295d653fe34b` |
+| txid | `ad23ee415df1905c83a7c4b0de263e494b2edec9091e6a70c9be238068333ff1` |
+| wtxid | `581b0bc6cc5c6e5c628baee17797f082cfd04b5def263c3a712712b8558e8a94` |
+| merkle_root | `d7df2a78012153e2ce5e14042c35c67de35c72d9f8062ebfb7b68dcaefe45fb0` |
+| block_id = `network_id` testnet | `ec9d66dfe49d755e7759c90defcaa4d86a45b431ea83368c448651affa4a2ff5` |
 | Ukuran blok | 186 byte |
 
 Node memilih genesis dari `network_id` parameternya (`known_genesis`, MOD-04): regtest atau testnet.

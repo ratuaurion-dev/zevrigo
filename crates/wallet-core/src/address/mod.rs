@@ -1,5 +1,5 @@
 //! Alamat bech32m (BIP350): `bech32m(HRP, [kind] ‖ convertbits(payload, 8→5))` (DEC-11, Spesifikasi Format v0.1
-//! Bagian 8). HRP `hsis` (mainnet), `thsis` (testnet), `rhsis` (regtest).
+//! Bagian 8). HRP `zvrg` (mainnet), `tzvrg` (testnet), `rzvrg` (regtest).
 //!
 //! Alamat bukan bagian konsensus: chain hanya menyimpan `kind` dan `payload` output.
 

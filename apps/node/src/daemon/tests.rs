@@ -29,8 +29,8 @@ fn parses_help_version_and_run() {
     assert_eq!(parse_args(args(&["-h"])), Ok(Command::Help));
     assert_eq!(parse_args(args(&["--version"])), Ok(Command::Version));
     assert_eq!(
-        parse_args(args(&["--regtest", "--datadir", "/tmp/hsis"])),
-        Ok(run_config("/tmp/hsis", 28_801))
+        parse_args(args(&["--regtest", "--datadir", "/tmp/zvrg"])),
+        Ok(run_config("/tmp/zvrg", 28_801))
     );
     assert_eq!(
         parse_args(args(&["--rpc-port", "0", "--datadir", "data", "--regtest"])),

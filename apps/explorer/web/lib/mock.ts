@@ -73,7 +73,7 @@ function makeHex64(prefixTag: string, index: number): string {
 }
 
 /**
- * Deterministic Regtest bech32m address generator (`rhsis1...`) using only valid bech32 charset:
+ * Deterministic Regtest bech32m address generator (`rzvrg1...`) using only valid bech32 charset:
  * `qpzry9x8gf2tvdw0s3jn54khce6mua7l`
  */
 const BECH32_CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
@@ -84,7 +84,7 @@ function makeRegtestAddress(seed: number): string {
     state = (Math.imul(state, 22695477) + 1) >>> 0;
     body += BECH32_CHARSET[state % BECH32_CHARSET.length];
   }
-  return `rhsis1${body}`;
+  return `rzvrg1${body}`;
 }
 
 export const CHAIN_TIP_HEIGHT = 120;
@@ -103,10 +103,10 @@ const EMISSION_DIVISOR = 2_274_842n;
 const SLOW_START_BLOCKS = 10_080n;
 
 // Key addresses
-export const CREATOR_PRIMARY_ADDRESS = 'rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9';
-export const CREATOR_RESERVE_ADDRESS = 'rhsis1x8gf2tvdw0s3jn54khce6mua7lqpzry9x8gf2t';
-export const RECIPIENT_TRANSFER_ADDRESS = 'rhsis1tvdw0s3jn54khce6mua7lqpzry9x8gf2tvdw0s';
-export const MINER_POOL_ADDRESS = 'rhsis1s3jn54khce6mua7lqpzry9x8gf2tvdw0s3jn54';
+export const CREATOR_PRIMARY_ADDRESS = 'rzvrg1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9';
+export const CREATOR_RESERVE_ADDRESS = 'rzvrg1x8gf2tvdw0s3jn54khce6mua7lqpzry9x8gf2t';
+export const RECIPIENT_TRANSFER_ADDRESS = 'rzvrg1tvdw0s3jn54khce6mua7lqpzry9x8gf2tvdw0s';
+export const MINER_POOL_ADDRESS = 'rzvrg1s3jn54khce6mua7lqpzry9x8gf2tvdw0s3jn54';
 
 // Key mempool txids (including one highlighted pending txid for easy testing)
 export const MEMPOOL_ONLY_TXID =

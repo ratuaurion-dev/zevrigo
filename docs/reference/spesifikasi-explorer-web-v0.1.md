@@ -89,7 +89,7 @@ Jalur memakai hash (`#/…`), sehingga server cukup menyajikan file yang ada tan
   Akibatnya: tanpa skrip inline, tanpa atribut `style` inline (gaya hanya lewat kelas CSS), tanpa `eval`.
 - `dangerouslySetInnerHTML` dilarang; semua teks dari API dirender sebagai teks oleh React. Diperiksa skrip gerbang.
 - Isi dari API (txid, alamat, block_id) dimasukkan ke jalur API setelah diperiksa pola (hex 64 huruf kecil, desimal,
-  awalan `rhsis1`/`thsis1`/`hsis1` dan karakter bech32) dan `encodeURIComponent`.
+  awalan `rzvrg1`/`tzvrg1`/`zvrg1` dan karakter bech32) dan `encodeURIComponent`.
 
 ---
 

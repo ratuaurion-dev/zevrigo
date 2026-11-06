@@ -34,8 +34,8 @@ agar dependensi tetap seminimal mungkin.
 
 ## 2. Nama protokol
 
-Setiap protokol memakai nama `/hsis/<net>/<nama>/1`. `<net>` adalah 16 karakter hex huruf kecil pertama dari `network_id`
-(block_id genesis). Untuk regtest: `/hsis/b933d7c548dc7845/status/1`. Rekan dari jaringan lain tidak bisa membuka aliran
+Setiap protokol memakai nama `/zvrg/<net>/<nama>/1`. `<net>` adalah 16 karakter hex huruf kecil pertama dari `network_id`
+(block_id genesis). Untuk regtest: `/zvrg/b858e5ce2bf393d7/status/1`. Rekan dari jaringan lain tidak bisa membuka aliran
 sama sekali, karena negosiasi protokol libp2p gagal.
 
 | Protokol | Permintaan | Jawaban | Dipakai untuk |

@@ -56,7 +56,7 @@ fn network_variants_and_hrp_match_spec() {
         Network::ALL,
         [Network::Mainnet, Network::Testnet, Network::Regtest]
     );
-    assert_eq!(Network::Mainnet.hrp(), "hsis");
-    assert_eq!(Network::Testnet.hrp(), "thsis");
-    assert_eq!(Network::Regtest.hrp(), "rhsis");
+    assert_eq!(Network::Mainnet.hrp(), "zvrg");
+    assert_eq!(Network::Testnet.hrp(), "tzvrg");
+    assert_eq!(Network::Regtest.hrp(), "rzvrg");
 }

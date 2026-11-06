@@ -53,8 +53,8 @@ Frasa dan passphrase yang sama di wallet BIP39 lain menghasilkan seed yang sama.
 
 ## 3. Alamat (DEC-11)
 
-Sesuai Spesifikasi Format v0.1 Bagian 8 (sudah final): `bech32m(HRP, [kind] ‖ payload)`, HRP `rhsis` (regtest), `thsis`
-(testnet), `hsis` (mainnet). Alamat penerimaan wallet v0.1 selalu jenis 0 (`…1q…`). Wallet menolak alamat ber-HRP jaringan
+Sesuai Spesifikasi Format v0.1 Bagian 8 (sudah final): `bech32m(HRP, [kind] ‖ payload)`, HRP `rzvrg` (regtest), `tzvrg`
+(testnet), `zvrg` (mainnet). Alamat penerimaan wallet v0.1 selalu jenis 0 (`…1q…`). Wallet menolak alamat ber-HRP jaringan
 lain. Output jenis 1 (kondisi m-dari-n dengan kunci waktu) belum dibuat wallet v0.1.
 
 ---
@@ -70,12 +70,12 @@ Dihitung Quick dengan implementasi referensi Python yang lebih dulu lolos vektor
 | W2 | seed W1, tanpa passphrase | `408b285c123836004f4b8842c89324c1f01382450c0d439af345ba7fc49acf705489c6fc77dbd4e3dc1dd8cc6bc9f043db8ada1e243c4a0eafb290d399480840` |
 | W3 | seed W1, passphrase `TREZOR` (vektor resmi) | `bda85446c68413707090a52022edd26a1c9462295029f2e60cd7c4f2bbd3097170af7a4d73245cafa9c3cca8d561a7c3de6f5d4a10be8ed2a5e608d68f92fcc8` |
 | W4 | kunci akun publik `m/44'/1'/0'` dari W2 | `03b9385a6fbee0caa6e79407f83b0053e2d864b6c7a8f32ce61c3f495b5dd5d02712ed17c3e72223beb38ea98ec1317581f02458f02b0ecf4abe02c6490eca170a` |
-| W5 | `m/44'/1'/0'/0/0` dari W2 | rahasia `11831b777e3fad99962ab773b23bad02812b85d8ac452e6c92434b4d7a79d9a3`, x-only `5a6f28253f35e2ff1ab0b086b8c87f731159661157e5be2ca98188369625dc32`, alamat `rhsis1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939msequa3ft3` |
-| W6 | `m/44'/1'/0'/0/1` dari W2 | rahasia `e5dde95cb4c071fe5cc1bb06b5d8183e2ae5bec60ae6fb45c53085aaee8aa7df`, x-only `8f33099c2cc3739e24c329d9e2d72ff7ce8bb4f4491b1763f69ca8693ea34806`, alamat `rhsis1q3uesn8pvcdeeufxr98v794e07l8ghd85fyd3wclknj5xj04rfqrqvpxaeu` |
-| W7 | `m/44'/1'/0'/1/0` dari W2 | rahasia `f6615fe1ba1d1c685ac5eb2697b6b377aafc30a03c4b5aeb14d0bec5a7b26869`, x-only `c71cdd713224479fff24b56db524c2385acf09725605e7440de0c34272e2abf5`, alamat `rhsis1qcuwd6ufjy3relleyk4km2fxz8pdv7ztj2cz7w3qdurp5yuhz406sx6fc5n` |
-| W8 | 12 kata `legal winner thank year wave sausage worth useful legal winner thank yellow`, tanpa passphrase, `m/44'/1'/0'/0/0` | x-only `080faab833c4787baabac2eb47f64a2654f92a1b70ca8dc2f09679179ac362a1`, alamat `rhsis1qpq864wpnc3u8h246ct450aj2ye20j2smwr9gmshsjeu30xkrv2ss0hnt4g` |
-| W9 | W1 dengan passphrase `TREZOR`, `m/44'/1'/0'/0/0` | alamat `rhsis1q2x064qcn4zk84y9zjtpjt8e8ksjjja7peenap4lcse2d0vmw2xyqnjjhdv` |
-| W10 | x-only W5 di testnet | `thsis1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseqa3ymmj` |
+| W5 | `m/44'/1'/0'/0/0` dari W2 | rahasia `11831b777e3fad99962ab773b23bad02812b85d8ac452e6c92434b4d7a79d9a3`, x-only `5a6f28253f35e2ff1ab0b086b8c87f731159661157e5be2ca98188369625dc32`, alamat `rzvrg1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseq59qlxg` |
+| W6 | `m/44'/1'/0'/0/1` dari W2 | rahasia `e5dde95cb4c071fe5cc1bb06b5d8183e2ae5bec60ae6fb45c53085aaee8aa7df`, x-only `8f33099c2cc3739e24c329d9e2d72ff7ce8bb4f4491b1763f69ca8693ea34806`, alamat `rzvrg1q3uesn8pvcdeeufxr98v794e07l8ghd85fyd3wclknj5xj04rfqrqyeht59` |
+| W7 | `m/44'/1'/0'/1/0` dari W2 | rahasia `f6615fe1ba1d1c685ac5eb2697b6b377aafc30a03c4b5aeb14d0bec5a7b26869`, x-only `c71cdd713224479fff24b56db524c2385acf09725605e7440de0c34272e2abf5`, alamat `rzvrg1qcuwd6ufjy3relleyk4km2fxz8pdv7ztj2cz7w3qdurp5yuhz406swzcwe2` |
+| W8 | 12 kata `legal winner thank year wave sausage worth useful legal winner thank yellow`, tanpa passphrase, `m/44'/1'/0'/0/0` | x-only `080faab833c4787baabac2eb47f64a2654f92a1b70ca8dc2f09679179ac362a1`, alamat `rzvrg1qpq864wpnc3u8h246ct450aj2ye20j2smwr9gmshsjeu30xkrv2ss80zac3` |
+| W9 | W1 dengan passphrase `TREZOR`, `m/44'/1'/0'/0/0` | alamat `rzvrg1q2x064qcn4zk84y9zjtpjt8e8ksjjja7peenap4lcse2d0vmw2xyqm2rpq4` |
+| W10 | x-only W5 di testnet | `tzvrg1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseq4f4dkt` |
 
 Selain W1–W10, test MOD-09 wajib memakai vektor resmi BIP39 (Trezor, passphrase `TREZOR`) dan BIP32 vektor 1 dan 2.
 Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk koin bernilai.
@@ -120,7 +120,7 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 | Lokasi | `<datadir>/<jaringan>/wallet.json`: `regtest` (bawaan) atau `testnet` (`--testnet`, TSK-M06 bagian C3b). Kunci akun sama untuk kedua jaringan (`coin` 1, Bagian 3); yang berbeda folder, `network` di file, dan HRP alamat. File yang `network`-nya bukan jaringan CLI ditolak |
 | Isi versi 2 (DEC-27, semua wallet baru) | `version` (2), `network` (`regtest` atau `testnet`), `account` (kunci akun publik `m/44'/1'/0'`, hex 130 karakter, Bagian 3), `encrypted` (`kdf` `argon2id`, `memory_kib`, `iterations`, `parallelism`, `salt` hex 16 byte, `cipher` `xchacha20poly1305`, `nonce` hex 24 byte, `ciphertext` hex = frasa ternormalkan terenkripsi diikuti tag 16 byte), `next_index` untuk `branch 0` dan `branch 1` |
 | Isi versi 1 (lama) | `version` (1), `network`, `mnemonic` tanpa enkripsi, `next_index`. Tetap bisa dipakai; `wallet-encrypt` mengubahnya ke versi 2 dengan indeks yang sama |
-| Enkripsi (DEC-27, TSK-M37) | Kunci 32 byte = Argon2id versi 0x13 (password UTF-8, salt; bawaan 64 MiB, 3 putaran, 1 jalur; file dengan memori di atas 1 GiB, putaran di atas 64, atau jalur di atas 16 ditolak). Frasa dienkripsi XChaCha20-Poly1305 dengan AAD = `homeostasis wallet vault v1` ‖ `memory_kib` ‖ `iterations` ‖ `parallelism` (masing-masing `u32` big-endian) ‖ salt. Salt dan nonce dari `/dev/urandom` setiap kali file dikunci |
+| Enkripsi (DEC-27, TSK-M37) | Kunci 32 byte = Argon2id versi 0x13 (password UTF-8, salt; bawaan 64 MiB, 3 putaran, 1 jalur; file dengan memori di atas 1 GiB, putaran di atas 64, atau jalur di atas 16 ditolak). Frasa dienkripsi XChaCha20-Poly1305 dengan AAD = `zevrigo wallet vault v1` ‖ `memory_kib` ‖ `iterations` ‖ `parallelism` (masing-masing `u32` big-endian) ‖ salt. Salt dan nonce dari `/dev/urandom` setiap kali file dikunci |
 | Password | Minimal 8 karakter, diketik dua kali saat membuat (`wallet-create`, `wallet-restore`, `wallet-encrypt`), dibaca tanpa tampil di layar. Hanya diminta saat kunci rahasia dibutuhkan: `send` dan `wallet-show-phrase`. `address` dan `balance` memakai `account` tanpa password. Untuk skrip regtest boleh lewat variabel lingkungan `ZEVRIGO_WALLET_PASSWORD` |
 | Passphrase | Tidak disimpan. Versi 2: dipakai saat wallet dibuat (menentukan `account`) dan saat `send` (wajib menghasilkan `account` yang sama, jika tidak ditolak); `address` dan `balance` tidak memakainya. Versi 1: diminta lewat opsi setiap kali dibutuhkan |
 | Izin file | `0600`, dibuat baru dan tidak menimpa file yang sudah ada |

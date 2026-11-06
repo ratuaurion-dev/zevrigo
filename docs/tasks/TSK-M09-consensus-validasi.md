@@ -21,7 +21,7 @@ Termasuk penolakan PoW regtest di testnet dan mainnet beserta test-nya (DEC-09).
 
 ## Vektor blok 1 regtest (dihitung Quick dengan `blake3_ref.py`)
 Coinbase tinggi 1, `extra` kosong, satu output 1_910_127_426_536_917 quanta ke kunci genesis regtest; cap waktu genesis + 120; target `0x207fffff`.
-txid coinbase `c1161c14…6525e6d2`, merkle root `3f7259fe…d1eaba64`, nonce hasil tambang 0, block_id `a9005667…b3732de9`.
+txid coinbase `4ac1bf0f…6525e6d2`, merkle root `d781146a…d1eaba64`, nonce hasil tambang 0, block_id `32a2ce86…b3732de9`.
 Header yang sama dengan merkle root nol: nonce hasil tambang 3.
 
 ## Test (consensus 35 → 56 + 1 ignored, workspace 175 → 196)

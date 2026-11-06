@@ -17,9 +17,9 @@ MOD-09 (wallet) sama-sama memakainya, dan MOD-02 sudah punya `txid` serta domain
 O(q) = output q quanta, kind 0, payload `77` x 32. Transaksi V1 (kartu TSK-M03), input 0.
 | ID | network_id | spent | msg |
 |---|---|---|---|
-| S1 | H6 | O(2 ZVRG) | `f2ee67583afb2b9b35b88f175ae593b4e1800390b5c6b69a6ce5a2f9c11922ad` |
-| S2 | H3 | O(2 ZVRG) | `c3635edb315f2813f1361a360321711813580bd92c075d02ec77a256bcce0e00` |
-| S3 | H6 | O(2 ZVRG + 1 quanta) | `d9b77ec8b60e72c105623bfcba49c7cf4275a6d8cf81ba5780f183e8c26f6dbf` |
+| S1 | H6 | O(2 ZVRG) | `ed640781b20d51e8e098c342f3f7d7ffd6f96890e7f7a25eb48575fc83277d61` |
+| S2 | H3 | O(2 ZVRG) | `1f9558947d967a8da64ec46d292872ad29209d6072e1bf066969de215b8c9d10` |
+| S3 | H6 | O(2 ZVRG + 1 quanta) | `dc33a08e0e53093fcc7f63ab0ea59da39bfb124a8665d7c01bd008bfcfb88f88` |
 
 ## Test (crypto 24 → 30, workspace 143 → 149)
 `src/sighash/tests.rs`: `vectors_sighash_v1_s1_to_s3`, `sighash_rejects_coinbase`,

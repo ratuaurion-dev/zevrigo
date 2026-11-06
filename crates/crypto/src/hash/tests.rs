@@ -14,64 +14,64 @@ const ALL_DOMAINS: [Domain; 8] = [
     Domain::RegtestPow,
 ];
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 txid" --no-names
-const TXID_EMPTY_HEX: &str = "8ba1ce3a2abbc0dfe734c703d2eaa3a9c9a144107b9c0be8208f64289b1ef66f";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 txid" --no-names
-const TXID_ABC_HEX: &str = "f9ff4780e515cd6d0f63210ddd34f5cd7d3ee0e1de0c601550bca3f8a5d0179e";
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 txid" --no-names
+const TXID_EMPTY_HEX: &str = "8bc30b9ba42086e8dfb75905912f3f58fc47ce8c277a060adbfce58839bde22b";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 txid" --no-names
+const TXID_ABC_HEX: &str = "ae1600253f094bf35357b3e79ecdff82313f449266011cf3a7e1d89faf968ac4";
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 wtxid" --no-names
-const WTXID_EMPTY_HEX: &str = "a5a42ee2f4aab6da974a74d171350116bf638580c5c8a60f829f47f61f541d46";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 wtxid" --no-names
-const WTXID_ABC_HEX: &str = "bf940fb7b9915c1f959b606192f099cf5afcb02cb042e877ecb04cfc9fcf063d";
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 wtxid" --no-names
+const WTXID_EMPTY_HEX: &str = "e1b2a320a39722886304e1e7f2365d8ef04be2557c9c0a48b9bc9defd2a87978";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 wtxid" --no-names
+const WTXID_ABC_HEX: &str = "c31e00671f29f0e11b12f474cccfa2f49cdeb93bae75b74843f4216e73c5a618";
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 merkle leaf" --no-names
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 merkle leaf" --no-names
 const MERKLE_LEAF_EMPTY_HEX: &str =
-    "3fec184c7d7ebff9a62c94d70811960e046b807326ec54ec84b2f617cb3361c1";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 merkle leaf" --no-names
+    "5d58e397cbc0769fe7fe303ad752217c6de08b70b351044b282de7e6c1968a06";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 merkle leaf" --no-names
 const MERKLE_LEAF_ABC_HEX: &str =
-    "53207aebd3c202a6c2d9efa1d3ec83558f5d93bc28646d3ccf03a55948b6b74a";
+    "23720bccaad09e0580985bdbdba56d690b3affc6c0074119f8c8726f92c5fdc6";
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 merkle node" --no-names
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 merkle node" --no-names
 const MERKLE_NODE_EMPTY_HEX: &str =
-    "20ac9e2d28ae66d1c336ea1cebe6a88e601d3c74b86cf95043f277904b0e7406";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 merkle node" --no-names
+    "9751edfe56a7ed85f9686d07d39a24fe26d5de8207f8974b425492fd079d0405";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 merkle node" --no-names
 const MERKLE_NODE_ABC_HEX: &str =
-    "34120f928c772193e55bd0c5ac1155e2312c4def275de64f47a9b54547443be3";
+    "4e8d7ea4fa08dabbd625230b228d9224d17c26fd7536af1a85c31c0218c5b293";
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 block id" --no-names
-const BLOCK_ID_EMPTY_HEX: &str = "1d8d47c81549967c6ac644932bcb9459e76680ee5d49644edf2a76d76e1c944e";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 block id" --no-names
-const BLOCK_ID_ABC_HEX: &str = "7e5fede80be9f6938dc8a559e0acdbece92c6898b588dd7f79bdef8f08ab5c8a";
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 block id" --no-names
+const BLOCK_ID_EMPTY_HEX: &str = "f0c94c17252f6496627712335c20a48abef6fa3f9e530a35a7f23259bfacc80c";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 block id" --no-names
+const BLOCK_ID_ABC_HEX: &str = "c36d376cbd22e83c603814a3300c4990436a18ea1036352d0b0888c630cef2da";
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 condition" --no-names
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 condition" --no-names
 const CONDITION_EMPTY_HEX: &str =
-    "0d4129c2af924f6f06e538841c09c13e99cc0ca38a596f04e83477390b76b87a";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 condition" --no-names
-const CONDITION_ABC_HEX: &str = "babab9792a38d67e97865552ce6dd70d8c685a3ecf38c4797b49905d7512cb0c";
+    "06fb9e15398f0810e5fff6a02fb18bb918cc8f2e3fa002c3ca909951b2086078";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 condition" --no-names
+const CONDITION_ABC_HEX: &str = "0ff93f61dd85d3317d2c4e2bfc4dc91f7fb1a74b21496c2c0f05f0adde5ddef5";
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 sighash v1" --no-names
-const SIGHASH_EMPTY_HEX: &str = "b82f298bb64ff0f7212b04af4ba0d10df60f63509c6272c6ec989802b8b75460";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 sighash v1" --no-names
-const SIGHASH_ABC_HEX: &str = "1c253a6dc26d68b8ce19062f2242292cabb9a54ebb55dcb3c0ad02b26c30db6a";
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 sighash v1" --no-names
+const SIGHASH_EMPTY_HEX: &str = "24624b7cb3bfb9184e57b7ac75a1b2ea07fb15a69b9253c6879637a7d9d48e7c";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 sighash v1" --no-names
+const SIGHASH_ABC_HEX: &str = "ef9da163b99259dc81231014fe770462ce8b66ab7e30db397fde2c03299b9bfa";
 
-// printf '' | b3sum --derive-key "homeostasis 2026-10-28 regtest pow" --no-names
+// printf '' | b3sum --derive-key "zevrigo 2026-10-28 regtest pow" --no-names
 const REGTEST_POW_EMPTY_HEX: &str =
-    "e23cdaa829593b6b3cc7a3851de25587bf9143626246f016cd28cb05f09e2b0e";
-// printf 'abc' | b3sum --derive-key "homeostasis 2026-10-28 regtest pow" --no-names
+    "1aceb0cccceb4072e2d58c4b73b8d3e41ee15f6e8bf87808b7e2d39cb6b64126";
+// printf 'abc' | b3sum --derive-key "zevrigo 2026-10-28 regtest pow" --no-names
 const REGTEST_POW_ABC_HEX: &str =
-    "bdcdd6f8411d12b2243b06a52f53bb7196ac7c120f81674d1d1381c7deb4d64e";
+    "8bbb3b67ab30c8fe27b0064b6b7abd24816f0324b35f93d68d106f2ef607809e";
 
 #[test]
 fn domain_context_strings_match_spec_and_are_unique() {
     let expected: [(Domain, &str); 8] = [
-        (Domain::Txid, "homeostasis 2026-10-28 txid"),
-        (Domain::Wtxid, "homeostasis 2026-10-28 wtxid"),
-        (Domain::MerkleLeaf, "homeostasis 2026-10-28 merkle leaf"),
-        (Domain::MerkleNode, "homeostasis 2026-10-28 merkle node"),
-        (Domain::BlockId, "homeostasis 2026-10-28 block id"),
-        (Domain::Condition, "homeostasis 2026-10-28 condition"),
-        (Domain::Sighash, "homeostasis 2026-10-28 sighash v1"),
-        (Domain::RegtestPow, "homeostasis 2026-10-28 regtest pow"),
+        (Domain::Txid, "zevrigo 2026-10-28 txid"),
+        (Domain::Wtxid, "zevrigo 2026-10-28 wtxid"),
+        (Domain::MerkleLeaf, "zevrigo 2026-10-28 merkle leaf"),
+        (Domain::MerkleNode, "zevrigo 2026-10-28 merkle node"),
+        (Domain::BlockId, "zevrigo 2026-10-28 block id"),
+        (Domain::Condition, "zevrigo 2026-10-28 condition"),
+        (Domain::Sighash, "zevrigo 2026-10-28 sighash v1"),
+        (Domain::RegtestPow, "zevrigo 2026-10-28 regtest pow"),
     ];
 
     for (domain, text) in expected {

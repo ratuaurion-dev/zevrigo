@@ -2,7 +2,7 @@
 //!
 //! - [`message`]: enam pesan P2P dan encoding kanonisnya (Bagian 3).
 //! - [`frame`]: bingkai `varint<32>(panjang) ‖ isi`, paling banyak 2 MiB (Bagian 3).
-//! - [`protocol`]: nama protokol `/hsis/<net>/<nama>/1` (Bagian 2).
+//! - [`protocol`]: nama protokol `/zvrg/<net>/<nama>/1` (Bagian 2).
 //! - [`key`]: kunci identitas rekan Ed25519 di `<datadir>/<jaringan>/p2p_key` (Bagian 1).
 //! - [`ban`]: blokir 24 jam per `PeerId` dan per alamat IP (Bagian 7).
 //! - [`service`]: swarm libp2p (TCP, Noise, Yamux), lima protokol request-response, batas koneksi, sambung ulang,

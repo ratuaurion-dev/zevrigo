@@ -1,4 +1,4 @@
-//! Nama protokol P2P (Spesifikasi P2P Bagian 2): `/hsis/<net>/<nama>/1`, dengan `<net>` = 16 karakter hex huruf kecil
+//! Nama protokol P2P (Spesifikasi P2P Bagian 2): `/zvrg/<net>/<nama>/1`, dengan `<net>` = 16 karakter hex huruf kecil
 //! pertama `network_id`. Rekan dari jaringan lain gagal bernegosiasi protokol, sehingga tidak bisa membuka aliran.
 
 use libp2p::StreamProtocol;
@@ -53,10 +53,10 @@ pub fn network_prefix(network_id: &Hash32) -> String {
     hex.get(..NETWORK_PREFIX_LEN).unwrap_or(&hex).to_owned()
 }
 
-/// Nama lengkap protokol, misalnya `/hsis/b933d7c548dc7845/status/1` untuk regtest.
+/// Nama lengkap protokol, misalnya `/zvrg/b858e5ce2bf393d7/status/1` untuk regtest.
 #[must_use]
 pub fn protocol_name(network_id: &Hash32, kind: ProtocolKind) -> String {
-    format!("/hsis/{}/{}/1", network_prefix(network_id), kind.name())
+    format!("/zvrg/{}/{}/1", network_prefix(network_id), kind.name())
 }
 
 /// Nama protokol sebagai `StreamProtocol` libp2p.

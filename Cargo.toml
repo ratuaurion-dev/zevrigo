@@ -78,7 +78,7 @@ rusqlite = { version = "0.41.1", default-features = false }
 randomx-rs = { version = "1.6.0", default-features = false }
 
 # DEC-01 (Konsep Bagian 5.10 dan L5): randomx-rs dibangun dari salinan di repo, satu-satunya perubahan algoritma adalah
-# salt Argon2 RandomX ("RandomHSIS\x01"). Lihat vendor/README.md.
+# salt Argon2 RandomX ("RandomZVRG\x01"). Lihat vendor/README.md.
 [patch.crates-io]
 randomx-rs = { path = "vendor/randomx-rs" }
 

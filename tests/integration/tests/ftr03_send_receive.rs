@@ -168,7 +168,7 @@ mod ftr03 {
             wallet_create(Network::Regtest, &dir_a.0, &[0x11; 32], "", &lock(1)).unwrap();
         wallet_create(Network::Regtest, &dir_b.0, &[0x22; 32], "", &lock(2)).unwrap();
         let address_a = next_address(Network::Regtest, &dir_a.0, "").unwrap();
-        assert!(address_a.starts_with("rhsis1q"), "{address_a}");
+        assert!(address_a.starts_with("rzvrg1q"), "{address_a}");
 
         // 99 blok ke alamat A: belum ada coinbase yang matang, jadi belum bisa mengirim.
         let miner_a = miner(&url, payload(&address_a));

@@ -48,45 +48,45 @@ const V5_HEX: &str = concat!(
     "0000000000000000"
 );
 
-// H1: txid(V1) di bawah domain "homeostasis 2026-10-28 txid"
-// printf '%s' "${V1:0:242}" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 txid" --no-names
-const H1_TXID_V1: &str = "5b403b217e76db7c9a6ac42da2addef7072e1037345091542114a09fed8316f0";
+// H1: txid(V1) di bawah domain "zevrigo 2026-10-28 txid"
+// printf '%s' "${V1:0:242}" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 txid" --no-names
+const H1_TXID_V1: &str = "9107ff8ed0d2975dd2ee1365b3d0d4ccae8dc52706de61ede65ced3d7992e0bb";
 
-// H2: wtxid(V1) di bawah domain "homeostasis 2026-10-28 wtxid"
-// printf '%s' "$V1" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 wtxid" --no-names
-const H2_WTXID_V1: &str = "dfe2644d59ef5116f14d0dc1917005d8bbe53eee415524d72a7e742510cf1661";
+// H2: wtxid(V1) di bawah domain "zevrigo 2026-10-28 wtxid"
+// printf '%s' "$V1" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 wtxid" --no-names
+const H2_WTXID_V1: &str = "cdd33ed9bf0b56611e3e05ff77c112c8834adf562d49dc9a6f8d647a141d0464";
 
-// H3: txid(V2) di bawah domain "homeostasis 2026-10-28 txid"
-// printf '%s' "$V2" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 txid" --no-names
-const H3_TXID_V2: &str = "9adb1818e0a08c686e44d00f4f51a3d5655b776b782697b7b95a5d6089e6b289";
+// H3: txid(V2) di bawah domain "zevrigo 2026-10-28 txid"
+// printf '%s' "$V2" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 txid" --no-names
+const H3_TXID_V2: &str = "2d70454ac710074a7c01dcfb379fbaa4e949915d8bbd364b5c687e2422c8a04c";
 
-// H4: wtxid(V2) di bawah domain "homeostasis 2026-10-28 wtxid"
-// printf '%s' "$V2" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 wtxid" --no-names
-const H4_WTXID_V2: &str = "e8b8e3058b89963b68eceecc2e6585fc5442b8e3ecd04bdeabd69a44b69a115d";
+// H4: wtxid(V2) di bawah domain "zevrigo 2026-10-28 wtxid"
+// printf '%s' "$V2" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 wtxid" --no-names
+const H4_WTXID_V2: &str = "1759737204b9829349fc19c7643949256ae7264be58a42c3c6cf86b5b8850984";
 
-// H5 txid: txid(V3) di bawah domain "homeostasis 2026-10-28 txid"
-// printf '%s' "$V3" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 txid" --no-names
-const H5_TXID_V3: &str = "935d24f13c14464a2e708bfa6f81141e4371bb5a5d872813e7ce9b0f0d33be76";
+// H5 txid: txid(V3) di bawah domain "zevrigo 2026-10-28 txid"
+// printf '%s' "$V3" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 txid" --no-names
+const H5_TXID_V3: &str = "584c095f3eb41eb31b9b8103fec8f26a1a2389c485e9c4a400a162373d388bb2";
 
-// H5 wtxid: wtxid(V3) di bawah domain "homeostasis 2026-10-28 wtxid"
-// printf '%s' "$V3" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 wtxid" --no-names
-const H5_WTXID_V3: &str = "fc4c66a00fcad51a02fc2650e18abb48616d7044d20f3a8c4459e57fde5ff67a";
+// H5 wtxid: wtxid(V3) di bawah domain "zevrigo 2026-10-28 wtxid"
+// printf '%s' "$V3" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 wtxid" --no-names
+const H5_WTXID_V3: &str = "e64573f7995913b02ba1538c2ecd6974b9b1b18907529bfd163222966184f35b";
 
-// H6: block_id(V4) di bawah domain "homeostasis 2026-10-28 block id"
-// printf '%s' "$V4" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 block id" --no-names
-const H6_BLOCK_ID_V4: &str = "1de077cc1a2c8ad7c055df207ce40cca9643f961d0df21c1c67c7f121d107cfa";
+// H6: block_id(V4) di bawah domain "zevrigo 2026-10-28 block id"
+// printf '%s' "$V4" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 block id" --no-names
+const H6_BLOCK_ID_V4: &str = "b5e337ac17736bcfa40aaaeab79c8621dede48b263ecf06ae1d5e21423f4108d";
 
-// H7: condition_hash(V5) di bawah domain "homeostasis 2026-10-28 condition"
-// printf '%s' "$V5" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 condition" --no-names
+// H7: condition_hash(V5) di bawah domain "zevrigo 2026-10-28 condition"
+// printf '%s' "$V5" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 condition" --no-names
 const H7_CONDITION_HASH_V5: &str =
-    "dbb0fcdcbf4666937f85300d06ca7e2574a31761e71ed7807e468991dbcd8a35";
+    "5f7860bfdc3c469f0a2cc3860669adeaf5fc6fd88146f5e33f2a8a71469cc38e";
 
 // H8: block_merkle_root(V8)
-// daun 0 = H(merkle leaf, H4) -> 7288f1fddefb43470453bfc25e327f46f4df4c0e7c02469c5ca9750208d6d3f5
-// daun 1 = H(merkle leaf, H2) -> 3e15cb5f9e12d3f7bf3d1f7d509ab92aab74ccd744f8c34f38bbb0dab5d63e41
+// daun 0 = H(merkle leaf, H4) -> 8a3186fdeb1741efa81a0e91eb52adc7817fa2783be2ef2f268595c32e251a06
+// daun 1 = H(merkle leaf, H2) -> cfced85661d1cc9348d2e89555317d03954af1f9fdd236febabf695c654e7459
 // root   = H(merkle node, daun0 || daun1)
 const H8_BLOCK_MERKLE_ROOT_V8: &str =
-    "de41614cd36307ab95dfef64c5c898af62f789e6f76bad1388e332ebbe973d59";
+    "6f6d1c10ac2546e3e749b2efa00a9df4d1bebdade68149b31e9814e59a0e96ce";
 
 fn decode_hex(hex: &str) -> Vec<u8> {
     let (pairs, rem) = hex.as_bytes().as_chunks::<2>();

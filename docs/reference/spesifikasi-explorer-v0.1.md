@@ -90,7 +90,7 @@ indeks terakhir yang sah. Ini tanda node yang ditunjuk tidak jujur atau rusak.
 
 Awalan `/api/v1`. Hanya `GET` (metode lain `405`). Nilai memakai encoding Spesifikasi RPC v0.1 Bagian 2: hash dan
 payload hex huruf kecil 64 karakter, jumlah koin string desimal quanta (tidak pernah angka JSON), target compact hex 8
-karakter, nonce string desimal. Alamat bech32m regtest (`rhsis1…`, DEC-11). Jumlah tidak pernah dijumlahkan dengan float.
+karakter, nonce string desimal. Alamat bech32m regtest (`rzvrg1…`, DEC-11). Jumlah tidak pernah dijumlahkan dengan float.
 
 | Jalur | Isi jawaban |
 |---|---|

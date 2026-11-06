@@ -33,7 +33,7 @@ Paket Docker hanya membungkus program yang sudah ada. Tidak ada aturan chain, ku
 |---|---|
 | Program | `/usr/local/bin/zevrigo-node`, `zevrigo-explorer`, `zevrigo-miner`, `zevrigo-cli` (`cargo build --release --locked`) |
 | Antarmuka web | `/usr/share/zevrigo/web` (hasil `npm ci --ignore-scripts` dan `next build`, static export) |
-| Pengguna | `hsis` (uid dan gid 10001), bukan root |
+| Pengguna | `zevrigo` (uid dan gid 10001), bukan root |
 | Data | Volume `/data`: chain `regtest/chain.redb`, indeks `regtest/explorer.sqlite`, wallet `regtest/wallet.json` |
 | Perintah bawaan | `zevrigo-node --regtest --datadir /data` |
 

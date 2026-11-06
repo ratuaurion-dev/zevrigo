@@ -10,7 +10,7 @@ use crate::test_support::{Chain, Fault, genesis_output, out, spend};
 const FEE: u128 = 1_000;
 
 /// Alamat regtest bech32m yang sah bentuknya (untuk memastikan alamat tidak pernah dicari).
-const SOME_ADDRESS: &str = "rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9x8gf2tvdw0s3jn54khce6";
+const SOME_ADDRESS: &str = "rzvrg1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9x8gf2tvdw0s3jn54khce6";
 
 /// Kunci yang tidak boleh muncul di jawaban mana pun (DEC-28).
 const HIDDEN_KEYS: [&str; 9] = [

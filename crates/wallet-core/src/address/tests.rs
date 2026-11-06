@@ -9,13 +9,13 @@ use zevrigo_primitives::{Network, OutputKind};
 use super::{AddressError, CHARSET, PAYLOAD_LEN, decode_address, encode_address, verify_checksum};
 
 const PAYLOAD_HEX: &str = "f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9";
-const MAINNET_0: &str = "hsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusllxnc3";
-const TESTNET_0: &str = "thsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusq7jsl6";
-const REGTEST_0: &str = "rhsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmuspj8z0e";
-const MAINNET_1: &str = "hsis1plycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusq5kk90";
-const KIND_2: &str = "hsis1zlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusgf0ety";
-const BAD_PADDING: &str = "hsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmu3zfjx9r";
-const ONE_GROUP_SHORT: &str = "hsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmuyt9w0r";
+const MAINNET_0: &str = "zvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmush8h94g";
+const TESTNET_0: &str = "tzvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusgxrxjr";
+const REGTEST_0: &str = "rzvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusf2k5zq";
+const MAINNET_1: &str = "zvrg1plycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusgv8qgk";
+const KIND_2: &str = "zvrg1zlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusq370xa";
+const BAD_PADDING: &str = "zvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmu323rsg6";
+const ONE_GROUP_SHORT: &str = "zvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmu658sge";
 
 fn decode_hex(hex: &str) -> Vec<u8> {
     let (pairs, rem) = hex.as_bytes().as_chunks::<2>();
@@ -80,7 +80,7 @@ fn decode_accepts_uppercase_and_rejects_mixed_case() {
         decode_address(Network::Mainnet, &upper),
         Ok((OutputKind::SingleKey, payload()))
     );
-    let mixed = MAINNET_0.replacen("hsis", "ZVRG", 1);
+    let mixed = MAINNET_0.replacen("zvrg", "ZVRG", 1);
     assert_eq!(
         decode_address(Network::Mainnet, &mixed),
         Err(AddressError::MixedCase)
@@ -98,7 +98,7 @@ fn decode_rejects_wrong_network_separator_length_and_characters() {
         Err(AddressError::WrongNetwork)
     );
     assert_eq!(
-        decode_address(Network::Mainnet, "hsisqlycg5qvjtrp"),
+        decode_address(Network::Mainnet, "zvrgqlycg5qvjtrp"),
         Err(AddressError::MissingSeparator)
     );
     assert_eq!(
@@ -126,7 +126,7 @@ fn decode_rejects_wrong_network_separator_length_and_characters() {
 
 #[test]
 fn decode_rejects_bad_checksum_kind_and_padding() {
-    let flipped = MAINNET_0.replacen("llxnc3", "llxnc4", 1);
+    let flipped = MAINNET_0.replacen("h8h94g", "h8h94h", 1);
     assert_eq!(
         decode_address(Network::Mainnet, &flipped),
         Err(AddressError::InvalidChecksum)

@@ -15,7 +15,7 @@ Menangani komunikasi *peer-to-peer* antar node menggunakan `rust-libp2p` 0.57 (D
 
 - `message`: pesan `Status` (105 byte), `GetHeaders`, `Headers`, `GetBlocks`, `Blocks`, `Ack`, serta `Block` dan `Transaction`, dengan encoding kanonis dan batas Bagian 3 (trait `Wire`).
 - `frame`: bingkai `varint<32>(panjang) ‖ isi`, paling banyak 2 MiB; panjang tidak minimal atau aliran terpotong adalah pelanggaran rekan.
-- `protocol`: nama `/hsis/<16 hex network_id>/<nama>/1` untuk `status`, `headers`, `blocks`, `block`, `tx`.
+- `protocol`: nama `/zvrg/<16 hex network_id>/<nama>/1` untuk `status`, `headers`, `blocks`, `block`, `tx`.
 - `key`: kunci rekan Ed25519, 32 byte mentah di `<datadir>/<jaringan>/p2p_key` (izin `0600`), dibuat sekali.
 - `ban`: blokir 24 jam per `PeerId` dan per IP (loopback hanya per `PeerId`).
 - `service::Network`: swarm TCP + Noise XX + Yamux, lima protokol request-response, 8 koneksi keluar / 32 masuk / 1 per `PeerId`, koneksi menganggur 300 detik, waktu tunggu jawaban 30 detik, sambung ulang ke `--connect` setiap 10 detik, pertukaran `status` otomatis, sanksi pesan rusak dan jumlah entri `Blocks` yang salah, putus setelah 3 waktu habis berturut-turut. Permintaan masuk lain diteruskan sebagai `NetEvent` beserta `Reply`.

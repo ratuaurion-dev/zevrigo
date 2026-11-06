@@ -29,26 +29,26 @@ const W1: &str = concat!(
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ",
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
 );
-const W5: &str = "rhsis1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939msequa3ft3";
-const W6: &str = "rhsis1q3uesn8pvcdeeufxr98v794e07l8ghd85fyd3wclknj5xj04rfqrqvpxaeu";
+const W5: &str = "rzvrg1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseq59qlxg";
+const W6: &str = "rzvrg1q3uesn8pvcdeeufxr98v794e07l8ghd85fyd3wclknj5xj04rfqrqyeht59";
 const W8_PHRASE: &str =
     "legal winner thank year wave sausage worth useful legal winner thank yellow";
-const W9: &str = "rhsis1q2x064qcn4zk84y9zjtpjt8e8ksjjja7peenap4lcse2d0vmw2xyqnjjhdv";
+const W9: &str = "rzvrg1q2x064qcn4zk84y9zjtpjt8e8ksjjja7peenap4lcse2d0vmw2xyqm2rpq4";
 const W5_XONLY: &str = "5a6f28253f35e2ff1ab0b086b8c87f731159661157e5be2ca98188369625dc32";
 const W6_XONLY: &str = "8f33099c2cc3739e24c329d9e2d72ff7ce8bb4f4491b1763f69ca8693ea34806";
 const W7_XONLY: &str = "c71cdd713224479fff24b56db524c2385acf09725605e7440de0c34272e2abf5";
 /// Alamat regtest kunci contoh BIP340 #0 (Spesifikasi Format Bagian 8).
-const RECIPIENT: &str = "rhsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmuspj8z0e";
-const TESTNET_RECIPIENT: &str = "thsis1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusq7jsl6";
+const RECIPIENT: &str = "rzvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusf2k5zq";
+const TESTNET_RECIPIENT: &str = "tzvrg1qlycg5qvjtrp3qjf5f7zl382j9x6nrjz9sdhenvyxq8c3808qxmusgxrxjr";
 /// Alamat W5 di testnet (vektor W10 Spesifikasi Wallet v0.1 Bagian 4).
-const W10: &str = "thsis1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseqa3ymmj";
+const W10: &str = "tzvrg1qtfhjsfflxh307x4skzrt3jrlwvg4jes32ljmut9fsxyrd939mseq4f4dkt";
 const T1_TX: &str = concat!(
     "010002a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a100b2b2b2b2b2b2b2b2b2b2b2b2",
     "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b201028080e0e2de8692a25300f9308a019258c31049344f85f89d5229",
     "b531c845836f99b08601f113bce036f9e4fd9ff6f4acdbe01b00730ad008ce8bd2f391b08b9c4838af732341e9704cba",
-    "0dc03d83f977dfcf7d9600f98278c858ef3dfca1d0bfea415e604a45681c23ff65f0040a110202af619e8ffccbe7b7b4",
-    "34efd3f7d66cff1c5ba294d04803b2bd298b1ba5aae19dc09ba56f00d208bcda0d1e9ae93e1e68f9f298d75c4d86a649",
-    "928be7d63a48765340a35ecd11acf3b31110d7b8eee5b491e1220be4d8a084e53632fd23f4f7fbd9d57157dd",
+    "0dc03d83f977dfcf7d960064257c38bb427b5c650d6f334c5fda2ff216894ac89e2d1a94e8b49912bcae594cdd96ea3b",
+    "ad773da077d80b65df62eab8f37376a275e1b7d415379131cadb1800a12f89879bdfc101915b914572c2be38bed60b15",
+    "41fd6c8078a67df06dd7fcc4e6cbd56b8917931dddbf0a493b6c60262197af6df8f8444618de163657e73e82",
 );
 
 /// Password wallet uji.
@@ -833,7 +833,7 @@ fn testnet_wallet_uses_own_folder_addresses_and_node() {
         Err(CliError::File(WalletFileError::Missing { .. }))
     ));
 
-    // Kunci akun sama dengan regtest (coin 1); alamat memakai HRP thsis.
+    // Kunci akun sama dengan regtest (coin 1); alamat memakai HRP tzvrg.
     assert_eq!(next_address(Network::Testnet, &dir.0, "").unwrap(), W10);
     let (_kind, payload) = decode_address(Network::Testnet, W10).unwrap();
     assert_eq!(&payload, hex32(W5_XONLY).bytes());
@@ -912,5 +912,5 @@ fn testnet_wallet_uses_own_folder_addresses_and_node() {
         unreachable!("tidak butuh password")
     };
     let output = run(&config, never, no_password).unwrap();
-    assert!(output.starts_with("alamat: thsis1"), "{output}");
+    assert!(output.starts_with("alamat: tzvrg1"), "{output}");
 }

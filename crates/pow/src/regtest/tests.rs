@@ -7,17 +7,17 @@ use super::{PowError, mine_regtest, regtest_pow_hash, verify_regtest_pow};
 use crate::target::Target;
 
 // Vektor V4 dari kartu TSK-M03:
-// printf '%s' "$V4" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 regtest pow" --no-names
-const P1_HASH_HEX: &str = "0364aacccf064eac20c82cf0bbb69da7bdfe2c85208267a85707aeaeb6475c17";
-const P3_TARGET_HEX: &str = "0364aacccf064eac20c82cf0bbb69da7bdfe2c85208267a85707aeaeb6475c16";
+// printf '%s' "$V4" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 regtest pow" --no-names
+const P1_HASH_HEX: &str = "3e35ea504710040451fec5e6937cc123eddbe226eb70d69f2764007340b7630b";
+const P3_TARGET_HEX: &str = "3e35ea504710040451fec5e6937cc123eddbe226eb70d69f2764007340b7630a";
 
-// Nonce 3 di bawah T16:
-// printf '%s' "$PFX$(printf '%02x%02x000000000000' 3 0)" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 regtest pow" --no-names
-const P5_HASH_HEX: &str = "0d9248920ecaf57c4531d401a45d35ce21170b6e483ad891d8aeb7753139446c";
+// Nonce 5 di bawah T16:
+// printf '%s' "$PFX$(printf '%02x%02x000000000000' 5 0)" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 regtest pow" --no-names
+const P5_HASH_HEX: &str = "01717c374ad397c80e1455d4d3b90c698a060ecd0cde5c2858042e6f16e07fe2";
 
-// Nonce 367 di bawah T256:
-// printf '%s' "$PFX$(printf '%02x%02x000000000000' $((367 % 256)) $((367 / 256)))" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 regtest pow" --no-names
-const P6_HASH_HEX: &str = "004d9338d441ce96b3cc233909cd1f80d1277612f53bea921482550e37d3d8d4";
+// Nonce 316 di bawah T256:
+// printf '%s' "$PFX$(printf '%02x%02x000000000000' $((316 % 256)) $((316 / 256)))" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 regtest pow" --no-names
+const P6_HASH_HEX: &str = "00723e81ba5131cf6cba202c5389f058dc6eeba023e538f8d1b186d3364fff15";
 
 fn build_v4() -> Header {
     Header::new(
@@ -96,9 +96,9 @@ fn vectors_p5_to_p7_mine_regtest_first_nonce_and_attempt_limit() {
         0,
     );
 
-    // P5: mine_regtest(V4 dengan nonce 0, T16, 1_000) -> Some, nonce 3
+    // P5: mine_regtest(V4 dengan nonce 0, T16, 1_000) -> Some, nonce 5
     let p5_res = mine_regtest(&v4_nonce_0, &target_t16(), 1_000).expect("P5 should succeed");
-    assert_eq!(p5_res.nonce(), 3);
+    assert_eq!(p5_res.nonce(), 5);
     assert_eq!(p5_res.height(), v4.height());
     assert_eq!(p5_res.prev_block_id(), v4.prev_block_id());
     assert_eq!(p5_res.merkle_root(), v4.merkle_root());
@@ -107,9 +107,9 @@ fn vectors_p5_to_p7_mine_regtest_first_nonce_and_attempt_limit() {
     let p5_hash = Hash32::from_hex(P5_HASH_HEX).expect("P5 hash hex");
     assert_eq!(regtest_pow_hash(&p5_res), p5_hash);
 
-    // P6: mine_regtest(V4, T256, 1_000) -> Some, nonce 367
+    // P6: mine_regtest(V4, T256, 1_000) -> Some, nonce 316
     let p6_res = mine_regtest(&v4, &target_t256(), 1_000).expect("P6 should succeed");
-    assert_eq!(p6_res.nonce(), 367);
+    assert_eq!(p6_res.nonce(), 316);
     assert_eq!(p6_res.height(), v4.height());
     assert_eq!(p6_res.prev_block_id(), v4.prev_block_id());
     assert_eq!(p6_res.merkle_root(), v4.merkle_root());
@@ -118,11 +118,11 @@ fn vectors_p5_to_p7_mine_regtest_first_nonce_and_attempt_limit() {
     let p6_hash = Hash32::from_hex(P6_HASH_HEX).expect("P6 hash hex");
     assert_eq!(regtest_pow_hash(&p6_res), p6_hash);
 
-    // P7: mine_regtest(V4, T256, 325) -> None; mine_regtest(V4, T256, 326) -> Some(nonce 367)
-    assert_eq!(mine_regtest(&v4, &target_t256(), 325), None);
+    // P7: mine_regtest(V4, T256, 274) -> None; mine_regtest(V4, T256, 275) -> Some(nonce 316)
+    assert_eq!(mine_regtest(&v4, &target_t256(), 274), None);
     let p7_res =
-        mine_regtest(&v4, &target_t256(), 326).expect("P7 with 326 attempts should succeed");
-    assert_eq!(p7_res.nonce(), 367);
+        mine_regtest(&v4, &target_t256(), 275).expect("P7 with 275 attempts should succeed");
+    assert_eq!(p7_res.nonce(), 316);
 }
 
 #[test]
@@ -156,7 +156,7 @@ fn vector_p10_regtest_pow_hash_differs_from_block_id() {
     assert_ne!(h_pow, h_block);
     assert_eq!(
         h_block,
-        Hash32::from_hex("1de077cc1a2c8ad7c055df207ce40cca9643f961d0df21c1c67c7f121d107cfa")
+        Hash32::from_hex("b5e337ac17736bcfa40aaaeab79c8621dede48b263ecf06ae1d5e21423f4108d")
             .expect("H6 hex")
     );
 }

@@ -84,16 +84,16 @@ Target uji (hex big-endian, 64 karakter):
 
 | ID | Uji | Harapan |
 |---|---|---|
-| P1 | `regtest_pow_hash(V4)` | `0364aacccf064eac20c82cf0bbb69da7bdfe2c85208267a85707aeaeb6475c17` |
+| P1 | `regtest_pow_hash(V4)` | `3e35ea504710040451fec5e6937cc123eddbe226eb70d69f2764007340b7630b` |
 | P2 | `verify_regtest_pow(V4, Target = P1)` | `Ok(())` (nilai sama dengan target lolos) |
-| P3 | `verify_regtest_pow(V4, Target = 0364aacccf064eac20c82cf0bbb69da7bdfe2c85208267a85707aeaeb6475c16)` (P1 − 1) | `Err(PowError::AboveTarget { .. })` |
+| P3 | `verify_regtest_pow(V4, Target = 3e35ea504710040451fec5e6937cc123eddbe226eb70d69f2764007340b7630a)` (P1 − 1) | `Err(PowError::AboveTarget { .. })` |
 | P4 | `verify_regtest_pow(V4, Target::MAX)` dan `verify_regtest_pow(V4, Target::ZERO)` | `Ok(())` dan `Err(AboveTarget)` |
-| P5 | `mine_regtest(V4 dengan nonce 0, T16, 1_000)` | `Some`, nonce 3, `regtest_pow_hash` = `0d9248920ecaf57c4531d401a45d35ce21170b6e483ad891d8aeb7753139446c` |
-| P6 | `mine_regtest(V4, T256, 1_000)` | `Some`, nonce 367, `regtest_pow_hash` = `004d9338d441ce96b3cc233909cd1f80d1277612f53bea921482550e37d3d8d4` |
-| P7 | `mine_regtest(V4, T256, 325)` dan `mine_regtest(V4, T256, 326)` | `None` dan `Some` dengan nonce 367 |
+| P5 | `mine_regtest(V4 dengan nonce 0, T16, 1_000)` | `Some`, nonce 5, `regtest_pow_hash` = `01717c374ad397c80e1455d4d3b90c698a060ecd0cde5c2858042e6f16e07fe2` |
+| P6 | `mine_regtest(V4, T256, 1_000)` | `Some`, nonce 316, `regtest_pow_hash` = `00723e81ba5131cf6cba202c5389f058dc6eeba023e538f8d1b186d3364fff15` |
+| P7 | `mine_regtest(V4, T256, 274)` dan `mine_regtest(V4, T256, 275)` | `None` dan `Some` dengan nonce 316 |
 | P8 | `mine_regtest(V4 dengan nonce u64::MAX, Target::ZERO, 10)` | `None`, tanpa panic |
 | P9 | `mine_regtest(V4 dengan nonce u64::MAX, Target::MAX, 1)` | `Some`, header sama persis (nonce u64::MAX) |
-| P10 | `regtest_pow_hash(V4)` dibanding `zevrigo_crypto::block_id(V4)` (H6 = `1de077cc1a2c8ad7c055df207ce40cca9643f961d0df21c1c67c7f121d107cfa`) | berbeda |
+| P10 | `regtest_pow_hash(V4)` dibanding `zevrigo_crypto::block_id(V4)` (H6 = `b5e337ac17736bcfa40aaaeab79c8621dede48b263ecf06ae1d5e21423f4108d`) | berbeda |
 | P11 | `mine_regtest(V4, Target::MAX, 0)` | `None` |
 
 Catatan P5 sampai P7: hasil `mine_regtest` juga dicek field lainnya (height, prev_block_id, merkle_root, timestamp,
@@ -154,16 +154,16 @@ target) sama dengan V4, dan hanya nonce yang berubah.
 ```bash
 V4=0100000001000000000000001111111111111111111111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222200d2496b00000000ffff001d2a00000000000000
 PFX=${V4:0:176}
-printf '%s' "$V4" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 regtest pow" --no-names
+printf '%s' "$V4" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 regtest pow" --no-names
 for n in $(seq 0 400); do
   NH=$(printf '%02x%02x000000000000' $((n % 256)) $((n / 256)))
-  printf '%s %s\n' "$n" "$(printf '%s' "$PFX$NH" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 regtest pow" --no-names)"
+  printf '%s %s\n' "$n" "$(printf '%s' "$PFX$NH" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 regtest pow" --no-names)"
 done > /tmp/m05-scan.txt
 grep -E '^42 ' /tmp/m05-scan.txt
 grep -m1 -E '^[0-9]+ 0' /tmp/m05-scan.txt
 awk '$1 >= 42' /tmp/m05-scan.txt | grep -m1 -E '^[0-9]+ 00'
 ```
-Harapan: baris pertama = P1; `42 <P1>`; `3 0d9248920ecaf57c4531d401a45d35ce21170b6e483ad891d8aeb7753139446c`; `367 004d9338d441ce96b3cc233909cd1f80d1277612f53bea921482550e37d3d8d4`.
+Harapan: baris pertama = P1; `42 <P1>`; `5 01717c374ad397c80e1455d4d3b90c698a060ecd0cde5c2858042e6f16e07fe2`; `316 00723e81ba5131cf6cba202c5389f058dc6eeba023e538f8d1b186d3364fff15`.
 
 ## Laporan akhir
 Laporan berisi OUTPUT MENTAH perintah berikut, bernomor, satu blok kode per perintah. Output tidak diringkas

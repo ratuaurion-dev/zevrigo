@@ -45,7 +45,7 @@ JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti 
 | Ukuran blok maksimum | 100_000 byte |
 | Hash umum | BLAKE3 |
 | Tanda tangan | Schnorr BIP340 di kurva secp256k1. MuSig2 untuk multi-tanda tangan |
-| PoW | varian RandomX (hanya salt Argon2 yang diganti: `RandomHSIS\x01`, DEC-01). Kunci diganti setiap 2_048 blok, jeda 64 blok |
+| PoW | varian RandomX (hanya salt Argon2 yang diganti: `RandomZVRG\x01`, DEC-01). Kunci diganti setiap 2_048 blok, jeda 64 blok |
 | Penyesuaian kesulitan | ASERT per blok, waktu paruh 720 blok |
 | Cap waktu blok | harus > median 11 blok terakhir dan ≤ waktu lokal node + 3_600 detik |
 | Pemilihan chain | chain sah dengan kerja kumulatif terbanyak. TANPA batas kedalaman reorg. Tanpa checkpoint |

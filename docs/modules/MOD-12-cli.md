@@ -15,7 +15,7 @@ Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan 
 
 - Pengiriman perintah administrasi baca/kirim transaksi ke endpoint RPC node dan pemformatan keluaran terminal secara deterministik.
 - Perintah wallet regtest dan testnet (buat, pulihkan, alamat, saldo, kirim) dan file wallet sesuai [spesifikasi-wallet-v0.1.md](../reference/spesifikasi-wallet-v0.1.md) Bagian 7, memakai `MOD-09` (DEC-21).
-- Jaringan (TSK-M06 bagian C3b): `--regtest` (bawaan) atau `--testnet`; file wallet di `<folder>/<jaringan>/wallet.json` dengan `network` yang wajib cocok (`load_network`), alamat `rhsis1…` atau `thsis1…`, RPC bawaan port 28801 atau 18801, dan `balance`/`send` menolak node jaringan lain (`CliError::WrongNetwork`).
+- Jaringan (TSK-M06 bagian C3b): `--regtest` (bawaan) atau `--testnet`; file wallet di `<folder>/<jaringan>/wallet.json` dengan `network` yang wajib cocok (`load_network`), alamat `rzvrg1…` atau `tzvrg1…`, RPC bawaan port 28801 atau 18801, dan `balance`/`send` menolak node jaringan lain (`CliError::WrongNetwork`).
 
 ## Bukan Tanggung Jawab
 

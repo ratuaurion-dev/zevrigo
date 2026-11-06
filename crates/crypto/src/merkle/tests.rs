@@ -7,43 +7,43 @@ use super::merkle_root;
 
 // Perhitungan independen daun dan simpul Merkle memakai b3sum 1.8.7 dan xxd 2025-11-26:
 //
-// LEAF_CTX="homeostasis 2026-10-28 merkle leaf"
-// NODE_CTX="homeostasis 2026-10-28 merkle node"
+// LEAF_CTX="zevrigo 2026-10-28 merkle leaf"
+// NODE_CTX="zevrigo 2026-10-28 merkle node"
 // I_k = 32 byte bernilai k (01..01 untuk k=1, ..., 05..05 untuk k=5)
 //
 // L1 = printf '01%.0s' {1..32} | xxd -r -p | b3sum --derive-key "$LEAF_CTX" --no-names
-//    = b6415d9fb0cf8fdc5abb0cc223d2f94705b6b9a4f26d325477121c88c611ad68
+//    = c5146123eff079f1ca04e4edaec33545697d4b94e8d1b2f4b8d05ed4d9de7627
 // L2 = printf '02%.0s' {1..32} | xxd -r -p | b3sum --derive-key "$LEAF_CTX" --no-names
-//    = 8acb95fba6a5705eddf20e37a420bb39e72a1c7ed3e9e4fbb5e61a46b474aa13
+//    = 5198d3484237af471dd1468ab53a74298d3a8e6479d30a8feef4e90c2f32b6aa
 // L3 = printf '03%.0s' {1..32} | xxd -r -p | b3sum --derive-key "$LEAF_CTX" --no-names
-//    = e8aae81dc05b4213caf2874867d04d2cd69b96953a41782ecb8053671e23d08f
+//    = e0e4558785ee10ff3c314b889584eeaf64e3a25e05ea1a18e2eaf628e00f5d25
 // L4 = printf '04%.0s' {1..32} | xxd -r -p | b3sum --derive-key "$LEAF_CTX" --no-names
-//    = 68db0fe1ec316885a16a13a25dc4250701d189ee1dfddcc6b6717a33cbfa5149
+//    = 82e11e6ffaa82ede2f39f20295a0f6086edae1070f5d8e13fc574f22c3ffc00c
 // L5 = printf '05%.0s' {1..32} | xxd -r -p | b3sum --derive-key "$LEAF_CTX" --no-names
-//    = 6141b16f2d20fcbe64da37d19b32063ed9dc6676a6d2ba337ab50e1a52a90522
+//    = b2750c060f2751fc1a9f8f61822a1715452d0b80553b3289d287bb92b0fb7117
 //
 // N12   = printf '%s%s' "$L1" "$L2" | xxd -r -p | b3sum --derive-key "$NODE_CTX" --no-names
-//       = 7ad28d062048aeb6d004a942a08253a22f5b418fa5ca97c58a8c9c928a6bc50d
+//       = 7385faf467f446d4c77dfd766cbbf7528340ad7c03a853440305c74d64a3dfbc
 // N34   = printf '%s%s' "$L3" "$L4" | xxd -r -p | b3sum --derive-key "$NODE_CTX" --no-names
-//       = 57bb448ab067724c5216c6218590ca067e169be162329d87aecaa3d569683535
+//       = 11255f14e6f3df50c9837f1a1fa7a6c9d29bdbd94996d0050882829ecbc1c65a
 // N1234 = printf '%s%s' "$N12" "$N34" | xxd -r -p | b3sum --derive-key "$NODE_CTX" --no-names
-//       = 6534e51cc382f3afdb7a28ab8033e6f0da7fa53913fc7e80a9eccf12668ee28c
+//       = 7b4090fe1d80314c0471f1072916bd98a544cf9171740fc2c1171a5bccaaf770
 
 // 1 item: root = L1
-// printf '0101010101010101010101010101010101010101010101010101010101010101' | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 merkle leaf" --no-names
-const MERKLE_ROOT_1_HEX: &str = "b6415d9fb0cf8fdc5abb0cc223d2f94705b6b9a4f26d325477121c88c611ad68";
+// printf '0101010101010101010101010101010101010101010101010101010101010101' | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 merkle leaf" --no-names
+const MERKLE_ROOT_1_HEX: &str = "c5146123eff079f1ca04e4edaec33545697d4b94e8d1b2f4b8d05ed4d9de7627";
 
 // 2 item: root = N12 = H_node(L1 || L2)
-// printf '%s%s' "$L1" "$L2" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 merkle node" --no-names
-const MERKLE_ROOT_2_HEX: &str = "7ad28d062048aeb6d004a942a08253a22f5b418fa5ca97c58a8c9c928a6bc50d";
+// printf '%s%s' "$L1" "$L2" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 merkle node" --no-names
+const MERKLE_ROOT_2_HEX: &str = "7385faf467f446d4c77dfd766cbbf7528340ad7c03a853440305c74d64a3dfbc";
 
 // 3 item: tingkat 0 = [L1, L2, L3] -> tingkat 1 = [N12, L3] (L3 dinaikkan apa adanya) -> root = H_node(N12 || L3)
-// printf '%s%s' "$N12" "$L3" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 merkle node" --no-names
-const MERKLE_ROOT_3_HEX: &str = "35f1f982675829affdb5269b53084c01fd9d2aae508074f7b391bb2eb21f7c80";
+// printf '%s%s' "$N12" "$L3" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 merkle node" --no-names
+const MERKLE_ROOT_3_HEX: &str = "4a2a690b024a69ae693ccc7c37b2f39eb69222042affe19adcf66ce731141f7f";
 
 // 5 item: tingkat 0 = [L1..L5] -> tingkat 1 = [N12, N34, L5] -> tingkat 2 = [N1234, L5] -> root = H_node(N1234 || L5)
-// printf '%s%s' "$N1234" "$L5" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 merkle node" --no-names
-const MERKLE_ROOT_5_HEX: &str = "996fb40ce7b1b2137c1c4ef8800ce584e98cafefe9d68de4a5bf292c3a55d7e2";
+// printf '%s%s' "$N1234" "$L5" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 merkle node" --no-names
+const MERKLE_ROOT_5_HEX: &str = "350a035fd86f4a9f694b6b1204bdf2c5ff7760bf1e6a110d3f63380c664fae61";
 
 fn item_repeated(val: u8) -> Hash32 {
     Hash32::from_bytes([val; 32])

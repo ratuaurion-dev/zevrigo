@@ -18,7 +18,7 @@ Tanpa dependensi baru. MOD-04 tidak membaca jam sistem: `now` untuk V8 diberikan
 
 ## Vektor (dari spesifikasi, dihitung Quick dengan `asert_ref.py`)
 K1–K9 compact, A1–A11 ASERT, W1–W5 kerja blok, M1–M4 median waktu, dan genesis regtest (186 byte, txid, wtxid,
-merkle root, `network_id` `b933d7c5…6a04c5`).
+merkle root, `network_id` `b858e5ce…6a04c5`).
 
 ## Test (consensus 10 → 35, primitives 56 → 57 lewat TSK-M25, workspace 149 → 175)
 - `src/uint/tests.rs` (9): `u256_constants_bits_and_be_bytes`, `u256_ordering_is_numeric`, `u256_add_and_sub_detect_overflow`,

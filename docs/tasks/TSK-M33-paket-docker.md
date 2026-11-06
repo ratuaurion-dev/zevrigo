@@ -10,7 +10,7 @@ testnet. Aturan lengkap: [Spesifikasi Docker v0.1](../reference/spesifikasi-dock
 ## Isi
 | Bagian | Isi |
 |---|---|
-| `Dockerfile` | Tiga tahap: Rust 1.99.0 (release, `--locked`), Node.js 24.22.0 (`npm ci --ignore-scripts`, `next build`), Debian 13 slim; image dasar dikunci digest; pengguna `hsis` uid 10001; volume `/data` |
+| `Dockerfile` | Tiga tahap: Rust 1.99.0 (release, `--locked`), Node.js 24.22.0 (`npm ci --ignore-scripts`, `next build`), Debian 13 slim; image dasar dikunci digest; pengguna `zvrg` uid 10001; volume `/data` |
 | `.dockerignore` | Konteks hanya kode yang dipakai (tanpa `.git`, `target`, `node_modules`, `docs`, `ai_advisory_hub`) |
 | `compose.yaml` | `node` + `explorer` (berbagi namespace jaringan), profil `miner`; port host hanya `127.0.0.1:28802` |
 | MOD-14 | Opsi `--http-bind <ip>` (bawaan `127.0.0.1`), `ArgError::InvalidBind`; server mendengar di alamat itu |

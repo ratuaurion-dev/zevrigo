@@ -7,7 +7,7 @@
 //! hanya ada di dalam pustaka itu; modul ini tetap tanpa keduanya. Hash PoW dari 96 byte header dibaca sebagai bilangan
 //! 256-bit big-endian dan harus ≤ target, sama dengan PoW regtest.
 //!
-//! Varian ZVRG (Konsep Bagian 5.10, DEC-01): salt Argon2 `RandomHSIS\x01`, satu-satunya perbedaan dari RandomX resmi
+//! Varian ZVRG (Konsep Bagian 5.10, DEC-01): salt Argon2 `RandomZVRG\x01`, satu-satunya perbedaan dari RandomX resmi
 //! (vendor/README.md). Pemilihan jaringan dan sumber kunci adalah aturan konsensus MOD-04 (TSK-M06 bagian B).
 
 use std::sync::mpsc::{self, Receiver, Sender, SyncSender};

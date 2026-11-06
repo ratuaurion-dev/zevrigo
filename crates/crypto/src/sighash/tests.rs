@@ -24,19 +24,19 @@ const V2_HEX: &str = concat!(
 );
 
 /// H6 = block_id(V4), dipakai sebagai network_id contoh.
-const H6: &str = "1de077cc1a2c8ad7c055df207ce40cca9643f961d0df21c1c67c7f121d107cfa";
+const H6: &str = "b5e337ac17736bcfa40aaaeab79c8621dede48b263ecf06ae1d5e21423f4108d";
 /// H3 = txid(V2), dipakai sebagai network_id lain.
-const H3: &str = "9adb1818e0a08c686e44d00f4f51a3d5655b776b782697b7b95a5d6089e6b289";
+const H3: &str = "2d70454ac710074a7c01dcfb379fbaa4e949915d8bbd364b5c687e2422c8a04c";
 
 // Output yang dibelanjakan O(q): amount q quanta, kind 0, payload 0x77 x 32.
 // encode(O(2_000_000_000_000_000_000)) = 8080a0f6f4acdbe01b00 || 77 x 32 (42 byte)
 // S1 = sighash_v1(H6, V1, 0, [O(2 ZVRG)]); preimage 110 byte = H6 || H1 || 00000000 || encode(O):
-// printf '%s' "1de077cc1a2c8ad7c055df207ce40cca9643f961d0df21c1c67c7f121d107cfa5b403b217e76db7c9a6ac42da2addef7072e1037345091542114a09fed8316f0000000008080a0f6f4acdbe01b007777777777777777777777777777777777777777777777777777777777777777" | xxd -r -p | b3sum --derive-key "homeostasis 2026-10-28 sighash v1" --no-names
-const S1: &str = "f2ee67583afb2b9b35b88f175ae593b4e1800390b5c6b69a6ce5a2f9c11922ad";
+// printf '%s' "b5e337ac17736bcfa40aaaeab79c8621dede48b263ecf06ae1d5e21423f4108d9107ff8ed0d2975dd2ee1365b3d0d4ccae8dc52706de61ede65ced3d7992e0bb000000008080a0f6f4acdbe01b007777777777777777777777777777777777777777777777777777777777777777" | xxd -r -p | b3sum --derive-key "zevrigo 2026-10-28 sighash v1" --no-names
+const S1: &str = "ed640781b20d51e8e098c342f3f7d7ffd6f96890e7f7a25eb48575fc83277d61";
 // S2 = S1 dengan network_id H3 (preimage S1 dengan 32 byte pertama diganti H3).
-const S2: &str = "c3635edb315f2813f1361a360321711813580bd92c075d02ec77a256bcce0e00";
+const S2: &str = "1f9558947d967a8da64ec46d292872ad29209d6072e1bf066969de215b8c9d10";
 // S3 = S1 dengan amount 2_000_000_000_000_000_001 quanta (encode 8180a0f6f4acdbe01b00 || 77 x 32).
-const S3: &str = "d9b77ec8b60e72c105623bfcba49c7cf4275a6d8cf81ba5780f183e8c26f6dbf";
+const S3: &str = "dc33a08e0e53093fcc7f63ab0ea59da39bfb124a8665d7c01bd008bfcfb88f88";
 
 const TWO_ZVRG: u128 = 2_000_000_000_000_000_000;
 

@@ -12,7 +12,7 @@ use crate::test_support::id;
 #[test]
 fn codec_round_trips_and_returns_bad_messages_as_values() {
     block_on(async {
-        let protocol = StreamProtocol::new("/hsis/test/blocks/1");
+        let protocol = StreamProtocol::new("/zvrg/test/blocks/1");
         let mut codec = WireCodec::<GetBlocks, Blocks>::default();
         let request = GetBlocks {
             ids: vec![id(1), id(2)],

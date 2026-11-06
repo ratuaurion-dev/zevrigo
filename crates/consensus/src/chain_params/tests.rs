@@ -18,7 +18,7 @@ const GENESIS_BLOCK_HEX: &str = concat!(
     "01000000",
     "0000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000000",
-    "66255b2a4e2a87346a7ce7f57078c1325e444a50738f75ef8a6e6246c5c088d6",
+    "ef801283525bb565114f5e2d0d10deddc9465d206abe2675ef524ccc61def782",
     "003be16a00000000",
     "ffff7f20",
     "0000000000000000",
@@ -29,11 +29,11 @@ const GENESIS_BLOCK_HEX: &str = concat!(
     "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
 );
 
-const GENESIS_TXID: &str = "d95c2ed4614a2eacece319bf129078c55a74b63fe555b94eeb0b3d1320814875";
-const GENESIS_WTXID: &str = "f0ea325014f4a3f4609f890c2379a1bed228d137959d795806fc136ea5bda614";
+const GENESIS_TXID: &str = "e48a0c67c87ee39224a5ed3b09f4c301d8fe9a9f623161bf5252f6dd7fdd2310";
+const GENESIS_WTXID: &str = "80917b98cd9844da532df6b15c6258b600aac9cfd6e20bc142a288a03ea96749";
 const GENESIS_MERKLE_ROOT: &str =
-    "66255b2a4e2a87346a7ce7f57078c1325e444a50738f75ef8a6e6246c5c088d6";
-const REGTEST_NETWORK_ID: &str = "b933d7c548dc78459ac7376499682cdb9b21ef93f732842ccc89c5d9a16a04c5";
+    "ef801283525bb565114f5e2d0d10deddc9465d206abe2675ef524ccc61def782";
+const REGTEST_NETWORK_ID: &str = "b858e5ce2bf393d7f4c0be814152d66fecfaacda4b0add19e79c3c161f441b8f";
 
 /// Encoding lengkap blok genesis testnet, 186 byte (Spesifikasi Validasi Bagian 10b), dihitung Quick dengan
 /// `blake3_ref.py`. Cap waktu masih placeholder `0` (TSK-F06).
@@ -41,22 +41,22 @@ const TESTNET_BLOCK_HEX: &str = concat!(
     "01000000",
     "0000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000000",
-    "541b5bde4435fb223bf451d5ab73911f7cf521ba25f71e4afe3971769df6c6fd",
+    "d7df2a78012153e2ce5e14042c35c67de35c72d9f8062ebfb7b68dcaefe45fb0",
     "0000000000000000",
     "64cf8b1e",
     "0000000000000000",
     "01",
     "0101000000000000000020",
-    "686f6d656f73746173697320746573746e657420310000000000000000000000",
+    "7a65767269676f20746573746e65742031000000000000000000000000000000",
     "01808080cccfadc9ccc680fe1c00",
     "50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0"
 );
 
-const TESTNET_TXID: &str = "0d93648849e31f2ab8ae61804be580cd0feac5a5e2772a52789ccaec649cbfa1";
-const TESTNET_WTXID: &str = "0b3046d7091720edd3932035215833057ad5355cf56c4e5ac17a46d2850d67b3";
+const TESTNET_TXID: &str = "ad23ee415df1905c83a7c4b0de263e494b2edec9091e6a70c9be238068333ff1";
+const TESTNET_WTXID: &str = "581b0bc6cc5c6e5c628baee17797f082cfd04b5def263c3a712712b8558e8a94";
 const TESTNET_MERKLE_ROOT: &str =
-    "541b5bde4435fb223bf451d5ab73911f7cf521ba25f71e4afe3971769df6c6fd";
-const TESTNET_NETWORK_ID: &str = "11280b26cf1c372a39b5f387d30556def7dd7e633abfe84902f8295d653fe34b";
+    "d7df2a78012153e2ce5e14042c35c67de35c72d9f8062ebfb7b68dcaefe45fb0";
+const TESTNET_NETWORK_ID: &str = "ec9d66dfe49d755e7759c90defcaa4d86a45b431ea83368c448651affa4a2ff5";
 
 fn to_hex(bytes: &[u8]) -> String {
     let mut out = String::new();
@@ -148,8 +148,8 @@ fn testnet_genesis_matches_spec_vectors() {
     assert_eq!(allocation.amount(), GENESIS_ALLOCATION);
     assert_eq!(allocation.kind(), OutputKind::SingleKey);
     assert_eq!(allocation.payload(), &TESTNET_GENESIS_KEY);
-    let (text, padding) = TESTNET_GENESIS_EXTRA.split_at(21);
-    assert_eq!(text, b"homeostasis testnet 1");
+    let (text, padding) = TESTNET_GENESIS_EXTRA.split_at(17);
+    assert_eq!(text, b"zevrigo testnet 1");
     assert!(padding.iter().all(|byte| *byte == 0));
     // Titik NUMS BIP341 adalah koordinat x sah di secp256k1, jadi output-nya kunci tunggal biasa tanpa kunci rahasia.
     assert!(PublicKey::from_bytes(&TESTNET_GENESIS_KEY).is_ok());

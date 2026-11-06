@@ -9,7 +9,7 @@ use super::{
 use crate::target::Target;
 
 /// Kunci dan input vektor resmi RandomX (tevador/RandomX, src/tests/tests.cpp, "Hash test 1a" sampai "1f"). Hash yang
-/// diharapkan adalah hash varian ZVRG (salt `RandomHSIS\x01`, DEC-01), dihitung Q101 dengan program uji C++ terhadap
+/// diharapkan adalah hash varian ZVRG (salt `RandomZVRG\x01`, DEC-01), dihitung ulang Q107c dengan program uji C++ Q101 terhadap
 /// pustaka vendor/randomx-rs; program yang sama menghasilkan vektor resmi persis dari sumber asli (salt `RandomX\x03`),
 /// dengan flag bawaan dan flag anjuran CPU (JIT).
 const KEY_000: &[u8] = b"test key 000";
@@ -46,15 +46,15 @@ fn zvrg_vectors_light_mode() {
         &[
             (
                 b"This is a test".to_vec(),
-                "bffb4d6af107280fc2bbc8d2ac409abda2514d163ea823e67c1f3497b0b7d543",
+                "88c14322b7870ef03913afb8116d0bcf556199117b69b9d7c4b497f3aca8a216",
             ),
             (
                 b"Lorem ipsum dolor sit amet".to_vec(),
-                "2e2e6ff4bce9197701346efccac90331809b808095ddf9889245323062a25c68",
+                "cb859f8d5236f94368516370dc00be6c4fc5028c429761941e4cefa7343b4378",
             ),
             (
                 TEST_C_INPUT.to_vec(),
-                "8e9204a0246ba7765f516e0ea8c93b1fc126b9198ebd80dc55b3dc9ed5bc2f27",
+                "bd936defa22e157aafc2356ad4be8f9196351981b18dd4c46ddde14687ddd012",
             ),
         ],
     );
@@ -63,11 +63,11 @@ fn zvrg_vectors_light_mode() {
         &[
             (
                 TEST_C_INPUT.to_vec(),
-                "5c72e1144bfcbc5882c4da50db8ee4cc12fbc9d875fe8d7f953fb994b1d6b630",
+                "f32eb66b01d0805a9efd4f30ee8fe872ad43892cd5cc9bd3232e575983ccba60",
             ),
             (
                 bytes(TEST_E_INPUT),
-                "2f91f0fa8d4ab0a1e76ade33285ef58444725ee94c54ff248a2e0eb88199e35c",
+                "2a81fcb9c1ab3ed8e28279c7d75721792a4d47a44a8d2e05c48051303c260792",
             ),
         ],
     );
@@ -77,7 +77,7 @@ fn zvrg_vectors_light_mode() {
         &key_1f,
         &[(
             bytes(TEST_F_INPUT),
-            "988e0c3a9b01f9ca198ae7acbdf4ace714bd535ffdf298c46c756acbb5df9cd5",
+            "11b35792ba457f0253156f7617f25c468208fd43d524ced9abb0e1e728745caf",
         )],
     );
 }
@@ -120,7 +120,7 @@ fn header_hash_and_target_rule() {
     );
     let pow_hash = verifier.hash(&header).expect("hash header");
     // Vektor h1 Q101 (header ini, kunci 0x33 × 32, salt ZVRG).
-    let h1 = Hash32::from_hex("97a628c587d1c1a463da37f83a33a66c60cf304300392992f3993a708fd62e53")
+    let h1 = Hash32::from_hex("5262931966a4225f8044392c0d08592164070e4cb1db67fb8be93c556e6ad957")
         .expect("h1");
     assert_eq!(pow_hash, h1);
     let vm = light_vm(key.as_bytes()).expect("VM kedua");
@@ -203,7 +203,7 @@ fn h1() -> (Header, Hash32) {
         0x1d00_ffff,
         42,
     );
-    let hash = Hash32::from_hex("97a628c587d1c1a463da37f83a33a66c60cf304300392992f3993a708fd62e53")
+    let hash = Hash32::from_hex("5262931966a4225f8044392c0d08592164070e4cb1db67fb8be93c556e6ad957")
         .expect("h1");
     (header, hash)
 }

@@ -129,9 +129,9 @@ describe('validators and href builders', () => {
     expect(isValidHash('a'.repeat(63))).toBe(false);
 
     for (const address of [
-      'rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
-      'hsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
-      'thsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
+      'rzvrg1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
+      'zvrg1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
+      'tzvrg1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9',
     ]) {
       expect(classifySearchQuery(address).kind).toBe('invalid');
     }
@@ -319,7 +319,7 @@ describe('privacy: system data only (DEC-28)', () => {
     for (const key of ['address', 'payload', 'inputs', 'outputs', 'spent_by', 'genesis_allocation', 'total_supply', 'txids']) {
       expect(text.includes(`"${key}"`)).toBe(false);
     }
-    expect(text.includes('rhsis1')).toBe(false);
-    expect(getMockSearchResult('rhsis1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9').result).toBeNull();
+    expect(text.includes('rzvrg1')).toBe(false);
+    expect(getMockSearchResult('rzvrg1qpzry9x8gf2tvdw0s3jn54khce6mua7lqpzry9').result).toBeNull();
   });
 });

@@ -68,9 +68,9 @@ impl Network {
     #[must_use]
     pub const fn hrp(self) -> &'static str {
         match self {
-            Self::Mainnet => "hsis",
-            Self::Testnet => "thsis",
-            Self::Regtest => "rhsis",
+            Self::Mainnet => "zvrg",
+            Self::Testnet => "tzvrg",
+            Self::Regtest => "rzvrg",
         }
     }
 }

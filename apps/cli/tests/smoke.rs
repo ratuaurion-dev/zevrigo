@@ -92,7 +92,7 @@ fn encrypted_wallet_with_password_from_environment() {
     assert!(
         String::from_utf8(address.stdout)
             .unwrap()
-            .starts_with("alamat: rhsis1")
+            .starts_with("alamat: rzvrg1")
     );
 
     // Password baru terlalu pendek: wallet tidak dibuat.

@@ -32,14 +32,14 @@ impl Domain {
     #[must_use]
     pub const fn context(self) -> &'static str {
         match self {
-            Self::Txid => "homeostasis 2026-10-28 txid",
-            Self::Wtxid => "homeostasis 2026-10-28 wtxid",
-            Self::MerkleLeaf => "homeostasis 2026-10-28 merkle leaf",
-            Self::MerkleNode => "homeostasis 2026-10-28 merkle node",
-            Self::BlockId => "homeostasis 2026-10-28 block id",
-            Self::Condition => "homeostasis 2026-10-28 condition",
-            Self::Sighash => "homeostasis 2026-10-28 sighash v1",
-            Self::RegtestPow => "homeostasis 2026-10-28 regtest pow",
+            Self::Txid => "zevrigo 2026-10-28 txid",
+            Self::Wtxid => "zevrigo 2026-10-28 wtxid",
+            Self::MerkleLeaf => "zevrigo 2026-10-28 merkle leaf",
+            Self::MerkleNode => "zevrigo 2026-10-28 merkle node",
+            Self::BlockId => "zevrigo 2026-10-28 block id",
+            Self::Condition => "zevrigo 2026-10-28 condition",
+            Self::Sighash => "zevrigo 2026-10-28 sighash v1",
+            Self::RegtestPow => "zevrigo 2026-10-28 regtest pow",
         }
     }
 }

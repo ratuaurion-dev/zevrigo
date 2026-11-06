@@ -61,7 +61,7 @@ sekitar satu menit setiap kunci berganti). `--light` memakai mode ringan (256 MB
 cargo run -p zevrigo-cli -- --datadir ~/.zevrigo wallet-create
 cargo run -p zevrigo-cli -- --datadir ~/.zevrigo address
 cargo run -p zevrigo-cli -- --datadir ~/.zevrigo balance
-cargo run -p zevrigo-cli -- --datadir ~/.zevrigo send --to <alamat rhsis1...> --amount 1.5
+cargo run -p zevrigo-cli -- --datadir ~/.zevrigo send --to <alamat rzvrg1...> --amount 1.5
 ```
 
 Wallet disimpan di `~/.zevrigo/regtest/wallet.json` (izin `0600`), dikunci password: `wallet-create` meminta
@@ -74,7 +74,7 @@ miner, sehingga hadiah tambang masuk ke wallet. `balance` juga menampilkan trans
 dibelanjakan. Aturan lengkap di [docs/reference/spesifikasi-wallet-v0.1.md](docs/reference/spesifikasi-wallet-v0.1.md).
 
 Untuk node `--testnet`, tambahkan `--testnet` ke setiap perintah: wallet disimpan terpisah di
-`~/.zevrigo/testnet/wallet.json`, alamatnya `thsis1...`, dan RPC bawaan `http://127.0.0.1:18801`.
+`~/.zevrigo/testnet/wallet.json`, alamatnya `tzvrg1...`, dan RPC bawaan `http://127.0.0.1:18801`.
 
 ## Explorer regtest
 

@@ -30,14 +30,14 @@ tertukar. Termasuk perhitungan Merkle root dari daftar hash.
 
   | Domain | String konteks |
   |---|---|
-  | Txid | `homeostasis 2026-10-28 txid` |
-  | Wtxid | `homeostasis 2026-10-28 wtxid` |
-  | MerkleLeaf | `homeostasis 2026-10-28 merkle leaf` |
-  | MerkleNode | `homeostasis 2026-10-28 merkle node` |
-  | BlockId | `homeostasis 2026-10-28 block id` |
-  | Condition | `homeostasis 2026-10-28 condition` |
-  | Sighash | `homeostasis 2026-10-28 sighash v1` |
-  | RegtestPow | `homeostasis 2026-10-28 regtest pow` |
+  | Txid | `zevrigo 2026-10-28 txid` |
+  | Wtxid | `zevrigo 2026-10-28 wtxid` |
+  | MerkleLeaf | `zevrigo 2026-10-28 merkle leaf` |
+  | MerkleNode | `zevrigo 2026-10-28 merkle node` |
+  | BlockId | `zevrigo 2026-10-28 block id` |
+  | Condition | `zevrigo 2026-10-28 condition` |
+  | Sighash | `zevrigo 2026-10-28 sighash v1` |
+  | RegtestPow | `zevrigo 2026-10-28 regtest pow` |
 
 - `pub fn hash(domain: Domain, data: &[u8]) -> Hash32`, memakai BLAKE3 mode derive_key
   (konteks = `domain.context()`, material = `data`), keluaran 32 byte.

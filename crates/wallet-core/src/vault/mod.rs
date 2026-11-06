@@ -26,7 +26,7 @@ pub const KEY_LEN: usize = 32;
 pub const TAG_LEN: usize = 16;
 
 /// Awalan data tambahan (AAD) enkripsi.
-const AAD_DOMAIN: &[u8] = b"homeostasis wallet vault v1";
+const AAD_DOMAIN: &[u8] = b"zevrigo wallet vault v1";
 
 /// Parameter Argon2id.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
