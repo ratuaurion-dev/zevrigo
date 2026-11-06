@@ -158,15 +158,16 @@ mod ftr03 {
             .unwrap();
         let url = format!("http://{}", server.local_addr());
         let client = rt.block_on(async { RpcClient::new(&url) }).unwrap();
-        let cli = Cli::connect(&url).unwrap();
+        let cli = Cli::connect(&url, Network::Regtest).unwrap();
         let schedule: Vec<_> = SupplySchedule::new().take(104).collect();
 
         // Dua wallet baru (entropi tetap agar deterministik; biner memakai /dev/urandom).
         let dir_a = TempDir::new("a");
         let dir_b = TempDir::new("b");
-        let (mnemonic_a, _) = wallet_create(&dir_a.0, &[0x11; 32], "", &lock(1)).unwrap();
-        wallet_create(&dir_b.0, &[0x22; 32], "", &lock(2)).unwrap();
-        let address_a = next_address(&dir_a.0, "").unwrap();
+        let (mnemonic_a, _) =
+            wallet_create(Network::Regtest, &dir_a.0, &[0x11; 32], "", &lock(1)).unwrap();
+        wallet_create(Network::Regtest, &dir_b.0, &[0x22; 32], "", &lock(2)).unwrap();
+        let address_a = next_address(Network::Regtest, &dir_a.0, "").unwrap();
         assert!(address_a.starts_with("rhsis1q"), "{address_a}");
 
         // 99 blok ke alamat A: belum ada coinbase yang matang, jadi belum bisa mengirim.
@@ -185,7 +186,7 @@ mod ftr03 {
                 utxos: 99,
             }
         );
-        let address_b = next_address(&dir_b.0, "").unwrap();
+        let address_b = next_address(Network::Regtest, &dir_b.0, "").unwrap();
         assert!(matches!(
             send(&cli, &dir_a.0, &address_b, A_TO_B, 1),
             Err(CliError::Send(SendError::InsufficientFunds { .. }))
@@ -269,7 +270,7 @@ mod ftr03 {
         );
 
         // B mengirim sebagian balik ke alamat A yang baru: satu input bukan coinbase, dengan kembalian.
-        let address_a2 = next_address(&dir_a.0, "").unwrap();
+        let address_a2 = next_address(Network::Regtest, &dir_a.0, "").unwrap();
         assert_ne!(address_a2, address_a);
         let sent_ba = send(&cli, &dir_b.0, &address_a2, B_TO_A, 2).unwrap();
         assert_eq!(sent_ba.inputs, 1);
@@ -323,7 +324,14 @@ mod ftr03 {
 
         // Wallet yang dipulihkan dari frasa A melihat saldo yang sama, termasuk kembalian di cabang 1.
         let dir_restored = TempDir::new("restored");
-        wallet_restore(&dir_restored.0, mnemonic_a.phrase(), "", &lock(3)).unwrap();
+        wallet_restore(
+            Network::Regtest,
+            &dir_restored.0,
+            mnemonic_a.phrase(),
+            "",
+            &lock(3),
+        )
+        .unwrap();
         assert_eq!(cli.balance(&dir_restored.0, "").unwrap(), expected_a);
 
         // Pasokan tetap sama dengan jadwal: transaksi hanya memindahkan koin, biaya masuk ke penambang.

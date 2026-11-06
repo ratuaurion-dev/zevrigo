@@ -1,4 +1,4 @@
-//! MOD-12: Alat baris perintah node dan wallet regtest Homeostasis Coin (`homeostasis-cli`).
+//! MOD-12: Alat baris perintah node dan wallet regtest dan testnet Homeostasis Coin (`homeostasis-cli`).
 
 #![forbid(unsafe_code)]
 

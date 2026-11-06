@@ -1,4 +1,7 @@
-//! Aksi CLI: ringkasan chain dan perintah wallet regtest (TSK-M19, DEC-21).
+//! Aksi CLI: ringkasan chain dan perintah wallet regtest dan testnet (TSK-M19, DEC-21, TSK-M06 bagian C3b).
+//!
+//! Jaringan dipilih di [`Config`]: file wallet di folder jaringannya, alamat ber-HRP jaringan itu, dan `balance` serta
+//! `send` hanya mau bekerja dengan node di jaringan yang sama. Kunci akun sama untuk regtest dan testnet (`coin` 1).
 //!
 //! `wallet-create`, `wallet-restore`, `wallet-encrypt`, `wallet-show-phrase`, dan `address` berjalan tanpa node. `info`, `balance`, dan `send` memanggil
 //! node lewat RPC (MOD-08) dengan runtime tokio satu thread. `balance` dan `send` memperhitungkan transaksi tertunda
@@ -52,11 +55,15 @@ pub enum CliError {
         /// Nama aturan yang dilanggar, dari node.
         reason: String,
     },
-    /// Node bukan regtest.
-    #[error("node berjalan di jaringan {network}, CLI v0.1 hanya untuk regtest")]
+    /// Node berjalan di jaringan lain dari jaringan CLI.
+    #[error(
+        "node berjalan di jaringan {actual}, bukan {expected} (pilih --regtest atau --testnet)"
+    )]
     WrongNetwork {
-        /// Nama jaringan node.
-        network: String,
+        /// Jaringan CLI.
+        expected: String,
+        /// Jaringan node.
+        actual: String,
     },
     /// File wallet.
     #[error(transparent)]
@@ -114,7 +121,7 @@ impl From<VaultError> for CliError {
 /// Panjang password wallet paling sedikit, dalam karakter.
 pub const MIN_PASSWORD_CHARS: usize = 8;
 
-/// Variabel lingkungan berisi password wallet, untuk skrip regtest. Jika ada, terminal tidak ditanya.
+/// Variabel lingkungan berisi password wallet, untuk skrip. Jika ada, terminal tidak ditanya.
 pub const PASSWORD_ENV: &str = "HOMEOSTASIS_WALLET_PASSWORD";
 
 /// Pertanyaan password ke pengguna.
@@ -246,29 +253,39 @@ struct Pending {
     outputs: Vec<MempoolOutput>,
 }
 
-/// Wallet yang sudah dibuka: path file, isi file, dan kunci akun publik `m/44'/1'/0'`.
+/// Wallet yang sudah dibuka: jaringan, path file, isi file, dan kunci akun publik `m/44'/1'/0'`.
 struct OpenWallet {
+    network: Network,
     path: PathBuf,
     file: WalletFile,
     public: ExtendedPubKey,
 }
 
 /// Kunci akun rahasia dari frasa dan passphrase.
-fn account_from(mnemonic: &Mnemonic, passphrase: &str) -> Result<ExtendedPrivKey, CliError> {
+fn account_from(
+    network: Network,
+    mnemonic: &Mnemonic,
+    passphrase: &str,
+) -> Result<ExtendedPrivKey, CliError> {
     let seed = mnemonic.to_seed(passphrase)?;
-    Ok(account_key(&seed, Network::Regtest)?)
+    Ok(account_key(&seed, network)?)
 }
 
 /// Membuka wallet tanpa password: versi 2 memakai kunci akun publik di file (passphrase tidak dipakai), versi 1
 /// menurunkannya dari frasa dan passphrase.
-fn open_wallet(datadir: &Path, passphrase: &str) -> Result<OpenWallet, CliError> {
-    let path = wallet_file::wallet_path(datadir);
-    let file = wallet_file::load(&path)?;
+fn open_wallet(network: Network, datadir: &Path, passphrase: &str) -> Result<OpenWallet, CliError> {
+    let path = wallet_file::wallet_path(network, datadir);
+    let file = wallet_file::load_network(network, &path)?;
     let public = match file.account()? {
         Some(public) => public,
-        None => account_from(&file.mnemonic()?, passphrase)?.to_public()?,
+        None => account_from(network, &file.mnemonic()?, passphrase)?.to_public()?,
     };
-    Ok(OpenWallet { path, file, public })
+    Ok(OpenWallet {
+        network,
+        path,
+        file,
+        public,
+    })
 }
 
 /// Frasa pemulihan: versi 1 langsung, versi 2 dibuka dengan `password`.
@@ -287,7 +304,8 @@ fn private_account(
     passphrase: &str,
     password: &str,
 ) -> Result<ExtendedPrivKey, CliError> {
-    let account = account_from(&unlock_mnemonic(&wallet.file, password)?, passphrase)?;
+    let mnemonic = unlock_mnemonic(&wallet.file, password)?;
+    let account = account_from(wallet.network, &mnemonic, passphrase)?;
     if account.to_public()? != wallet.public {
         return Err(CliError::PassphraseMismatch);
     }
@@ -296,14 +314,17 @@ fn private_account(
 
 /// File wallet versi 2 untuk frasa ini: kunci akun publik dari frasa dan passphrase, frasa dikunci `protection`.
 fn encrypted_file(
+    network: Network,
     mnemonic: &Mnemonic,
     passphrase: &str,
     protection: &Protection<'_>,
     next_index: NextIndex,
 ) -> Result<WalletFile, CliError> {
-    let public = account_from(mnemonic, passphrase)?.to_public()?;
+    let public = account_from(network, mnemonic, passphrase)?.to_public()?;
     let sealed = protection.seal(mnemonic.phrase())?;
-    Ok(WalletFile::new_encrypted(&public, &sealed, next_index))
+    Ok(WalletFile::new_encrypted(
+        network, &public, &sealed, next_index,
+    ))
 }
 
 /// Alamat pertama yang sah di `branch` mulai indeks `start`: `(indeks, x-only)`.
@@ -327,40 +348,56 @@ fn derive_unused(
     Err(CliError::IndexExhausted)
 }
 
-/// `wallet-create`: wallet baru dari 32 byte entropi, frasa dikunci `protection`. Mengembalikan frasa dan path file.
+/// `wallet-create`: wallet baru jaringan `network` dari 32 byte entropi, frasa dikunci `protection`. Mengembalikan
+/// frasa dan path file.
 ///
 /// # Errors
 ///
 /// [`CliError::File`] jika wallet sudah ada atau tidak bisa ditulis, [`CliError::Mnemonic`] jika passphrase tidak
 /// sah, [`CliError::Vault`] jika enkripsi gagal.
 pub fn wallet_create(
+    network: Network,
     datadir: &Path,
     entropy: &[u8; 32],
     passphrase: &str,
     protection: &Protection<'_>,
 ) -> Result<(Mnemonic, PathBuf), CliError> {
     let mnemonic = Mnemonic::from_entropy(entropy)?;
-    let path = wallet_file::wallet_path(datadir);
-    let file = encrypted_file(&mnemonic, passphrase, protection, NextIndex::default())?;
+    let path = wallet_file::wallet_path(network, datadir);
+    let file = encrypted_file(
+        network,
+        &mnemonic,
+        passphrase,
+        protection,
+        NextIndex::default(),
+    )?;
     wallet_file::create_new(&path, &file)?;
     Ok((mnemonic, path))
 }
 
-/// `wallet-restore`: wallet dari frasa 12 sampai 24 kata, dikunci `protection`. Mengembalikan path file.
+/// `wallet-restore`: wallet jaringan `network` dari frasa 12 sampai 24 kata, dikunci `protection`. Mengembalikan path
+/// file.
 ///
 /// # Errors
 ///
 /// [`CliError::Mnemonic`] jika frasa atau passphrase tidak sah, [`CliError::File`] jika wallet sudah ada atau tidak
 /// bisa ditulis, [`CliError::Vault`] jika enkripsi gagal.
 pub fn wallet_restore(
+    network: Network,
     datadir: &Path,
     phrase: &str,
     passphrase: &str,
     protection: &Protection<'_>,
 ) -> Result<PathBuf, CliError> {
     let mnemonic = Mnemonic::parse(phrase)?;
-    let path = wallet_file::wallet_path(datadir);
-    let file = encrypted_file(&mnemonic, passphrase, protection, NextIndex::default())?;
+    let path = wallet_file::wallet_path(network, datadir);
+    let file = encrypted_file(
+        network,
+        &mnemonic,
+        passphrase,
+        protection,
+        NextIndex::default(),
+    )?;
     wallet_file::create_new(&path, &file)?;
     Ok(path)
 }
@@ -372,16 +409,23 @@ pub fn wallet_restore(
 /// [`CliError::AlreadyEncrypted`] untuk wallet versi 2, galat file wallet, [`CliError::Mnemonic`] jika passphrase
 /// tidak sah, atau [`CliError::Vault`].
 pub fn wallet_encrypt(
+    network: Network,
     datadir: &Path,
     passphrase: &str,
     protection: &Protection<'_>,
 ) -> Result<PathBuf, CliError> {
-    let path = wallet_file::wallet_path(datadir);
-    let file = wallet_file::load(&path)?;
+    let path = wallet_file::wallet_path(network, datadir);
+    let file = wallet_file::load_network(network, &path)?;
     if file.is_encrypted() {
         return Err(CliError::AlreadyEncrypted);
     }
-    let encrypted = encrypted_file(&file.mnemonic()?, passphrase, protection, file.next_index)?;
+    let encrypted = encrypted_file(
+        network,
+        &file.mnemonic()?,
+        passphrase,
+        protection,
+        file.next_index,
+    )?;
     wallet_file::save(&path, &encrypted)?;
     Ok(path)
 }
@@ -391,19 +435,27 @@ pub fn wallet_encrypt(
 /// # Errors
 ///
 /// [`CliError::WrongPassword`] jika password salah, atau galat file wallet.
-pub fn show_phrase(datadir: &Path, password: &str) -> Result<Zeroizing<String>, CliError> {
-    let file = wallet_file::load(&wallet_file::wallet_path(datadir))?;
+pub fn show_phrase(
+    network: Network,
+    datadir: &Path,
+    password: &str,
+) -> Result<Zeroizing<String>, CliError> {
+    let file = wallet_file::load_network(network, &wallet_file::wallet_path(network, datadir))?;
     let mnemonic = unlock_mnemonic(&file, password)?;
     Ok(Zeroizing::new(mnemonic.phrase().to_owned()))
 }
 
-/// `address`: alamat penerimaan berikutnya. Indeks penerimaan di file wallet dinaikkan.
+/// `address`: alamat penerimaan berikutnya, ber-HRP jaringan `network`. Indeks penerimaan di file wallet dinaikkan.
 ///
 /// # Errors
 ///
 /// [`CliError::File`], [`CliError::Mnemonic`], [`CliError::Key`], atau [`CliError::IndexExhausted`].
-pub fn next_address(datadir: &Path, passphrase: &str) -> Result<String, CliError> {
-    let mut wallet = open_wallet(datadir, passphrase)?;
+pub fn next_address(
+    network: Network,
+    datadir: &Path,
+    passphrase: &str,
+) -> Result<String, CliError> {
+    let mut wallet = open_wallet(network, datadir, passphrase)?;
     let (index, payload) = derive_unused(
         &wallet.public,
         RECEIVE_BRANCH,
@@ -411,26 +463,23 @@ pub fn next_address(datadir: &Path, passphrase: &str) -> Result<String, CliError
     )?;
     wallet.file.next_index.receive = index.checked_add(1).ok_or(CliError::IndexExhausted)?;
     wallet_file::save(&wallet.path, &wallet.file)?;
-    Ok(encode_address(
-        Network::Regtest,
-        OutputKind::SingleKey,
-        &payload,
-    ))
+    Ok(encode_address(network, OutputKind::SingleKey, &payload))
 }
 
-/// Klien ke satu node regtest.
+/// Klien ke satu node di jaringan CLI.
 pub struct Cli {
     client: RpcClient,
     runtime: Runtime,
+    network: Network,
 }
 
 impl Cli {
-    /// Menyiapkan klien untuk node di `rpc_url`. Belum ada koneksi sampai panggilan pertama.
+    /// Menyiapkan klien untuk node jaringan `network` di `rpc_url`. Belum ada koneksi sampai panggilan pertama.
     ///
     /// # Errors
     ///
     /// [`CliError::Runtime`] jika runtime gagal dibuat, [`CliError::Rpc`] jika `rpc_url` tidak sah.
-    pub fn connect(rpc_url: &str) -> Result<Self, CliError> {
+    pub fn connect(rpc_url: &str, network: Network) -> Result<Self, CliError> {
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
@@ -438,7 +487,11 @@ impl Cli {
         let client = runtime
             .block_on(async { RpcClient::new(rpc_url) })
             .map_err(rpc_error)?;
-        Ok(Self { client, runtime })
+        Ok(Self {
+            client,
+            runtime,
+            network,
+        })
     }
 
     /// `info`: ringkasan chain dari node.
@@ -452,12 +505,13 @@ impl Cli {
             .map_err(rpc_error)
     }
 
-    /// Ringkasan chain, dengan syarat node berjalan di regtest.
-    fn regtest_info(&self) -> Result<ChainInfo, CliError> {
+    /// Ringkasan chain, dengan syarat node berjalan di jaringan CLI.
+    fn checked_info(&self) -> Result<ChainInfo, CliError> {
         let info = self.info()?;
-        if info.network.network() != Network::Regtest {
+        if info.network.network() != self.network {
             return Err(CliError::WrongNetwork {
-                network: String::from(info.network),
+                expected: wallet_file::network_name(self.network).to_owned(),
+                actual: String::from(info.network),
             });
         }
         Ok(info)
@@ -512,8 +566,8 @@ impl Cli {
     ///
     /// [`CliError::Rpc`], [`CliError::WrongNetwork`], galat file wallet, atau [`CliError::Send`] jika jumlah meluap.
     pub fn balance(&self, datadir: &Path, passphrase: &str) -> Result<Balance, CliError> {
-        let info = self.regtest_info()?;
-        let mut wallet = open_wallet(datadir, passphrase)?;
+        let info = self.checked_info()?;
+        let mut wallet = open_wallet(self.network, datadir, passphrase)?;
         let scanned = self.scan(&mut wallet)?;
         let pending = self.pending(&wallet, &scanned)?;
         // Sengaja saturating: pada tinggi u64::MAX semua UTXO dianggap sudah bisa dipakai.
@@ -576,14 +630,14 @@ impl Cli {
         fee_rate: u128,
         aux_rand: &[u8; 32],
     ) -> Result<Sent, CliError> {
-        let (recipient_kind, recipient_payload) = decode_address(Network::Regtest, to)?;
-        let info = self.regtest_info()?;
+        let (recipient_kind, recipient_payload) = decode_address(self.network, to)?;
+        let info = self.checked_info()?;
         let network_id = self
             .runtime
             .block_on(self.client.get_block_hash(0))
             .map_err(rpc_error)?
             .to_hash32();
-        let mut wallet = open_wallet(datadir, passphrase)?;
+        let mut wallet = open_wallet(self.network, datadir, passphrase)?;
         let account = private_account(&wallet, passphrase, password)?;
         let scanned = self.scan(&mut wallet)?;
         let pending = self.pending(&wallet, &scanned)?;
@@ -720,10 +774,12 @@ fn new_password(
 
 /// Password wallet yang sudah ada, hanya ditanya jika file wallet terenkripsi.
 fn unlock_password(
+    network: Network,
     datadir: &Path,
     password: &mut impl FnMut(PasswordPrompt) -> Result<Zeroizing<String>, CliError>,
 ) -> Result<Zeroizing<String>, CliError> {
-    if wallet_file::load(&wallet_file::wallet_path(datadir))?.is_encrypted() {
+    let path = wallet_file::wallet_path(network, datadir);
+    if wallet_file::load_network(network, &path)?.is_encrypted() {
         password(PasswordPrompt::Unlock)
     } else {
         Ok(Zeroizing::new(String::new()))
@@ -752,14 +808,18 @@ pub fn run(
     mut password: impl FnMut(PasswordPrompt) -> Result<Zeroizing<String>, CliError>,
 ) -> Result<String, CliError> {
     let datadir = || config.datadir.as_deref().ok_or(CliError::MissingDatadir);
+    let network = config.network;
     match &config.action {
-        Action::Info => Ok(format_info(&Cli::connect(&config.rpc_url)?.info()?)),
+        Action::Info => Ok(format_info(
+            &Cli::connect(&config.rpc_url, network)?.info()?,
+        )),
         Action::WalletCreate => {
             let datadir = datadir()?;
             let secret = new_password(&mut password)?;
             let entropy = random()?;
             let lock = protection(&secret, &mut random)?;
-            let (mnemonic, path) = wallet_create(datadir, &entropy, &config.passphrase, &lock)?;
+            let (mnemonic, path) =
+                wallet_create(network, datadir, &entropy, &config.passphrase, &lock)?;
             Ok(format!(
                 "wallet dibuat: {}\n{}",
                 path.display(),
@@ -770,7 +830,7 @@ pub fn run(
             let datadir = datadir()?;
             let secret = new_password(&mut password)?;
             let lock = protection(&secret, &mut random)?;
-            let path = wallet_restore(datadir, mnemonic, &config.passphrase, &lock)?;
+            let path = wallet_restore(network, datadir, mnemonic, &config.passphrase, &lock)?;
             Ok(format!(
                 "wallet dipulihkan: {}\nfile wallet dikunci password; jalankan balance agar alamat yang sudah terpakai ikut terpindai\n",
                 path.display(),
@@ -778,12 +838,13 @@ pub fn run(
         }
         Action::WalletEncrypt => {
             let datadir = datadir()?;
-            if wallet_file::load(&wallet_file::wallet_path(datadir))?.is_encrypted() {
+            let path = wallet_file::wallet_path(network, datadir);
+            if wallet_file::load_network(network, &path)?.is_encrypted() {
                 return Err(CliError::AlreadyEncrypted);
             }
             let secret = new_password(&mut password)?;
             let lock = protection(&secret, &mut random)?;
-            let path = wallet_encrypt(datadir, &config.passphrase, &lock)?;
+            let path = wallet_encrypt(network, datadir, &config.passphrase, &lock)?;
             Ok(format!(
                 "file wallet dikunci password: {}\n",
                 path.display()
@@ -791,8 +852,8 @@ pub fn run(
         }
         Action::WalletShowPhrase => {
             let datadir = datadir()?;
-            let secret = unlock_password(datadir, &mut password)?;
-            let phrase = show_phrase(datadir, &secret)?;
+            let secret = unlock_password(network, datadir, &mut password)?;
+            let phrase = show_phrase(network, datadir, &secret)?;
             let words = phrase.split(' ').count();
             Ok(format!(
                 "frasa pemulihan ({words} kata):\n{}\n",
@@ -800,15 +861,15 @@ pub fn run(
             ))
         }
         Action::Address => {
-            let address = next_address(datadir()?, &config.passphrase)?;
-            let (_kind, payload) = decode_address(Network::Regtest, &address)?;
+            let address = next_address(network, datadir()?, &config.passphrase)?;
+            let (_kind, payload) = decode_address(network, &address)?;
             Ok(format!(
                 "alamat: {address}\npayload: {}\n",
                 String::from(Hex32::new(payload))
             ))
         }
         Action::Balance => {
-            let cli = Cli::connect(&config.rpc_url)?;
+            let cli = Cli::connect(&config.rpc_url, network)?;
             Ok(format_balance(
                 &cli.balance(datadir()?, &config.passphrase)?,
             ))
@@ -819,8 +880,8 @@ pub fn run(
             fee_rate,
         } => {
             let datadir = datadir()?;
-            let secret = unlock_password(datadir, &mut password)?;
-            let cli = Cli::connect(&config.rpc_url)?;
+            let secret = unlock_password(network, datadir, &mut password)?;
+            let cli = Cli::connect(&config.rpc_url, network)?;
             let aux_rand = random()?;
             let sent = cli.send(
                 datadir,

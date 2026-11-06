@@ -1,8 +1,8 @@
 //! MOD-12: Pustaka alat baris perintah Homeostasis Coin (`homeostasis-cli`), TSK-M19.
 //!
-//! Perintah node (`info`) dan wallet regtest (`wallet-create`, `wallet-restore`, `address`, `balance`, `send`)
-//! sesuai Spesifikasi Wallet v0.1 Bagian 5 sampai 7. Frasa, kunci, alamat, pemilihan koin, dan tanda tangan dari
-//! MOD-09 (DEC-21); komunikasi ke node lewat klien RPC MOD-08. CLI tidak memvalidasi konsensus.
+//! Perintah node (`info`) dan wallet regtest atau testnet (`wallet-create`, `wallet-restore`, `address`, `balance`,
+//! `send`) sesuai Spesifikasi Wallet v0.1 Bagian 5 sampai 7. Frasa, kunci, alamat, pemilihan koin, dan tanda tangan
+//! dari MOD-09 (DEC-21); komunikasi ke node lewat klien RPC MOD-08. CLI tidak memvalidasi konsensus.
 
 #![forbid(unsafe_code)]
 
@@ -20,7 +20,10 @@ pub use commands::{
     show_phrase, terminal_password, wallet_create, wallet_encrypt, wallet_restore,
 };
 pub use scan::{Found, GAP_LIMIT, ScanResult, scan_wallet, wallet_payloads};
-pub use wallet_file::{EncryptedPhrase, NextIndex, WalletFile, WalletFileError, wallet_path};
+pub use wallet_file::{
+    EncryptedPhrase, NextIndex, WalletFile, WalletFileError, load_network, network_name,
+    wallet_path,
+};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-12";

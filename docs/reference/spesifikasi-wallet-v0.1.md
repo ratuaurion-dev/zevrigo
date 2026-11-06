@@ -5,7 +5,7 @@
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Dikunci | Frasa BIP39 standar (DEC-22), turunan BIP32 dengan jalur `m/44'/1'/0'/k/i` untuk regtest dan testnet, kunci x-only, kunci akun publik untuk watch-only, alamat bech32m (DEC-11), pemilihan koin, pemindaian saldo, file wallet CLI regtest |
+| 🟢 Dikunci | Frasa BIP39 standar (DEC-22), turunan BIP32 dengan jalur `m/44'/1'/0'/k/i` untuk regtest dan testnet, kunci x-only, kunci akun publik untuk watch-only, alamat bech32m (DEC-11), pemilihan koin, pemindaian saldo, file wallet CLI regtest dan testnet |
 | ⏳ Ditunda | Nomor SLIP-44 mainnet (`TODO(param)`), passphrase non-ASCII, keychain sistem operasi (wallet desktop FTR-07), filter blok kompak untuk wallet ringan, output jenis 1 di wallet |
 | ➡️ Langkah berikutnya | TSK-M15 (frasa, turunan, alamat di MOD-09), TSK-M16 (penyusunan dan tanda tangan), TSK-M19 (CLI, DEC-21), lalu TSK-F03 |
 
@@ -113,12 +113,12 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 
 ---
 
-## 7. File wallet CLI (v0.1, hanya regtest)
+## 7. File wallet CLI (v0.1, regtest dan testnet)
 
 | Hal | Nilai |
 |---|---|
-| Lokasi | `<datadir>/regtest/wallet.json` |
-| Isi versi 2 (DEC-27, semua wallet baru) | `version` (2), `network` (`regtest`), `account` (kunci akun publik `m/44'/1'/0'`, hex 130 karakter, Bagian 3), `encrypted` (`kdf` `argon2id`, `memory_kib`, `iterations`, `parallelism`, `salt` hex 16 byte, `cipher` `xchacha20poly1305`, `nonce` hex 24 byte, `ciphertext` hex = frasa ternormalkan terenkripsi diikuti tag 16 byte), `next_index` untuk `branch 0` dan `branch 1` |
+| Lokasi | `<datadir>/<jaringan>/wallet.json`: `regtest` (bawaan) atau `testnet` (`--testnet`, TSK-M06 bagian C3b). Kunci akun sama untuk kedua jaringan (`coin` 1, Bagian 3); yang berbeda folder, `network` di file, dan HRP alamat. File yang `network`-nya bukan jaringan CLI ditolak |
+| Isi versi 2 (DEC-27, semua wallet baru) | `version` (2), `network` (`regtest` atau `testnet`), `account` (kunci akun publik `m/44'/1'/0'`, hex 130 karakter, Bagian 3), `encrypted` (`kdf` `argon2id`, `memory_kib`, `iterations`, `parallelism`, `salt` hex 16 byte, `cipher` `xchacha20poly1305`, `nonce` hex 24 byte, `ciphertext` hex = frasa ternormalkan terenkripsi diikuti tag 16 byte), `next_index` untuk `branch 0` dan `branch 1` |
 | Isi versi 1 (lama) | `version` (1), `network`, `mnemonic` tanpa enkripsi, `next_index`. Tetap bisa dipakai; `wallet-encrypt` mengubahnya ke versi 2 dengan indeks yang sama |
 | Enkripsi (DEC-27, TSK-M37) | Kunci 32 byte = Argon2id versi 0x13 (password UTF-8, salt; bawaan 64 MiB, 3 putaran, 1 jalur; file dengan memori di atas 1 GiB, putaran di atas 64, atau jalur di atas 16 ditolak). Frasa dienkripsi XChaCha20-Poly1305 dengan AAD = `homeostasis wallet vault v1` ‖ `memory_kib` ‖ `iterations` ‖ `parallelism` (masing-masing `u32` big-endian) ‖ salt. Salt dan nonce dari `/dev/urandom` setiap kali file dikunci |
 | Password | Minimal 8 karakter, diketik dua kali saat membuat (`wallet-create`, `wallet-restore`, `wallet-encrypt`), dibaca tanpa tampil di layar. Hanya diminta saat kunci rahasia dibutuhkan: `send` dan `wallet-show-phrase`. `address` dan `balance` memakai `account` tanpa password. Untuk skrip regtest boleh lewat variabel lingkungan `HOMEOSTASIS_WALLET_PASSWORD` |

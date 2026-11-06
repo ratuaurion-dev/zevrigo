@@ -73,6 +73,9 @@ miner, sehingga hadiah tambang masuk ke wallet. `balance` juga menampilkan trans
 (`keluar tertunda`, `masuk tertunda`, dan saldo setelah semuanya masuk blok), dan `send` tidak memilih koin yang sedang
 dibelanjakan. Aturan lengkap di [docs/reference/spesifikasi-wallet-v0.1.md](docs/reference/spesifikasi-wallet-v0.1.md).
 
+Untuk node `--testnet`, tambahkan `--testnet` ke setiap perintah: wallet disimpan terpisah di
+`~/.homeostasis/testnet/wallet.json`, alamatnya `thsis1...`, dan RPC bawaan `http://127.0.0.1:18801`.
+
 ## Explorer regtest
 
 Dengan node berjalan, di terminal lain:

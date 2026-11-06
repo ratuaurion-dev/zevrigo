@@ -1,4 +1,5 @@
-//! File wallet CLI regtest (Spesifikasi Wallet v0.1 Bagian 7): `<datadir>/regtest/wallet.json`.
+//! File wallet CLI (Spesifikasi Wallet v0.1 Bagian 7): `<datadir>/<jaringan>/wallet.json`, jaringan regtest atau
+//! testnet (TSK-M06 bagian C3b).
 //!
 //! Versi 2 (DEC-27, dibuat `wallet-create`, `wallet-restore`, `wallet-encrypt`): `version`, `network`, `account`
 //! (kunci akun publik untuk alamat dan saldo tanpa password), `encrypted` (frasa terenkripsi Argon2id +
@@ -12,6 +13,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
 
+use homeostasis_primitives::Network;
 use homeostasis_rpc::value::{decode_hex, encode_hex};
 use homeostasis_wallet_core::{
     ExtendedPubKey, KdfParams, Mnemonic, NONCE_LEN, SALT_LEN, Sealed, vault::TAG_LEN,
@@ -31,11 +33,24 @@ pub const KDF_NAME: &str = "argon2id";
 /// Nama cipher di file wallet versi 2.
 pub const CIPHER_NAME: &str = "xchacha20poly1305";
 
-/// Nama jaringan di file wallet v0.1 (`regtest`).
-pub const WALLET_NETWORK: &str = "regtest";
+/// Nama jaringan di file wallet, sekaligus nama folder jaringan di folder data (sama dengan node).
+#[must_use]
+pub const fn network_name(network: Network) -> &'static str {
+    match network {
+        Network::Mainnet => "mainnet",
+        Network::Testnet => "testnet",
+        Network::Regtest => "regtest",
+    }
+}
 
-/// Nama folder jaringan di folder data (sama dengan node).
-pub const NETWORK_DIR: &str = "regtest";
+/// Jaringan yang didukung file wallet: regtest dan testnet.
+fn parse_network(name: &str) -> Option<Network> {
+    match name {
+        "regtest" => Some(Network::Regtest),
+        "testnet" => Some(Network::Testnet),
+        _ => None,
+    }
+}
 
 /// Nama file wallet.
 pub const WALLET_FILE: &str = "wallet.json";
@@ -72,6 +87,16 @@ pub enum WalletFileError {
     /// Frasa dibutuhkan tanpa password, tetapi wallet terenkripsi.
     #[error("wallet terenkripsi; frasa hanya bisa dibuka dengan password")]
     Encrypted,
+    /// File wallet milik jaringan lain (misalnya disalin dari folder jaringan lain).
+    #[error("wallet di {path} untuk jaringan {found}, bukan {expected}")]
+    WrongNetwork {
+        /// Path file wallet.
+        path: String,
+        /// Jaringan yang dipakai CLI.
+        expected: &'static str,
+        /// Jaringan di file wallet.
+        found: String,
+    },
 }
 
 fn io_error(path: &Path, source: std::io::Error) -> WalletFileError {
@@ -179,7 +204,7 @@ impl EncryptedPhrase {
 pub struct WalletFile {
     /// Versi format: [`WALLET_VERSION`] atau [`WALLET_VERSION_PLAIN`].
     pub version: u32,
-    /// Jaringan, selalu [`WALLET_NETWORK`].
+    /// Jaringan: `regtest` atau `testnet` ([`network_name`]).
     pub network: String,
     /// Versi 1: frasa pemulihan yang dinormalkan (huruf kecil, satu spasi).
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -211,10 +236,10 @@ impl WalletFile {
     /// Wallet versi 1 tanpa enkripsi untuk frasa ini, dengan indeks berikutnya 0 di kedua cabang. Hanya untuk file
     /// lama dan test; perintah CLI selalu membuat versi 2.
     #[must_use]
-    pub fn new(mnemonic: &Mnemonic) -> Self {
+    pub fn new(network: Network, mnemonic: &Mnemonic) -> Self {
         Self {
             version: WALLET_VERSION_PLAIN,
-            network: WALLET_NETWORK.to_owned(),
+            network: network_name(network).to_owned(),
             mnemonic: Some(mnemonic.phrase().to_owned()),
             account: None,
             encrypted: None,
@@ -224,15 +249,31 @@ impl WalletFile {
 
     /// Wallet versi 2: kunci akun publik dan frasa terenkripsi.
     #[must_use]
-    pub fn new_encrypted(account: &ExtendedPubKey, sealed: &Sealed, next_index: NextIndex) -> Self {
+    pub fn new_encrypted(
+        network: Network,
+        account: &ExtendedPubKey,
+        sealed: &Sealed,
+        next_index: NextIndex,
+    ) -> Self {
         Self {
             version: WALLET_VERSION,
-            network: WALLET_NETWORK.to_owned(),
+            network: network_name(network).to_owned(),
             mnemonic: None,
             account: Some(account.to_account_hex()),
             encrypted: Some(EncryptedPhrase::from_sealed(sealed)),
             next_index,
         }
+    }
+
+    /// Jaringan file wallet.
+    ///
+    /// # Errors
+    ///
+    /// [`WalletFileError::Format`] jika jaringannya bukan regtest atau testnet.
+    pub fn network(&self) -> Result<Network, WalletFileError> {
+        parse_network(&self.network).ok_or_else(|| {
+            WalletFileError::Format(format!("jaringan {} tidak didukung", self.network))
+        })
     }
 
     /// Apakah frasa terenkripsi (versi 2).
@@ -257,18 +298,13 @@ impl WalletFile {
     ///
     /// # Errors
     ///
-    /// [`WalletFileError::Format`] jika JSON rusak, ada field asing, versi bukan 1 atau 2, jaringan bukan regtest,
-    /// field versi lain ikut ada, frasa versi 1 tidak sah atau tidak ternormalkan, atau kunci akun dan frasa
+    /// [`WalletFileError::Format`] jika JSON rusak, ada field asing, versi bukan 1 atau 2, jaringan bukan regtest atau
+    /// testnet, field versi lain ikut ada, frasa versi 1 tidak sah atau tidak ternormalkan, atau kunci akun dan frasa
     /// terenkripsi versi 2 tidak sah.
     pub fn from_json(text: &str) -> Result<Self, WalletFileError> {
         let file: Self = serde_json::from_str(text)
             .map_err(|error| WalletFileError::Format(error.to_string()))?;
-        if file.network != WALLET_NETWORK {
-            return Err(WalletFileError::Format(format!(
-                "jaringan {} tidak didukung",
-                file.network
-            )));
-        }
+        file.network()?;
         match file.version {
             WALLET_VERSION_PLAIN => {
                 if file.account.is_some() || file.encrypted.is_some() {
@@ -349,10 +385,10 @@ impl WalletFile {
     }
 }
 
-/// Path file wallet: `<datadir>/regtest/wallet.json`.
+/// Path file wallet: `<datadir>/<jaringan>/wallet.json`.
 #[must_use]
-pub fn wallet_path(datadir: &Path) -> PathBuf {
-    datadir.join(NETWORK_DIR).join(WALLET_FILE)
+pub fn wallet_path(network: Network, datadir: &Path) -> PathBuf {
+    datadir.join(network_name(network)).join(WALLET_FILE)
 }
 
 /// Opsi buka file baru: hanya tulis, gagal jika sudah ada, izin `0600` di Unix.
@@ -411,6 +447,23 @@ pub fn load(path: &Path) -> Result<WalletFile, WalletFileError> {
         }
     })?;
     WalletFile::from_json(&text)
+}
+
+/// Membaca file wallet jaringan `network`, dan menolaknya jika file itu milik jaringan lain.
+///
+/// # Errors
+///
+/// Sama dengan [`load`], ditambah [`WalletFileError::WrongNetwork`].
+pub fn load_network(network: Network, path: &Path) -> Result<WalletFile, WalletFileError> {
+    let file = load(path)?;
+    if file.network()? != network {
+        return Err(WalletFileError::WrongNetwork {
+            path: path.display().to_string(),
+            expected: network_name(network),
+            found: file.network,
+        });
+    }
+    Ok(file)
 }
 
 /// Memperbarui file wallet yang sudah ada: tulis ke `<path>.tmp` (izin `0600`), lalu ganti nama menjadi `path`.

@@ -58,7 +58,10 @@ sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurut
   `RANDOMX_ATTEMPTS_PER_TEMPLATE` 2_000, VM disimpan per kunci. Test 407 → 410, ditambah test mode cepat `#[ignore]`
   (dataset 2 GiB) yang dijalankan skrip gerbang; skrip juga menambang 2 blok testnet sungguhan (node + miner mode cepat).
   Multi-utas ditunda: `randomx-rs` tidak menandai dataset `Send`/`Sync`.
-- **C3b:** CLI wallet `--testnet` (alamat `thsis`, jalur turunan testnet).
+- **C3a:** 🟢 `495b200` (Q104): dataset mode cepat sekitar 55 detik, 2 blok testnet sungguhan dalam 285 detik.
+- **C3b (Q105):** MOD-12 `--regtest`/`--testnet` (`Config.network`, `ArgError::NetworkConflict`, `default_rpc_url(network)`),
+  `wallet_path(network, datadir)`, `network_name`, `WalletFile::network`, `load_network` + `WalletFileError::WrongNetwork`,
+  fungsi wallet dan `Cli::connect` menerima jaringan, `CliError::WrongNetwork { expected, actual }`. Test 410 → 413.
 
 ## Batas yang ditulis jujur
 - Varian hanya penghalang kecil: CPU dan server sewaan tetap bisa berpindah (Konsep P13).

@@ -1,8 +1,12 @@
 use std::path::PathBuf;
 
+use homeostasis_primitives::Network;
 use homeostasis_wallet_core::{ExtendedPubKey, KdfParams, Mnemonic, seal, unseal};
 
-use super::{NextIndex, WalletFile, WalletFileError, create_new, load, save, wallet_path};
+use super::{
+    NextIndex, WalletFile, WalletFileError, create_new, load, load_network, network_name, save,
+    wallet_path,
+};
 
 /// Frasa W1 Spesifikasi Wallet v0.1 Bagian 4 (entropi 32 byte nol).
 const W1: &str = concat!(
@@ -80,7 +84,7 @@ impl Drop for TempDir {
 }
 
 fn w1() -> WalletFile {
-    WalletFile::new(&Mnemonic::parse(W1).unwrap())
+    WalletFile::new(Network::Regtest, &Mnemonic::parse(W1).unwrap())
 }
 
 fn w2() -> WalletFile {
@@ -98,7 +102,7 @@ fn w2() -> WalletFile {
         [0x22; 24],
     )
     .unwrap();
-    WalletFile::new_encrypted(&account, &sealed, NextIndex::default())
+    WalletFile::new_encrypted(Network::Regtest, &account, &sealed, NextIndex::default())
 }
 
 #[test]
@@ -108,9 +112,14 @@ fn json_format_is_exact_and_round_trips() {
     assert_eq!(WalletFile::from_json(W1_JSON).unwrap(), wallet);
     assert_eq!(wallet.mnemonic().unwrap().phrase(), W1);
     assert_eq!(
-        wallet_path(&PathBuf::from("/data")),
+        wallet_path(Network::Regtest, &PathBuf::from("/data")),
         PathBuf::from("/data/regtest/wallet.json")
     );
+    assert_eq!(
+        wallet_path(Network::Testnet, &PathBuf::from("/data")),
+        PathBuf::from("/data/testnet/wallet.json")
+    );
+    assert!(matches!(wallet.network(), Ok(Network::Regtest)));
     let text = format!("{wallet:?}");
     assert!(!text.contains("abandon"), "{text}");
 }
@@ -119,7 +128,8 @@ fn json_format_is_exact_and_round_trips() {
 fn from_json_rejects_bad_content() {
     let bad = [
         W1_JSON.replace("\"version\": 1", "\"version\": 2"),
-        W1_JSON.replace("regtest", "testnet"),
+        W1_JSON.replace("regtest", "mainnet"),
+        W1_JSON.replace("regtest", "Testnet"),
         W1_JSON.replace(" art\"", " abandon\""),
         W1_JSON.replace("abandon abandon abandon", "Abandon  abandon abandon"),
         W1_JSON.replace("  }\n", "  },\n  \"extra\": 1\n"),
@@ -140,7 +150,7 @@ fn from_json_rejects_bad_content() {
 #[test]
 fn create_load_save_and_never_overwrite() {
     let dir = TempDir::new("file");
-    let path = wallet_path(&dir.0);
+    let path = wallet_path(Network::Regtest, &dir.0);
     assert!(matches!(load(&path), Err(WalletFileError::Missing { .. })));
     assert!(matches!(
         save(&path, &w1()),
@@ -246,4 +256,33 @@ fn from_json_rejects_bad_encrypted_content() {
             "{text}"
         );
     }
+}
+
+#[test]
+fn testnet_wallet_file_and_network_check() {
+    let testnet_json = W1_JSON.replace("regtest", "testnet");
+    let testnet = WalletFile::from_json(&testnet_json).unwrap();
+    assert!(matches!(testnet.network(), Ok(Network::Testnet)));
+    let mnemonic = Mnemonic::parse(W1).unwrap();
+    assert_eq!(WalletFile::new(Network::Testnet, &mnemonic), testnet);
+    assert_eq!(network_name(Network::Testnet), "testnet");
+    assert_eq!(network_name(Network::Regtest), "regtest");
+
+    let dir = TempDir::new("network");
+    let path = wallet_path(Network::Testnet, &dir.0);
+    create_new(&path, &testnet).unwrap();
+    assert_eq!(load_network(Network::Testnet, &path).unwrap(), testnet);
+    let copied = wallet_path(Network::Regtest, &dir.0);
+    create_new(&copied, &testnet).unwrap();
+    let error = load_network(Network::Regtest, &copied).unwrap_err();
+    assert!(matches!(
+        &error,
+        WalletFileError::WrongNetwork { expected: "regtest", found, .. } if found == "testnet"
+    ));
+    assert!(
+        error
+            .to_string()
+            .ends_with("untuk jaringan testnet, bukan regtest"),
+        "{error}"
+    );
 }

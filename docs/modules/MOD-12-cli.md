@@ -3,7 +3,7 @@
 - **ID:** `MOD-12`
 - **Path:** `apps/cli`
 - **Paket:** `homeostasis-cli` (bin)
-- **Status:** 🟢 TSK-M19 selesai: `info`, `wallet-create`, `wallet-restore`, `address`, `balance`, `send` (hanya regtest)
+- **Status:** 🟢 TSK-M19 selesai: `info`, `wallet-create`, `wallet-restore`, `address`, `balance`, `send`; regtest dan testnet (`--testnet`, TSK-M06 bagian C3b)
 - **Bergantung pada:** `MOD-01`, `MOD-08`, `MOD-09` (DEC-21)
 - **Dipakai oleh:** —
 
@@ -14,7 +14,8 @@ Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan 
 ## Tanggung Jawab
 
 - Pengiriman perintah administrasi baca/kirim transaksi ke endpoint RPC node dan pemformatan keluaran terminal secara deterministik.
-- Perintah wallet regtest (buat, pulihkan, alamat, saldo, kirim) dan file wallet sesuai [spesifikasi-wallet-v0.1.md](../reference/spesifikasi-wallet-v0.1.md) Bagian 7, memakai `MOD-09` (DEC-21).
+- Perintah wallet regtest dan testnet (buat, pulihkan, alamat, saldo, kirim) dan file wallet sesuai [spesifikasi-wallet-v0.1.md](../reference/spesifikasi-wallet-v0.1.md) Bagian 7, memakai `MOD-09` (DEC-21).
+- Jaringan (TSK-M06 bagian C3b): `--regtest` (bawaan) atau `--testnet`; file wallet di `<folder>/<jaringan>/wallet.json` dengan `network` yang wajib cocok (`load_network`), alamat `rhsis1…` atau `thsis1…`, RPC bawaan port 28801 atau 18801, dan `balance`/`send` menolak node jaringan lain (`CliError::WrongNetwork`).
 
 ## Bukan Tanggung Jawab
 

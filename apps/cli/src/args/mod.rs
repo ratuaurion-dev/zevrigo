@@ -11,7 +11,7 @@ pub const DEFAULT_FEE_RATE: u128 = 1;
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
-    "homeostasis-cli (MOD-12): alat baris perintah node dan wallet Homeostasis Coin (hanya regtest)\n",
+    "homeostasis-cli (MOD-12): alat baris perintah node dan wallet Homeostasis Coin (regtest dan testnet)\n",
     "\n",
     "Pemakaian:\n",
     "  homeostasis-cli [--rpc-url <url>] info\n",
@@ -20,7 +20,7 @@ pub const USAGE: &str = concat!(
     "\n",
     "Perintah:\n",
     "  info                                ringkasan chain dari node\n",
-    "  wallet-create                       wallet baru 24 kata di <folder>/regtest/wallet.json, dikunci password\n",
+    "  wallet-create                       wallet baru 24 kata di <folder>/<jaringan>/wallet.json, dikunci password\n",
     "  wallet-restore --mnemonic \"<kata>\"  pulihkan wallet dari 12 sampai 24 kata, dikunci password\n",
     "  wallet-encrypt                      kunci wallet lama (tanpa password) dengan password\n",
     "  wallet-show-phrase                  tampilkan frasa pemulihan (butuh password)\n",
@@ -30,11 +30,13 @@ pub const USAGE: &str = concat!(
     "                                      kirim HSIS (tarif bawaan 1 quanta per byte, butuh password)\n",
     "\n",
     "Opsi umum:\n",
-    "  --rpc-url <url>       alamat RPC node (bawaan http://127.0.0.1:28801)\n",
+    "  --regtest             jaringan regtest (bawaan): alamat rhsis1..., wallet di <folder>/regtest/\n",
+    "  --testnet             jaringan testnet: alamat thsis1..., wallet di <folder>/testnet/\n",
+    "  --rpc-url <url>       alamat RPC node (bawaan regtest http://127.0.0.1:28801, testnet http://127.0.0.1:18801)\n",
     "  --datadir <folder>    folder data wallet, wajib untuk perintah wallet\n",
     "  --passphrase <teks>   passphrase BIP39, ASCII cetak; tidak disimpan di file wallet\n",
     "\n",
-    "Password wallet (minimal 8 karakter) diketik tanpa tampil di layar; untuk skrip regtest boleh lewat variabel\n",
+    "Password wallet (minimal 8 karakter) diketik tanpa tampil di layar; untuk skrip boleh lewat variabel\n",
     "lingkungan HOMEOSTASIS_WALLET_PASSWORD. address dan balance tidak butuh password.",
 );
 
@@ -52,6 +54,8 @@ pub enum Command {
 /// Konfigurasi satu pemanggilan CLI.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Config {
+    /// Jaringan wallet dan node: regtest (bawaan) atau testnet.
+    pub network: Network,
     /// Alamat RPC node.
     pub rpc_url: String,
     /// Folder data wallet. Selalu ada untuk aksi wallet, tidak ada untuk `info`.
@@ -65,6 +69,7 @@ pub struct Config {
 impl core::fmt::Debug for Config {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("Config")
+            .field("network", &self.network)
             .field("rpc_url", &self.rpc_url)
             .field("datadir", &self.datadir)
             .field("passphrase", &"<rahasia>")
@@ -190,6 +195,9 @@ pub enum ArgError {
     /// Tarif biaya bukan bilangan bulat tak bertanda.
     #[error("tarif biaya tidak sah: {0}")]
     InvalidFeeRate(String),
+    /// Lebih dari satu jaringan dipilih.
+    #[error("hanya satu jaringan boleh dipilih: --regtest atau --testnet")]
+    NetworkConflict,
 }
 
 /// Jenis aksi sebelum opsi aksi dibaca.
@@ -278,15 +286,32 @@ fn require<T>(slot: Option<T>, option: &'static str, kind: Kind) -> Result<T, Ar
     })
 }
 
-/// Alamat RPC bawaan regtest: `http://127.0.0.1:28801`.
+/// Alamat RPC bawaan jaringan: regtest `http://127.0.0.1:28801`, testnet `http://127.0.0.1:18801`.
 #[must_use]
-pub fn default_rpc_url() -> String {
-    format!("http://{DEFAULT_HOST}:{}", default_port(Network::Regtest))
+pub fn default_rpc_url(network: Network) -> String {
+    format!("http://{DEFAULT_HOST}:{}", default_port(network))
+}
+
+/// Mencatat pilihan jaringan dari `flag`. Opsi yang sama dua kali atau dua jaringan berbeda ditolak.
+fn choose_network(
+    slot: &mut Option<Network>,
+    chosen: Network,
+    flag: &'static str,
+) -> Result<(), ArgError> {
+    match *slot {
+        Some(previous) if previous == chosen => Err(ArgError::Duplicate(flag)),
+        Some(_) => Err(ArgError::NetworkConflict),
+        None => {
+            *slot = Some(chosen);
+            Ok(())
+        }
+    }
 }
 
 /// Opsi yang sudah dibaca, sebelum dicocokkan dengan aksi.
 #[derive(Default)]
 struct Options {
+    network: Option<Network>,
     rpc_url: Option<String>,
     datadir: Option<PathBuf>,
     passphrase: Option<String>,
@@ -315,6 +340,8 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
+            "--regtest" => choose_network(&mut options.network, Network::Regtest, "--regtest")?,
+            "--testnet" => choose_network(&mut options.network, Network::Testnet, "--testnet")?,
             "--rpc-url" => {
                 let value = value_of(&mut iter, "--rpc-url")?;
                 set_once(&mut options.rpc_url, value, "--rpc-url")?;
@@ -402,8 +429,10 @@ fn build(kind: Kind, options: Options) -> Result<Config, ArgError> {
             fee_rate: options.fee_rate.unwrap_or(DEFAULT_FEE_RATE),
         },
     };
+    let network = options.network.unwrap_or(Network::Regtest);
     Ok(Config {
-        rpc_url: options.rpc_url.unwrap_or_else(default_rpc_url),
+        network,
+        rpc_url: options.rpc_url.unwrap_or_else(|| default_rpc_url(network)),
         datadir,
         passphrase: options.passphrase.unwrap_or_default(),
         action,

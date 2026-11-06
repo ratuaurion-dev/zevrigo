@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use homeostasis_primitives::Amount;
+use homeostasis_primitives::{Amount, Network};
 
 use super::{Action, ArgError, Command, Config, USAGE, default_rpc_url, parse_args};
 
@@ -23,10 +23,12 @@ fn parses_help_version_and_info() {
     assert_eq!(parse_args(args(&["--help"])), Ok(Command::Help));
     assert_eq!(parse_args(args(&["-h"])), Ok(Command::Help));
     assert_eq!(parse_args(args(&["--version"])), Ok(Command::Version));
-    assert_eq!(default_rpc_url(), "http://127.0.0.1:28801");
+    assert_eq!(default_rpc_url(Network::Regtest), "http://127.0.0.1:28801");
+    assert_eq!(default_rpc_url(Network::Testnet), "http://127.0.0.1:18801");
     assert_eq!(
         run(&["info"]),
         Config {
+            network: Network::Regtest,
             rpc_url: "http://127.0.0.1:28801".to_owned(),
             datadir: None,
             passphrase: String::new(),
@@ -203,4 +205,27 @@ fn debug_hides_passphrase_and_mnemonic() {
     assert!(!text.contains("kata rahasia"), "{text}");
     assert!(!text.contains("sandi rahasia"), "{text}");
     assert!(text.contains("<rahasia>"), "{text}");
+}
+
+#[test]
+fn parses_network_options() {
+    let info = run(&["--testnet", "info"]);
+    assert_eq!(info.network, Network::Testnet);
+    assert_eq!(info.rpc_url, "http://127.0.0.1:18801");
+    let custom = run(&["info", "--rpc-url", "http://127.0.0.1:9", "--testnet"]);
+    assert_eq!(custom.rpc_url, "http://127.0.0.1:9");
+    let address = run(&["address", "--datadir", "d", "--testnet"]);
+    assert_eq!(address.network, Network::Testnet);
+    assert_eq!(run(&["--regtest", "info"]).network, Network::Regtest);
+    assert_eq!(run(&["info"]).network, Network::Regtest);
+    assert_eq!(
+        parse_args(args(&["--testnet", "--testnet", "info"])),
+        Err(ArgError::Duplicate("--testnet"))
+    );
+    assert_eq!(
+        parse_args(args(&["--regtest", "info", "--testnet"])),
+        Err(ArgError::NetworkConflict)
+    );
+    assert!(USAGE.contains("--testnet"));
+    assert!(format!("{address:?}").contains("Testnet"));
 }
