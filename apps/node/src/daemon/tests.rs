@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use homeostasis_network::Multiaddr;
-use homeostasis_primitives::Network;
+use zevrigo_network::Multiaddr;
+use zevrigo_primitives::Network;
 
 use super::{
     ArgError, Command, Config, USAGE, chain_path, default_p2p_port, p2p_key_path,

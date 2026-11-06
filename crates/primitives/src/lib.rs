@@ -1,4 +1,4 @@
-//! MOD-01: Tipe dasar Homeostasis Coin (`HSIS`): jumlah (`u128` quanta), tinggi blok, hash 32 byte,
+//! MOD-01: Tipe dasar Zevrigo Coin (`ZVRG`): jumlah (`u128` quanta), tinggi blok, hash 32 byte,
 //! parameter chain, serta struktur transaksi, blok, dan encoding biner kanonis.
 
 #![forbid(unsafe_code)]
@@ -17,7 +17,7 @@ pub mod params;
 pub mod tx;
 pub mod utxo;
 
-pub use amount::{Amount, AmountParseError, QUANTA_PER_HSIS};
+pub use amount::{Amount, AmountParseError, QUANTA_PER_ZVRG};
 pub use block::{Block, GENESIS_EXTRA_LEN, HEADER_SIZE, HEADER_VERSION, Header};
 pub use encoding::{Decode, DecodeError, Encode, Reader};
 pub use hash::{Hash32, HashParseError};

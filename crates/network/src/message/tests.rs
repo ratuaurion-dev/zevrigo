@@ -1,4 +1,4 @@
-use homeostasis_primitives::{BlockHeight, DecodeError, Encode, HEADER_SIZE, Hash32};
+use zevrigo_primitives::{BlockHeight, DecodeError, Encode, HEADER_SIZE, Hash32};
 
 use super::{
     Ack, Blocks, GetBlocks, GetHeaders, Headers, MAX_BLOCK_IDS, MAX_HEADERS, MAX_LOCATOR,
@@ -171,21 +171,21 @@ fn block_and_transaction_use_canonical_encoding() {
     let block = sample_block(3);
     assert_eq!(block.to_wire(), block.to_bytes());
     assert_eq!(
-        homeostasis_primitives::Block::from_wire(&block.to_wire()),
+        zevrigo_primitives::Block::from_wire(&block.to_wire()),
         Ok(block.clone())
     );
     assert_eq!(
-        homeostasis_primitives::Block::from_wire(&with_extra_byte(block.to_wire())),
+        zevrigo_primitives::Block::from_wire(&with_extra_byte(block.to_wire())),
         Err(trailing())
     );
     let tx = sample_tx();
     assert_eq!(tx.to_wire(), tx.to_bytes());
     assert_eq!(
-        homeostasis_primitives::Transaction::from_wire(&tx.to_wire()),
+        zevrigo_primitives::Transaction::from_wire(&tx.to_wire()),
         Ok(tx.clone())
     );
     assert_eq!(
-        homeostasis_primitives::Transaction::from_wire(&with_extra_byte(tx.to_wire())),
+        zevrigo_primitives::Transaction::from_wire(&with_extra_byte(tx.to_wire())),
         Err(trailing())
     );
 }

@@ -1,4 +1,4 @@
-//! Encoding biner kanonis Homeostasis Coin (`HSIS`) sesuai Spesifikasi Format v0.1 Bagian 2 dan 10.
+//! Encoding biner kanonis Zevrigo Coin (`ZVRG`) sesuai Spesifikasi Format v0.1 Bagian 2 dan 10.
 //!
 //! Setiap struktur protokol hanya memiliki tepat satu representasi byte yang sah:
 //! - Varint memakai LEB128 tak bertanda yang **wajib minimal**.
@@ -554,7 +554,7 @@ pub fn read_vec<T: Decode>(
     Ok(items)
 }
 
-/// Trait serialisasi ke representasi byte kanonis Homeostasis Coin.
+/// Trait serialisasi ke representasi byte kanonis Zevrigo Coin.
 pub trait Encode {
     /// Menambahkan representasi byte kanonis `self` ke dalam `out`.
     fn encode_to(&self, out: &mut Vec<u8>);
@@ -568,7 +568,7 @@ pub trait Encode {
     }
 }
 
-/// Trait deserialisasi dari representasi byte kanonis Homeostasis Coin.
+/// Trait deserialisasi dari representasi byte kanonis Zevrigo Coin.
 pub trait Decode: Sized {
     /// Membaca nilai `Self` dari posisi saat ini pada [`Reader`].
     ///

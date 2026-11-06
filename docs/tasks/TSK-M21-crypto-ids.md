@@ -14,7 +14,7 @@ aturan validasi di task ini.
   Bagian 3 (domain hash), 4.1 (kondisi), 5.3 (txid dan wtxid), 6.1 (block_id), 6.3 (Merkle), dan 7 (ID jaringan).
   Jika kartu ini dan spesifikasi berbeda, BERHENTI dan laporkan.
 - MOD-02 sudah bergantung pada MOD-01. Pakai `Transaction`, `Header`, `Block`, `Condition`, dan trait `Encode` dari
-  homeostasis-primitives, serta `hash`, `Domain`, dan `merkle_root` dari modul TSK-M02.
+  zevrigo-primitives, serta `hash`, `Domain`, dan `merkle_root` dari modul TSK-M02.
 - Lint konsensus aktif di crate ini. Jangan dinonaktifkan.
 
 ## Ruang lingkup

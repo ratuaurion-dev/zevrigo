@@ -1,4 +1,4 @@
-//! MOD-04: Satu-satunya tempat aturan konsensus Homeostasis Coin (`HSIS`): pasokan, target, ASERT, chainwork,
+//! MOD-04: Satu-satunya tempat aturan konsensus Zevrigo Coin (`ZVRG`): pasokan, target, ASERT, chainwork,
 //! cap waktu, parameter jaringan, validasi, dan pemakaian PoW RandomX (kunci, penghitung).
 
 #![forbid(unsafe_code)]

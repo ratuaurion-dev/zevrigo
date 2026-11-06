@@ -725,7 +725,7 @@ impl Decode for Witness {
     }
 }
 
-/// Transaksi lengkap Homeostasis Coin (`body` + `witnesses`) sesuai Spesifikasi Bagian 5.
+/// Transaksi lengkap Zevrigo Coin (`body` + `witnesses`) sesuai Spesifikasi Bagian 5.
 ///
 /// Menyediakan dua mode serialisasi:
 /// - **Badan saja** ([`Transaction::encode_body_to`], [`Transaction::body_to_bytes`]) sebagai bahan `txid`.

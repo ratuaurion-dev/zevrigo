@@ -163,7 +163,7 @@ impl Decode for Header {
     }
 }
 
-/// Blok penuh Homeostasis Coin (`Header` + daftar [`Transaction`]) sesuai Spesifikasi Bagian 6.2 dan 7.
+/// Blok penuh Zevrigo Coin (`Header` + daftar [`Transaction`]) sesuai Spesifikasi Bagian 6.2 dan 7.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Block {
     header: Header,

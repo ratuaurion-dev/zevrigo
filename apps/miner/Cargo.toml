@@ -1,5 +1,5 @@
 [package]
-name = "homeostasis-miner"
+name = "zevrigo-miner"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,13 +7,13 @@ publish.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "homeostasis-miner"
+name = "zevrigo-miner"
 path = "src/main.rs"
 
 [dependencies]
-homeostasis-pow.workspace = true
-homeostasis-primitives.workspace = true
-homeostasis-rpc.workspace = true
+zevrigo-pow.workspace = true
+zevrigo-primitives.workspace = true
+zevrigo-rpc.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["rt"] }
 

@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
-use homeostasis_consensus::TxError;
-use homeostasis_crypto::{SecretKey, SighashError, sighash_v1, sign, txid};
-use homeostasis_primitives::{
+use zevrigo_consensus::TxError;
+use zevrigo_crypto::{SecretKey, SighashError, sighash_v1, sign, txid};
+use zevrigo_primitives::{
     Amount, BlockHeight, Hash32, Input, OutPoint, Output, OutputKind, Transaction, UtxoEntry,
     Witness,
 };

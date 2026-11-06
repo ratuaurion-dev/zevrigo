@@ -1,9 +1,9 @@
 # MOD-16: Aplikasi Merchant (`apps/merchant`)
 
 - **ID Modul:** `MOD-16`
-- **Fungsi:** Aplikasi pelaku usaha berbasis *watch-only* untuk membuat tagihan pembayaran HSIS, menghasilkan kode pembayaran, dan memantau status konfirmasi tanpa menyimpan kunci privat di perangkat kasir.
+- **Fungsi:** Aplikasi pelaku usaha berbasis *watch-only* untuk membuat tagihan pembayaran ZVRG, menghasilkan kode pembayaran, dan memantau status konfirmasi tanpa menyimpan kunci privat di perangkat kasir.
 - **Platform Target:** Desktop (Linux, Windows, macOS), Android, dan iOS.
-- **Dependensi Rencana:** `MOD-08` (`homeostasis-rpc`), `MOD-10` (`homeostasis-merchant-core`).
+- **Dependensi Rencana:** `MOD-08` (`zevrigo-rpc`), `MOD-10` (`zevrigo-merchant-core`).
 
 ## Status Kerangka (R0)
 

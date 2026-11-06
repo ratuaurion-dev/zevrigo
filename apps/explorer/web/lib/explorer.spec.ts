@@ -3,7 +3,7 @@ import {
   computeBasisPoints,
   computeFeeRateQuantaPerByte,
   formatBasisPointsPercent,
-  formatHsis,
+  formatZvrg,
   formatInt,
   parseQuanta,
   U128_MAX,
@@ -41,33 +41,33 @@ describe('amount parse and format (BigInt only)', () => {
     expect(parseQuanta((U128_MAX + 1n).toString(10))).toBeNull();
   });
 
-  it('formats HSIS amounts in Indonesian (ID) and English (EN)', () => {
+  it('formats ZVRG amounts in Indonesian (ID) and English (EN)', () => {
     // 0
-    expect(formatHsis('0', 'id')).toBe('0 HSIS');
-    expect(formatHsis('0', 'en')).toBe('0 HSIS');
+    expect(formatZvrg('0', 'id')).toBe('0 ZVRG');
+    expect(formatZvrg('0', 'en')).toBe('0 ZVRG');
 
-    // 1 quanta = 0.000000000000000001 HSIS
-    expect(formatHsis('1', 'id')).toBe('0,000000000000000001 HSIS');
-    expect(formatHsis('1', 'en')).toBe('0.000000000000000001 HSIS');
+    // 1 quanta = 0.000000000000000001 ZVRG
+    expect(formatZvrg('1', 'id')).toBe('0,000000000000000001 ZVRG');
+    expect(formatZvrg('1', 'en')).toBe('0.000000000000000001 ZVRG');
 
-    // 0.005 HSIS = 5 * 10^15 quanta
-    expect(formatHsis('5000000000000000', 'id')).toBe('0,005 HSIS');
-    expect(formatHsis('5000000000000000', 'en')).toBe('0.005 HSIS');
+    // 0.005 ZVRG = 5 * 10^15 quanta
+    expect(formatZvrg('5000000000000000', 'id')).toBe('0,005 ZVRG');
+    expect(formatZvrg('5000000000000000', 'en')).toBe('0.005 ZVRG');
 
-    // 4,380,000 HSIS (genesis allocation)
-    expect(formatHsis('4380000000000000000000000', 'id')).toBe(
-      '4.380.000 HSIS'
+    // 4,380,000 ZVRG (genesis allocation)
+    expect(formatZvrg('4380000000000000000000000', 'id')).toBe(
+      '4.380.000 ZVRG'
     );
-    expect(formatHsis('4380000000000000000000000', 'en')).toBe(
-      '4,380,000 HSIS'
+    expect(formatZvrg('4380000000000000000000000', 'en')).toBe(
+      '4,380,000 ZVRG'
     );
 
     // u128 max (340282366920938463463374607431768211455 quanta)
-    expect(formatHsis(U128_MAX, 'en')).toBe(
-      '340,282,366,920,938,463,463.374607431768211455 HSIS'
+    expect(formatZvrg(U128_MAX, 'en')).toBe(
+      '340,282,366,920,938,463,463.374607431768211455 ZVRG'
     );
-    expect(formatHsis(U128_MAX, 'id')).toBe(
-      '340.282.366.920.938.463.463,374607431768211455 HSIS'
+    expect(formatZvrg(U128_MAX, 'id')).toBe(
+      '340.282.366.920.938.463.463,374607431768211455 ZVRG'
     );
   });
 

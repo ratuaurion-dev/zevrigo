@@ -9,7 +9,7 @@ export const en: Dictionary = {
   brandSubtitle: 'Proof-of-Work UTXO Block Explorer',
   searchTriggerLabel: 'Search block height, block_id, or txid',
   searchShortcutHint: 'Press Ctrl+K or ⌘K to open quick search',
-  searchCommandTitle: 'HSIS Explorer Quick Search',
+  searchCommandTitle: 'ZVRG Explorer Quick Search',
   searchCommandEmpty: 'Type a block height, block_id (64 hex), or txid (64 hex) and press Enter.',
   searchQuickLinks: 'Quick Navigation',
   searchSampleEntities: 'Sample Regtest Entities',
@@ -54,7 +54,7 @@ export const en: Dictionary = {
   exactQuantaTooltip: 'Exact value: {quanta}',
 
   // Dashboard
-  dashboardHeroTitle: 'Homeostasis (HSIS) Chain State',
+  dashboardHeroTitle: 'Zevrigo (ZVRG) Chain State',
   dashboardHeroSubtitle: 'Independent real-time verification of blocks, mined supply, and mempool.',
   statIndexedHeight: 'Indexed Height',
   statNodeHeight: 'Node Height & Sync State',
@@ -68,7 +68,7 @@ export const en: Dictionary = {
   supplyVerificationValid: 'Supply matches the schedule formula ✓',
   supplyVerificationInvalid: 'Warning: Mined supply deviates from the protocol schedule formula!',
   supplyProgressTitle: 'Mining Emission Progress',
-  supplyProgressSubtitle: 'Mined against the 43,800,000 HSIS mining supply cap',
+  supplyProgressSubtitle: 'Mined against the 43,800,000 ZVRG mining supply cap',
   chartIntervalTitle: 'Block Interval (Last 20 Blocks)',
   chartIntervalSubtitle: 'Seconds elapsed between consecutive blocks vs 120s target',
   chartSizeTitle: 'Block Size (Bytes)',
@@ -153,12 +153,12 @@ export const en: Dictionary = {
   emissionRulesTitle: 'Emission Rules & Protocol Consensus',
   emissionRulesAuditStatement: 'This explorer recomputes the coins in every block itself; it does not trust the node it reads from.',
   emissionRuleUnitTitle: 'Base Unit & Precision',
-  emissionRuleUnitBody: '1 HSIS = 10^18 quanta (exact u128 integer arithmetic with zero floating-point ambiguity).',
+  emissionRuleUnitBody: '1 ZVRG = 10^18 quanta (exact u128 integer arithmetic with zero floating-point ambiguity).',
   emissionRuleCapTitle: 'Mining Supply (S)',
-  emissionRuleCapBody: 'Mining supply S = 43,800,000 HSIS, issued through block rewards by formula. After that, a tail reward of 1 HSIS per block.',
+  emissionRuleCapBody: 'Mining supply S = 43,800,000 ZVRG, issued through block rewards by formula. After that, a tail reward of 1 ZVRG per block.',
   emissionRuleFormulaTitle: 'Block Reward Formula & Tail Emission',
   emissionRuleFormulaBody:
-    'Block reward = max((S − M) / 2,274,842, 1 HSIS) where M = mined so far. Tail reward is exactly 1 HSIS per block forever.',
+    'Block reward = max((S − M) / 2,274,842, 1 ZVRG) where M = mined so far. Tail reward is exactly 1 ZVRG per block forever.',
   emissionRuleSlowStartTitle: 'Slow Start & Coinbase Maturity',
   emissionRuleSlowStartBody:
     'Slow start over the first 10,080 blocks (reward × height / 10,080). Coinbase maturity is 100 blocks. All fees go to the miner, nothing is burned.',
@@ -183,7 +183,7 @@ export const en: Dictionary = {
 
   // Footer & Mock Controls
   footerPrivacyNote: 'No cookies, no analytics, no addresses or identities of anyone. Data comes from the node run by whoever hosts this explorer; anyone can run their own node and explorer.',
-  footerProtocolNote: 'Homeostasis Coin (HSIS) · Proof-of-Work UTXO · Rust',
+  footerProtocolNote: 'Zevrigo Coin (ZVRG) · Proof-of-Work UTXO · Rust',
   mockPreviewLabel: 'Preview State (Mock Mode):',
   mockStateNormal: 'Nominal',
   mockStateNotReady: '503 Syncing Genesis',

@@ -1,12 +1,12 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::params::Network;
-use homeostasis_primitives::tx::OutputKind;
 use jsonrpsee::core::client::ClientT;
 use jsonrpsee_http_client::HttpClientBuilder;
 use serde_json::{Map, Value, json};
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::params::Network;
+use zevrigo_primitives::tx::OutputKind;
 
 use super::{RpcBackend, RpcServer};
 use crate::client::{RpcClient, error_code, reject_reason};

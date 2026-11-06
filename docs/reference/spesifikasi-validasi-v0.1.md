@@ -1,4 +1,4 @@
-# Spesifikasi Validasi Homeostasis Coin (HSIS) v0.1: target, ASERT, chainwork, cap waktu, transaksi, coinbase, dan blok
+# Spesifikasi Validasi Zevrigo Coin (ZVRG) v0.1: target, ASERT, chainwork, cap waktu, transaksi, coinbase, dan blok
 
 > Diperbarui: 30 Oktober 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S02 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-validasi-v0.1.md` · Melengkapi `spesifikasi-format-v0.1.md`
@@ -224,7 +224,7 @@ Blok yang induknya belum dikenal bukan tidak sah; penanganannya (orphan) urusan 
 | Field | Nilai |
 |---|---|
 | Header | version 1, height 0, `prev_block_id` nol, `timestamp = 1_793_145_600` (28 Oktober 2026 00.00 UTC), `target = 0x207fffff`, `nonce = 0` |
-| Coinbase | height 0, `extra` = 32 byte nol, satu output `amount = G` (4_380_000 HSIS), `kind = 0`, `payload` = kunci x-only dari kunci rahasia `1`: `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` |
+| Coinbase | height 0, `extra` = 32 byte nol, satu output `amount = G` (4_380_000 ZVRG), `kind = 0`, `payload` = kunci x-only dari kunci rahasia `1`: `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` |
 
 Kunci rahasia `1` sengaja publik: koin regtest tidak bernilai, dan test bisa membelanjakan alokasi genesis. `network_id` regtest berbeda dari jaringan lain, sehingga tanda tangannya tidak berlaku di tempat lain (DEC-13). Genesis tidak diperiksa PoW-nya.
 

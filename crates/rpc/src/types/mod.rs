@@ -3,12 +3,12 @@
 //! Parameter dikirim berdasarkan nama (objek JSON); field yang tidak dikenal ditolak. Hasil tidak menolak field
 //! tambahan agar klien lama tetap bisa membaca hasil versi berikutnya.
 
-use homeostasis_primitives::block::Block;
-use homeostasis_primitives::encoding::Encode;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::params::COINBASE_MATURITY;
-use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
 use serde::{Deserialize, Serialize};
+use zevrigo_primitives::block::Block;
+use zevrigo_primitives::encoding::Encode;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::params::COINBASE_MATURITY;
+use zevrigo_primitives::utxo::{OutPoint, UtxoEntry};
 
 use crate::value::{
     CompactHex, DecimalU64, Hex32, HexBytes, KindNumber, NetworkName, Quanta, ValueError,

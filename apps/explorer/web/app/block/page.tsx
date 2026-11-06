@@ -27,7 +27,7 @@ import {
   ApiStateView,
   ConfirmationsBadge,
   HashValue,
-  HsisAmount,
+  ZvrgAmount,
   TableSkeleton,
 } from '@/components/explorer/shared';
 
@@ -233,7 +233,7 @@ function BlockDetailContent() {
                 {t('blockFieldSubsidy')}
               </dt>
               <dd className="sm:col-span-2">
-                <HsisAmount quanta={block.subsidy} />
+                <ZvrgAmount quanta={block.subsidy} />
               </dd>
             </div>
 
@@ -242,7 +242,7 @@ function BlockDetailContent() {
                 {t('blockFieldFees')}
               </dt>
               <dd className="sm:col-span-2">
-                <HsisAmount quanta={block.fees} />
+                <ZvrgAmount quanta={block.fees} />
               </dd>
             </div>
 
@@ -251,7 +251,7 @@ function BlockDetailContent() {
                 {t('blockFieldTotalReward')}
               </dt>
               <dd className="sm:col-span-2 font-semibold text-teal-700 dark:text-teal-400">
-                <HsisAmount quanta={totalRewardQuanta} />
+                <ZvrgAmount quanta={totalRewardQuanta} />
               </dd>
             </div>
           </dl>

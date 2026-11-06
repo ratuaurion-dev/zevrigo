@@ -1,9 +1,9 @@
 //! Nama protokol P2P (Spesifikasi P2P Bagian 2): `/hsis/<net>/<nama>/1`, dengan `<net>` = 16 karakter hex huruf kecil
 //! pertama `network_id`. Rekan dari jaringan lain gagal bernegosiasi protokol, sehingga tidak bisa membuka aliran.
 
-use homeostasis_primitives::Hash32;
 use libp2p::StreamProtocol;
 use libp2p::swarm::InvalidProtocol;
+use zevrigo_primitives::Hash32;
 
 /// Panjang awalan hex `network_id` di nama protokol.
 const NETWORK_PREFIX_LEN: usize = 16;

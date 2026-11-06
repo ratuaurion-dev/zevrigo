@@ -5,9 +5,9 @@
 
 use std::io;
 
-use homeostasis_primitives::Reader;
-use homeostasis_primitives::encoding::write_varint_u32;
 use libp2p::futures::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use zevrigo_primitives::Reader;
+use zevrigo_primitives::encoding::write_varint_u32;
 
 use crate::message::{MAX_MESSAGE_SIZE, MessageError};
 

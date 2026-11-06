@@ -13,13 +13,13 @@ use std::fs::{self, OpenOptions};
 use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
 
-use homeostasis_primitives::Network;
-use homeostasis_rpc::value::{decode_hex, encode_hex};
-use homeostasis_wallet_core::{
-    ExtendedPubKey, KdfParams, Mnemonic, NONCE_LEN, SALT_LEN, Sealed, vault::TAG_LEN,
-};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use zevrigo_primitives::Network;
+use zevrigo_rpc::value::{decode_hex, encode_hex};
+use zevrigo_wallet_core::{
+    ExtendedPubKey, KdfParams, Mnemonic, NONCE_LEN, SALT_LEN, Sealed, vault::TAG_LEN,
+};
 
 /// Versi format file wallet terenkripsi (`2`), dipakai untuk semua wallet baru.
 pub const WALLET_VERSION: u32 = 2;
@@ -151,7 +151,7 @@ fn fixed_hex<const N: usize>(text: &str, field: &str) -> Result<[u8; N], WalletF
 }
 
 impl EncryptedPhrase {
-    /// Bentuk file dari hasil [`homeostasis_wallet_core::seal`].
+    /// Bentuk file dari hasil [`zevrigo_wallet_core::seal`].
     #[must_use]
     pub fn from_sealed(sealed: &Sealed) -> Self {
         Self {
@@ -166,7 +166,7 @@ impl EncryptedPhrase {
         }
     }
 
-    /// Nilai untuk [`homeostasis_wallet_core::unseal`].
+    /// Nilai untuk [`zevrigo_wallet_core::unseal`].
     ///
     /// # Errors
     ///

@@ -1,8 +1,8 @@
-# MOD-06: Network (`homeostasis-network`)
+# MOD-06: Network (`zevrigo-network`)
 
 - **ID:** `MOD-06`
 - **Path:** `crates/network`
-- **Paket:** `homeostasis-network`
+- **Paket:** `zevrigo-network`
 - **Status:** 🟢 P2P dasar selesai (TSK-M14); dipakai daemon sejak TSK-M28
 - **Bergantung pada:** `MOD-01`; pustaka `libp2p` 0.57.1 (tanpa fitur `tokio`), `libp2p-swarm` dan `libp2p-tcp` (fitur `tokio`), dan `tokio` (DEC-10 bagian 2 dan 5, DEC-24)
 - **Dipakai oleh:** `MOD-11`, `MOD-17`

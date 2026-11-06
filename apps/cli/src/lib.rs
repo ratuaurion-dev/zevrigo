@@ -1,4 +1,4 @@
-//! MOD-12: Pustaka alat baris perintah Homeostasis Coin (`homeostasis-cli`), TSK-M19.
+//! MOD-12: Pustaka alat baris perintah Zevrigo Coin (`zevrigo-cli`), TSK-M19.
 //!
 //! Perintah node (`info`) dan wallet regtest atau testnet (`wallet-create`, `wallet-restore`, `address`, `balance`,
 //! `send`) sesuai Spesifikasi Wallet v0.1 Bagian 5 sampai 7. Frasa, kunci, alamat, pemilihan koin, dan tanda tangan

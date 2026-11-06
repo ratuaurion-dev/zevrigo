@@ -9,8 +9,8 @@
 //! Encoding nilai mengikuti Spesifikasi RPC v0.1 Bagian 2: jumlah koin string desimal quanta (tidak pernah angka
 //! JSON), hash dan payload hex huruf kecil 64 karakter, target compact hex 8 karakter, nonce string desimal.
 
-use homeostasis_primitives::{Amount, Hash32, Network};
 use serde_json::{Map, Value};
+use zevrigo_primitives::{Amount, Hash32, Network};
 
 use crate::index::{IndexError, Indexer};
 use crate::query::confirmations;

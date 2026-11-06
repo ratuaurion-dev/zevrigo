@@ -1,4 +1,4 @@
-# Peta Sistem Homeostasis Coin (HSIS)
+# Peta Sistem Zevrigo Coin (ZVRG)
 
 ## Daftar Modul
 
@@ -6,23 +6,23 @@ Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai ·
 
 | ID | Path | Paket | Fungsi | Bergantung pada | Status |
 |---|---|---|---|---|---|
-| MOD-01 | `crates/primitives` | `homeostasis-primitives` | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — | ⚪ |
-| MOD-02 | `crates/crypto` | `homeostasis-crypto` | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 | ⚪ |
-| MOD-03 | `crates/pow` | `homeostasis-pow` | Proof of Work: antarmuka, PoW dev regtest (DEC-09), RandomX testnet/mainnet (DEC-01, TSK-M06) | MOD-01, 02 (DEC-14) | ⚪ |
-| MOD-04 | `crates/consensus` | `homeostasis-consensus` | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 | ⚪ |
-| MOD-05 | `crates/storage` | `homeostasis-storage` | Penyimpanan blok, set UTXO, pruning | MOD-01 | ⚪ |
-| MOD-06 | `crates/network` | `homeostasis-network` | P2P (rust-libp2p) | MOD-01 | ⚪ |
-| MOD-07 | `crates/mempool` | `homeostasis-mempool` | Antrean transaksi | MOD-01, 04 | ⚪ |
-| MOD-08 | `crates/rpc` | `homeostasis-rpc` | Tipe dan klien/server JSON-RPC | MOD-01 | ⚪ |
-| MOD-09 | `crates/wallet-core` | `homeostasis-wallet-core` | Kunci, penyusunan dan penandatanganan transaksi | MOD-01, 02 | 🟡 |
-| MOD-10 | `crates/merchant-core` | `homeostasis-merchant-core` | Tagihan watch-only, status pembayaran | MOD-01, 09 | ⚪ |
-| MOD-11 | `apps/node` | `homeostasis-node` (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) | 🟢 |
-| MOD-12 | `apps/cli` | `homeostasis-cli` (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) | 🟢 |
-| MOD-13 | `apps/miner` | `homeostasis-miner` (bin) | Penambang CPU | MOD-01, 03, 08 | 🟢 |
-| MOD-14 | `apps/explorer` | `homeostasis-explorer` (bin) | Indexer, API, dan antarmuka web Next.js (DEC-26), hanya data sistem (DEC-28) | MOD-01, 02, 04, 08 (DEC-25, DEC-28) | 🟡 |
+| MOD-01 | `crates/primitives` | `zevrigo-primitives` | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — | ⚪ |
+| MOD-02 | `crates/crypto` | `zevrigo-crypto` | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 | ⚪ |
+| MOD-03 | `crates/pow` | `zevrigo-pow` | Proof of Work: antarmuka, PoW dev regtest (DEC-09), RandomX testnet/mainnet (DEC-01, TSK-M06) | MOD-01, 02 (DEC-14) | ⚪ |
+| MOD-04 | `crates/consensus` | `zevrigo-consensus` | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 | ⚪ |
+| MOD-05 | `crates/storage` | `zevrigo-storage` | Penyimpanan blok, set UTXO, pruning | MOD-01 | ⚪ |
+| MOD-06 | `crates/network` | `zevrigo-network` | P2P (rust-libp2p) | MOD-01 | ⚪ |
+| MOD-07 | `crates/mempool` | `zevrigo-mempool` | Antrean transaksi | MOD-01, 04 | ⚪ |
+| MOD-08 | `crates/rpc` | `zevrigo-rpc` | Tipe dan klien/server JSON-RPC | MOD-01 | ⚪ |
+| MOD-09 | `crates/wallet-core` | `zevrigo-wallet-core` | Kunci, penyusunan dan penandatanganan transaksi | MOD-01, 02 | 🟡 |
+| MOD-10 | `crates/merchant-core` | `zevrigo-merchant-core` | Tagihan watch-only, status pembayaran | MOD-01, 09 | ⚪ |
+| MOD-11 | `apps/node` | `zevrigo-node` (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) | 🟢 |
+| MOD-12 | `apps/cli` | `zevrigo-cli` (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) | 🟢 |
+| MOD-13 | `apps/miner` | `zevrigo-miner` (bin) | Penambang CPU | MOD-01, 03, 08 | 🟢 |
+| MOD-14 | `apps/explorer` | `zevrigo-explorer` (bin) | Indexer, API, dan antarmuka web Next.js (DEC-26), hanya data sistem (DEC-28) | MOD-01, 02, 04, 08 (DEC-25, DEC-28) | 🟡 |
 | MOD-15 | `apps/wallet` | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 | ⚪ |
 | MOD-16 | `apps/merchant` | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 | ⚪ |
-| MOD-17 | `tests/integration` | `homeostasis-integration-tests` | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, 13 (DEC-20), 12 (DEC-23), 14 (DEC-25) | 🟡 |
+| MOD-17 | `tests/integration` | `zevrigo-integration-tests` | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, 13 (DEC-20), 12 (DEC-23), 14 (DEC-25) | 🟡 |
 
 ## Diagram Dependensi Modul
 

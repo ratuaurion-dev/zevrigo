@@ -1,10 +1,10 @@
 import type { Lang } from './i18n';
 
 export const QUANTA_DECIMALS = 18;
-export const QUANTA_PER_HSIS = 1_000_000_000_000_000_000n; // 10^18
+export const QUANTA_PER_ZVRG = 1_000_000_000_000_000_000n; // 10^18
 export const U128_MAX = (1n << 128n) - 1n; // 340282366920938463463374607431768211455n
-export const MINING_SUPPLY_QUANTA = 43_800_000n * QUANTA_PER_HSIS;
-export const GENESIS_ALLOCATION_QUANTA = 4_380_000n * QUANTA_PER_HSIS;
+export const MINING_SUPPLY_QUANTA = 43_800_000n * QUANTA_PER_ZVRG;
+export const GENESIS_ALLOCATION_QUANTA = 4_380_000n * QUANTA_PER_ZVRG;
 
 const QUANTA_REGEX = /^(0|[1-9][0-9]{0,38})$/;
 
@@ -65,23 +65,23 @@ export function formatQuantaExact(quanta: bigint | string, lang: Lang): string {
   return `${formatDigitsWithThousands(q.toString(10), lang)} quanta`;
 }
 
-export interface FormatHsisOptions {
+export interface FormatZvrgOptions {
   includeTicker?: boolean;
   maxDecimals?: number; // If specified (< 18), truncates using pure BigInt / string slicing
   signed?: 'plus' | 'minus' | 'none';
 }
 
 /**
- * Formats a quanta value (BigInt or validated decimal string) into HSIS.
+ * Formats a quanta value (BigInt or validated decimal string) into ZVRG.
  * - Up to 18 decimal places, trailing zeros stripped.
  * - Thousands separator: '.' for Indonesian, ',' for English.
  * - Decimal separator: ',' for Indonesian, '.' for English.
  * - Never uses JavaScript Number or floating point math.
  */
-export function formatHsis(
+export function formatZvrg(
   quantaInput: bigint | string,
   lang: Lang,
-  options?: FormatHsisOptions
+  options?: FormatZvrgOptions
 ): string {
   const q = typeof quantaInput === 'bigint' ? quantaInput : parseQuanta(quantaInput);
   if (q === null) {
@@ -92,8 +92,8 @@ export function formatHsis(
   const maxDecimals = options?.maxDecimals ?? QUANTA_DECIMALS;
   const decSep = lang === 'id' ? ',' : '.';
 
-  const wholePart = q / QUANTA_PER_HSIS;
-  const fracPart = q % QUANTA_PER_HSIS;
+  const wholePart = q / QUANTA_PER_ZVRG;
+  const fracPart = q % QUANTA_PER_ZVRG;
 
   const formattedWhole = formatDigitsWithThousands(wholePart.toString(10), lang);
 
@@ -119,14 +119,14 @@ export function formatHsis(
       ? '−'
       : '';
 
-  return includeTicker ? `${prefix}${numberStr} HSIS` : `${prefix}${numberStr}`;
+  return includeTicker ? `${prefix}${numberStr} ZVRG` : `${prefix}${numberStr}`;
 }
 
 /**
- * Compact HSIS formatter using pure BigInt truncation (e.g., max 4 or 6 decimals)
+ * Compact ZVRG formatter using pure BigInt truncation (e.g., max 4 or 6 decimals)
  * while preserving exact non-zero visibility for tiny amounts.
  */
-export function formatHsisCompact(
+export function formatZvrgCompact(
   quantaInput: bigint | string,
   lang: Lang,
   maxDecimals = 4,
@@ -134,23 +134,23 @@ export function formatHsisCompact(
 ): string {
   const q = typeof quantaInput === 'bigint' ? quantaInput : parseQuanta(quantaInput);
   if (q === null) return '—';
-  if (q === 0n) return includeTicker ? '0 HSIS' : '0';
+  if (q === 0n) return includeTicker ? '0 ZVRG' : '0';
 
-  const fullFrac = (q % QUANTA_PER_HSIS).toString(10).padStart(QUANTA_DECIMALS, '0');
-  const whole = q / QUANTA_PER_HSIS;
+  const fullFrac = (q % QUANTA_PER_ZVRG).toString(10).padStart(QUANTA_DECIMALS, '0');
+  const whole = q / QUANTA_PER_ZVRG;
   const truncatedFrac = fullFrac.slice(0, maxDecimals).replace(/0+$/, '');
 
   if (whole === 0n && truncatedFrac.length === 0) {
-    // Find first non-zero decimal position so we don't mislead with "0 HSIS" for non-zero quanta
+    // Find first non-zero decimal position so we don't mislead with "0 ZVRG" for non-zero quanta
     const firstNonZero = fullFrac.search(/[1-9]/);
     const keep = firstNonZero >= 0 ? firstNonZero + 2 : maxDecimals;
-    return formatHsis(q, lang, {
+    return formatZvrg(q, lang, {
       includeTicker,
       maxDecimals: keep > QUANTA_DECIMALS ? QUANTA_DECIMALS : keep,
     });
   }
 
-  return formatHsis(q, lang, { includeTicker, maxDecimals });
+  return formatZvrg(q, lang, { includeTicker, maxDecimals });
 }
 
 /**

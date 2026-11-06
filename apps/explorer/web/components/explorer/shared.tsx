@@ -15,8 +15,8 @@ import { toast } from 'sonner';
 import { useApp } from '@/app/providers';
 import type { ApiFailure, BlockRow } from '@/lib/api';
 import {
-  formatHsis,
-  formatHsisCompact,
+  formatZvrg,
+  formatZvrgCompact,
   formatInt,
   formatQuantaExact,
 } from '@/lib/amount';
@@ -25,10 +25,10 @@ import { Alert, Button, Card, CardContent, Skeleton, Tooltip } from '@/component
 import { cn } from '@/lib/utils';
 
 /**
- * Custom SVG mark for Homeostasis Coin (HSIS):
+ * Custom SVG mark for Zevrigo Coin (ZVRG):
  * A balanced equilibrium circle with dual harmonic counter-waves.
  */
-export function HomeostasisLogo({ className = 'w-6 h-6' }: { className?: string }) {
+export function ZevrigoLogo({ className = 'w-6 h-6' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 32 32"
@@ -213,7 +213,7 @@ export function HashValue({
 /**
  * Coin amount formatted with BigInt math + exact quanta tooltip on hover.
  */
-export function HsisAmount({
+export function ZvrgAmount({
   quanta,
   compact = false,
   maxDecimals = 6,
@@ -230,10 +230,10 @@ export function HsisAmount({
 }) {
   const { lang, t } = useApp();
   const exactQuanta = formatQuantaExact(quanta, lang);
-  const fullFormatted = formatHsis(quanta, lang, { includeTicker: true, signed });
+  const fullFormatted = formatZvrg(quanta, lang, { includeTicker: true, signed });
   const display = compact
-    ? formatHsisCompact(quanta, lang, maxDecimals, includeTicker)
-    : formatHsis(quanta, lang, { includeTicker, signed });
+    ? formatZvrgCompact(quanta, lang, maxDecimals, includeTicker)
+    : formatZvrg(quanta, lang, { includeTicker, signed });
 
   return (
     <Tooltip content={`${fullFormatted} (${t('exactQuantaTooltip', { quanta: exactQuanta })})`}>

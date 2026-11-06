@@ -1,7 +1,7 @@
 use std::cell::Cell;
 
-use homeostasis_pow::{RandomxVerifier, key_height, mine_regtest};
-use homeostasis_primitives::{BlockHeight, Hash32, Header, Network};
+use zevrigo_pow::{RandomxVerifier, key_height, mine_regtest};
+use zevrigo_primitives::{BlockHeight, Hash32, Header, Network};
 
 use super::{RandomxHasher, randomx_hasher, randomx_key_height};
 use crate::chain_params::ChainParams;

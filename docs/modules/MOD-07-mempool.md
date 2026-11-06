@@ -1,8 +1,8 @@
-# MOD-07: Mempool (`homeostasis-mempool`)
+# MOD-07: Mempool (`zevrigo-mempool`)
 
 - **ID:** `MOD-07`
 - **Path:** `crates/mempool`
-- **Paket:** `homeostasis-mempool`
+- **Paket:** `zevrigo-mempool`
 - **Status:** 🟢 selesai untuk regtest (TSK-M13)
 - **Bergantung pada:** `MOD-01`, `MOD-04` (test juga memakai `MOD-02` sebagai dev-dependency, DEC-18)
 - **Dipakai oleh:** `MOD-11`, `MOD-17`

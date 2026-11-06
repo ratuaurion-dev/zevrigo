@@ -92,13 +92,13 @@ export const CHAIN_TIP_HEIGHT = 120;
 export const GENESIS_TIMESTAMP = 1_793_404_800;
 
 // Exact required protocol constants & subsidies
-export const GENESIS_ALLOCATION_STR = '4380000000000000000000000'; // 4,380,000 HSIS
+export const GENESIS_ALLOCATION_STR = '4380000000000000000000000'; // 4,380,000 ZVRG
 export const SUBSIDY_HEIGHT_1 = '1910127426536917';
 export const SUBSIDY_HEIGHT_2 = '3820254852907233';
 export const SUBSIDY_HEIGHT_3 = '5730382278861043';
 
 const S_MINING_QUANTA = 43_800_000n * 1_000_000_000_000_000_000n;
-const ONE_HSIS_QUANTA = 1_000_000_000_000_000_000n;
+const ONE_ZVRG_QUANTA = 1_000_000_000_000_000_000n;
 const EMISSION_DIVISOR = 2_274_842n;
 const SLOW_START_BLOCKS = 10_080n;
 
@@ -146,20 +146,20 @@ function buildMockChain(): BuiltChain {
   let currentTimestamp = GENESIS_TIMESTAMP;
 
   // Genesis allocation split across two outputs in block #0:
-  // Output 0: 3,000,000 HSIS to CREATOR_PRIMARY_ADDRESS (spent at height 100)
-  // Output 1: 1,380,000 HSIS to CREATOR_RESERVE_ADDRESS (still unspent)
-  const genesisOut0Amount = (3_000_000n * ONE_HSIS_QUANTA).toString(10);
-  const genesisOut1Amount = (1_380_000n * ONE_HSIS_QUANTA).toString(10);
+  // Output 0: 3,000,000 ZVRG to CREATOR_PRIMARY_ADDRESS (spent at height 100)
+  // Output 1: 1,380,000 ZVRG to CREATOR_RESERVE_ADDRESS (still unspent)
+  const genesisOut0Amount = (3_000_000n * ONE_ZVRG_QUANTA).toString(10);
+  const genesisOut1Amount = (1_380_000n * ONE_ZVRG_QUANTA).toString(10);
   const genesisTxid = makeHex64('c01b', 0);
   const height100SpendTxid = makeHex64('fd00', 100);
 
   // Height 100 spend amounts:
-  // Spends Output 0 (3,000,000 HSIS) with fee = "1000" quanta
-  // Sends 500,000 HSIS to RECIPIENT_TRANSFER_ADDRESS
-  // Returns 2,500,000 HSIS - 1,000 quanta change to CREATOR_PRIMARY_ADDRESS
-  const transferAmount = 500_000n * ONE_HSIS_QUANTA;
+  // Spends Output 0 (3,000,000 ZVRG) with fee = "1000" quanta
+  // Sends 500,000 ZVRG to RECIPIENT_TRANSFER_ADDRESS
+  // Returns 2,500,000 ZVRG - 1,000 quanta change to CREATOR_PRIMARY_ADDRESS
+  const transferAmount = 500_000n * ONE_ZVRG_QUANTA;
   const feeHeight100 = 1000n;
-  const changeAmount = 3_000_000n * ONE_HSIS_QUANTA - transferAmount - feeHeight100;
+  const changeAmount = 3_000_000n * ONE_ZVRG_QUANTA - transferAmount - feeHeight100;
 
   for (let h = 0; h <= CHAIN_TIP_HEIGHT; h++) {
     if (h > 0) {
@@ -180,7 +180,7 @@ function buildMockChain(): BuiltChain {
       subsidyQuanta = BigInt(SUBSIDY_HEIGHT_3);
     } else {
       const baseReward = (S_MINING_QUANTA - minedSoFar) / EMISSION_DIVISOR;
-      const clampedReward = baseReward > ONE_HSIS_QUANTA ? baseReward : ONE_HSIS_QUANTA;
+      const clampedReward = baseReward > ONE_ZVRG_QUANTA ? baseReward : ONE_ZVRG_QUANTA;
       subsidyQuanta = (clampedReward * BigInt(h)) / SLOW_START_BLOCKS;
     }
 
@@ -196,7 +196,7 @@ function buildMockChain(): BuiltChain {
     const blockSize = h === 0 ? 384 : hasRegularTx ? 642 : 240 + (h % 9) * 12;
 
     if (h === 0) {
-      // Genesis coinbase transaction containing the 4,380,000 HSIS creator allocation
+      // Genesis coinbase transaction containing the 4,380,000 ZVRG creator allocation
       const genesisTx: FullTx = {
         txid: genesisTxid,
         block_id: blockId,
@@ -327,7 +327,7 @@ function buildMockChain(): BuiltChain {
   // Compute next subsidy at height 121
   const nextHeight = BigInt(CHAIN_TIP_HEIGHT + 1);
   const nextBaseReward = (S_MINING_QUANTA - minedSoFar) / EMISSION_DIVISOR;
-  const nextClamped = nextBaseReward > ONE_HSIS_QUANTA ? nextBaseReward : ONE_HSIS_QUANTA;
+  const nextClamped = nextBaseReward > ONE_ZVRG_QUANTA ? nextBaseReward : ONE_ZVRG_QUANTA;
   const nextSubsidy = (nextClamped * nextHeight) / SLOW_START_BLOCKS;
   const genesisAllocationQuanta = BigInt(GENESIS_ALLOCATION_STR);
   const totalSupplyQuanta = minedSoFar + genesisAllocationQuanta;
@@ -445,7 +445,7 @@ function buildMockChain(): BuiltChain {
   const allocation: AllocationInfo = {
     genesis_block_id: blockHashes[0],
     allocated: GENESIS_ALLOCATION_STR,
-    unspent: genesisOut1Amount, // Output 1 (1,380,000 HSIS) remains unspent in genesis outputs
+    unspent: genesisOut1Amount, // Output 1 (1,380,000 ZVRG) remains unspent in genesis outputs
     outputs: genesisTx.outputs.map((out) => ({
       ...out,
       txid: genesisTxid,

@@ -4,21 +4,21 @@
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
-use homeostasis_primitives::Network;
-use homeostasis_rpc::transport::default_port;
 use thiserror::Error;
+use zevrigo_primitives::Network;
+use zevrigo_rpc::transport::default_port;
 
 use crate::db::DB_FILE;
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
-    "homeostasis-explorer (MOD-14): indexer dan API explorer Homeostasis Coin\n",
+    "zevrigo-explorer (MOD-14): indexer dan API explorer Zevrigo Coin\n",
     "\n",
     "Pemakaian:\n",
-    "  homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-bind <ip>] [--http-port <port>]\n",
+    "  zevrigo-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-bind <ip>] [--http-port <port>]\n",
     "                       [--api-rate <n>] [--web-dir <folder>]\n",
-    "  homeostasis-explorer --testnet --datadir <folder> [opsi yang sama]\n",
-    "  homeostasis-explorer --help | --version\n",
+    "  zevrigo-explorer --testnet --datadir <folder> [opsi yang sama]\n",
+    "  zevrigo-explorer --help | --version\n",
     "\n",
     "Opsi:\n",
     "  --regtest           jaringan regtest\n",

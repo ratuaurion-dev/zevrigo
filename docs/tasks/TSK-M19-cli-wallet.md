@@ -5,21 +5,21 @@
 
 ## Tujuan
 Perintah baris perintah untuk wallet regtest sesuai Spesifikasi Wallet v0.1 Bagian 5 sampai 7, memakai MOD-09 untuk
-frasa, kunci, alamat, pemilihan koin, dan tanda tangan, serta klien RPC MOD-08 untuk node. Pustaka `homeostasis_cli`
+frasa, kunci, alamat, pemilihan koin, dan tanda tangan, serta klien RPC MOD-08 untuk node. Pustaka `zevrigo_cli`
 ditambah biner tipis, seperti miner.
 
 ## Perintah
 ```
-homeostasis-cli [--rpc-url <url>] info
-homeostasis-cli --datadir <folder> [--passphrase <teks>] [--rpc-url <url>] <perintah wallet> [opsi]
+zevrigo-cli [--rpc-url <url>] info
+zevrigo-cli --datadir <folder> [--passphrase <teks>] [--rpc-url <url>] <perintah wallet> [opsi]
   wallet-create                      wallet baru 24 kata (entropi 32 byte dari /dev/urandom)
   wallet-restore --mnemonic "<kata>" pulihkan dari 12 sampai 24 kata
   address                            alamat penerimaan berikutnya dan payload hex-nya (tanpa node)
   balance                            saldo lewat scan_utxos (gap limit 20)
-  send --to <alamat> --amount <HSIS> [--fee-rate <quanta per byte>]
+  send --to <alamat> --amount <ZVRG> [--fee-rate <quanta per byte>]
 ```
 - Galat argumen: kode keluar 2. Galat menjalankan: kode keluar 1. Opsi boleh sebelum atau sesudah perintah; opsi yang
-  tidak berlaku untuk perintah itu ditolak. `--amount` memakai `Amount::from_hsis_str` dan tidak boleh 0.
+  tidak berlaku untuk perintah itu ditolak. `--amount` memakai `Amount::from_zvrg_str` dan tidak boleh 0.
 - Hanya regtest: node wajib melapor `network = regtest` (`WrongNetwork`), alamat dengan HRP lain ditolak.
 - `network_id` = `get_block_hash(0)`. `aux_rand` tanda tangan 32 byte dari `/dev/urandom`.
 
@@ -31,7 +31,7 @@ JSON berindentasi: `version` 1, `network` `"regtest"`, `mnemonic` (ternormalkan)
 ## Keputusan teknis (Quick, tanpa DEC)
 - Tanpa dependensi baru di Cargo.lock. Dependensi MOD-12: MOD-01, MOD-08, MOD-09 (DEC-21), `serde` dan `serde_json`
   (file wallet; DEC-10 bagian 2), `thiserror`, `tokio` (`rt`; dev `rt-multi-thread`). Cargo.lock hanya bertambah 5
-  rujukan di `homeostasis-cli`.
+  rujukan di `zevrigo-cli`.
 - Pemindaian (`scan`): per cabang, indeks terpakai = maksimum `next_index` file dan indeks yang punya UTXO; dipindai
   sampai 20 indeks di atasnya, paling banyak 64 payload per `scan_utxos`. UTXO jenis 1 dan payload asing diabaikan.
   `balance` dan `send` menyimpan indeks berikutnya yang lebih tinggi hasil pemindaian, sehingga wallet yang dipulihkan

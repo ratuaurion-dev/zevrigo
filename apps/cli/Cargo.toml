@@ -1,5 +1,5 @@
 [package]
-name = "homeostasis-cli"
+name = "zevrigo-cli"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,14 +7,14 @@ publish.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "homeostasis-cli"
+name = "zevrigo-cli"
 path = "src/main.rs"
 
 [dependencies]
-homeostasis-primitives.workspace = true
-homeostasis-rpc.workspace = true
+zevrigo-primitives.workspace = true
+zevrigo-rpc.workspace = true
 # DEC-21: frasa, kunci, alamat, pemilihan koin, dan tanda tangan dari MOD-09.
-homeostasis-wallet-core.workspace = true
+zevrigo-wallet-core.workspace = true
 # DEC-27: password wallet dibaca dari terminal tanpa tampil di layar; password dihapus dari memori sesudah dipakai.
 rpassword.workspace = true
 serde.workspace = true

@@ -2,7 +2,7 @@
 //!
 //! Node A dan B (MOD-11, `MemoryStore`) masing-masing dengan server RPC sungguhan (MOD-08) dan miner sungguhan (MOD-13)
 //! di satu proses. Explorer (MOD-14) memakai indeks SQLite di file sementara dan membaca node A lewat RPC
-//! (`RpcSource`), lewat `Shared` yang sama dengan program `homeostasis-explorer`: `sync_once` untuk satu langkah
+//! (`RpcSource`), lewat `Shared` yang sama dengan program `zevrigo-explorer`: `sync_once` untuk satu langkah
 //! sinkronisasi dan `respond` untuk API (fungsi yang dipanggil handler axum). Selesai bila (Dokumen fitur FTR-05, diubah
 //! DEC-28): API menampilkan blok, ringkasan transaksi, dan statistik pasokan tanpa alamat, jumlah per penerima, maupun
 //! alokasi genesis; indeks (dibaca langsung lewat `Shared::read_index`) tetap mencatat alamat dan alokasi genesis dengan
@@ -20,25 +20,25 @@ mod ftr05 {
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
 
-    use homeostasis_consensus::{
-        ChainParams, REGTEST_GENESIS_TIMESTAMP, SupplySchedule, regtest_genesis, regtest_network_id,
-    };
-    use homeostasis_crypto::{SecretKey, sighash_v1, sign, txid};
-    use homeostasis_explorer::{
-        AddressSummary, AllocationInfo, DB_FILE, Indexer, RpcSource, Shared, TxDetail,
-    };
-    use homeostasis_mempool::DEFAULT_MAX_BYTES;
-    use homeostasis_miner::Miner;
-    use homeostasis_node::Node;
-    use homeostasis_primitives::params::GENESIS_ALLOCATION;
-    use homeostasis_primitives::{
-        Amount, Encode, Hash32, Input, Network, Output, OutputKind, Transaction, Witness,
-    };
-    use homeostasis_rpc::{Hex32, KindNumber, RpcBackend, RpcClient, RpcServer, SubmitStatus};
-    use homeostasis_storage::MemoryStore;
-    use homeostasis_wallet_core::encode_address;
     use serde_json::Value;
     use tokio::runtime::Runtime;
+    use zevrigo_consensus::{
+        ChainParams, REGTEST_GENESIS_TIMESTAMP, SupplySchedule, regtest_genesis, regtest_network_id,
+    };
+    use zevrigo_crypto::{SecretKey, sighash_v1, sign, txid};
+    use zevrigo_explorer::{
+        AddressSummary, AllocationInfo, DB_FILE, Indexer, RpcSource, Shared, TxDetail,
+    };
+    use zevrigo_mempool::DEFAULT_MAX_BYTES;
+    use zevrigo_miner::Miner;
+    use zevrigo_node::Node;
+    use zevrigo_primitives::params::GENESIS_ALLOCATION;
+    use zevrigo_primitives::{
+        Amount, Encode, Hash32, Input, Network, Output, OutputKind, Transaction, Witness,
+    };
+    use zevrigo_rpc::{Hex32, KindNumber, RpcBackend, RpcClient, RpcServer, SubmitStatus};
+    use zevrigo_storage::MemoryStore;
+    use zevrigo_wallet_core::encode_address;
 
     /// Jam kedua node: 1_000 jadwal blok sesudah genesis, sehingga chain uji selalu di belakang jadwal.
     const NOW: u64 = REGTEST_GENESIS_TIMESTAMP + 120 * 1_000;
@@ -52,8 +52,8 @@ mod ftr05 {
 
     impl TempDir {
         fn new() -> Self {
-            let path = std::env::temp_dir()
-                .join(format!("homeostasis-q84-explorer-{}", std::process::id()));
+            let path =
+                std::env::temp_dir().join(format!("zevrigo-q84-explorer-{}", std::process::id()));
             let _ = std::fs::remove_dir_all(&path);
             std::fs::create_dir_all(&path).unwrap();
             Self(path)
@@ -66,7 +66,7 @@ mod ftr05 {
         }
     }
 
-    /// Explorer seperti program `homeostasis-explorer`, tanpa server HTTP dan tanpa jeda 2 detik.
+    /// Explorer seperti program `zevrigo-explorer`, tanpa server HTTP dan tanpa jeda 2 detik.
     struct Explorer {
         shared: Shared,
         source: RpcSource,

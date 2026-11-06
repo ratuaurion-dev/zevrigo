@@ -1,14 +1,14 @@
-//! Aturan konsensus jadwal penerbitan dan pasokan koin Homeostasis (`HSIS`).
+//! Aturan konsensus jadwal penerbitan dan pasokan koin Zevrigo (`ZVRG`).
 //!
-//! Seluruh parameter numerik diambil langsung dari [`homeostasis_primitives::params`]
+//! Seluruh parameter numerik diambil langsung dari [`zevrigo_primitives::params`]
 //! tanpa menyalin ulang konstanta protokol.
 
 use std::iter::FusedIterator;
 
-use homeostasis_primitives::params::{
+use zevrigo_primitives::params::{
     GENESIS_ALLOCATION, HALF_LIFE_DIVISOR, MAIN_SUPPLY, SLOW_START_BLOCKS, TAIL_REWARD,
 };
-use homeostasis_primitives::{Amount, BlockHeight};
+use zevrigo_primitives::{Amount, BlockHeight};
 
 /// Galat perhitungan jadwal pasokan koin konsensus.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, thiserror::Error)]

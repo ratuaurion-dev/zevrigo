@@ -1,7 +1,7 @@
-use homeostasis_consensus::{SupplySchedule, regtest_network_id};
-use homeostasis_crypto::txid;
-use homeostasis_primitives::{Hash32, Network};
 use serde_json::Value;
+use zevrigo_consensus::{SupplySchedule, regtest_network_id};
+use zevrigo_crypto::txid;
+use zevrigo_primitives::{Hash32, Network};
 
 use super::{NodeView, SyncStatus, respond};
 use crate::index::Indexer;

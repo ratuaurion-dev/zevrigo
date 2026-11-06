@@ -1,8 +1,8 @@
-use homeostasis_primitives::params::{
+use proptest::prelude::*;
+use zevrigo_primitives::params::{
     GENESIS_ALLOCATION, HALF_LIFE_DIVISOR, MAIN_SUPPLY, SLOW_START_BLOCKS, TAIL_REWARD,
 };
-use homeostasis_primitives::{Amount, BlockHeight};
-use proptest::prelude::*;
+use zevrigo_primitives::{Amount, BlockHeight};
 
 use super::{ScheduleEntry, SupplySchedule, base_reward, block_subsidy, total_supply_after};
 

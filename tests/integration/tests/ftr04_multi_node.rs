@@ -18,23 +18,23 @@ mod ftr04 {
     use std::thread::sleep;
     use std::time::{Duration, Instant};
 
-    use homeostasis_consensus::{
-        BlockError, ChainParams, REGTEST_GENESIS_TIMESTAMP, check_block_context_free,
-        regtest_genesis,
-    };
-    use homeostasis_crypto::{SecretKey, sighash_v1, sign, txid};
-    use homeostasis_mempool::DEFAULT_MAX_BYTES;
-    use homeostasis_network::{Keypair, Multiaddr, NetEvent, Network, NetworkConfig};
-    use homeostasis_node::{Node, P2pService, Relay, local_status};
-    use homeostasis_primitives::params::GENESIS_ALLOCATION;
-    use homeostasis_primitives::{
-        Amount, Block, Decode, Encode, Header, Input, Output, OutputKind, Transaction, Witness,
-    };
-    use homeostasis_rpc::{GetBlockTemplateParams, Hex32, KindNumber, RpcBackend, SubmitStatus};
-    use homeostasis_storage::MemoryStore;
     use tokio::runtime::Runtime;
     use tokio::sync::mpsc;
     use tokio::task::JoinHandle;
+    use zevrigo_consensus::{
+        BlockError, ChainParams, REGTEST_GENESIS_TIMESTAMP, check_block_context_free,
+        regtest_genesis,
+    };
+    use zevrigo_crypto::{SecretKey, sighash_v1, sign, txid};
+    use zevrigo_mempool::DEFAULT_MAX_BYTES;
+    use zevrigo_network::{Keypair, Multiaddr, NetEvent, Network, NetworkConfig};
+    use zevrigo_node::{Node, P2pService, Relay, local_status};
+    use zevrigo_primitives::params::GENESIS_ALLOCATION;
+    use zevrigo_primitives::{
+        Amount, Block, Decode, Encode, Header, Input, Output, OutputKind, Transaction, Witness,
+    };
+    use zevrigo_rpc::{GetBlockTemplateParams, Hex32, KindNumber, RpcBackend, SubmitStatus};
+    use zevrigo_storage::MemoryStore;
 
     /// Jam semua node: 1_000 jadwal blok sesudah genesis, sehingga chain uji selalu di belakang jadwal.
     const NOW: u64 = REGTEST_GENESIS_TIMESTAMP + 120 * 1_000;

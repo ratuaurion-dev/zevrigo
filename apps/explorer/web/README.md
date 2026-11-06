@@ -1,4 +1,4 @@
-# Antarmuka web explorer Homeostasis Coin (HSIS)
+# Antarmuka web explorer Zevrigo Coin (ZVRG)
 
 Bagian MOD-14 (DEC-26). Next.js (App Router, static export) + React + TypeScript + Tailwind CSS + shadcn/ui, dua
 bahasa (Indonesia bawaan, English), mode terang dan gelap. Tampilan dirancang lewat Google AI Studio, lalu disesuaikan
@@ -22,7 +22,7 @@ npm run dev:mock                 # pratinjau dengan data Regtest tiruan, http://
 Dari akar repo: `make web-check` (sama dengan dua perintah pertama). Hasil build disajikan program explorer:
 
 ```bash
-cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis --web-dir apps/explorer/web/out
+cargo run -p zevrigo-explorer -- --regtest --datadir ~/.zevrigo --web-dir apps/explorer/web/out
 ```
 
 `npm run dev` tanpa data tiruan tidak punya API (static export tidak bisa meneruskan `/api`); pakai `dev:mock` untuk

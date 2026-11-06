@@ -3,9 +3,9 @@
 //! Satu mode saja: setiap input menandatangani seluruh transaksi (lewat `txid`), indeks inputnya sendiri,
 //! ID jaringan, dan encoding kanonis semua output yang dibelanjakan transaksi itu.
 
-use homeostasis_primitives::encoding::Encode;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::tx::{Output, Transaction, TxBody};
+use zevrigo_primitives::encoding::Encode;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::tx::{Output, Transaction, TxBody};
 
 use crate::hash::{Domain, hash};
 use crate::ids::txid;

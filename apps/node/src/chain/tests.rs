@@ -2,22 +2,22 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use homeostasis_consensus::{
+use zevrigo_consensus::{
     BlockError, ChainParams, DifficultyError, SupplySchedule, TxError, check_block_context_free,
     check_header_context_free, regtest_genesis,
 };
-use homeostasis_crypto::{SecretKey, block_id, block_merkle_root, sighash_v1, sign, txid};
-use homeostasis_mempool::{DEFAULT_MAX_BYTES, MempoolError};
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{
+use zevrigo_crypto::{SecretKey, block_id, block_merkle_root, sighash_v1, sign, txid};
+use zevrigo_mempool::{DEFAULT_MAX_BYTES, MempoolError};
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Decode, Encode, Hash32, Header, Input, Network, OutPoint, Output,
     OutputKind, Transaction, Witness,
 };
-use homeostasis_rpc::{
+use zevrigo_rpc::{
     GetBlockTemplateParams, Hex32, KindNumber, MempoolOutput, MempoolScan, MempoolSpend, Quanta,
     RpcBackend, RpcError, SendRawTransactionResult, SubmitBlockResult, SubmitStatus,
 };
-use homeostasis_storage::{ChainStore, MemoryStore, RedbStore};
+use zevrigo_storage::{ChainStore, MemoryStore, RedbStore};
 
 use super::{
     Clock, HeadersOutcome, MAX_LOCATOR_IDS, Node, NodeError, NodeLimits, PRESYNC_COMMIT_INTERVAL,

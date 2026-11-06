@@ -3,8 +3,8 @@
 // tidak nol, data kurang satu kelompok) dibuat Quick dengan implementasi referensi Python (alat/wallet_ref.py)
 // sehingga checksum-nya sah dan hanya aturan yang diuji yang dilanggar.
 
-use homeostasis_primitives::{Network, OutputKind};
 use proptest::prelude::*;
+use zevrigo_primitives::{Network, OutputKind};
 
 use super::{AddressError, CHARSET, PAYLOAD_LEN, decode_address, encode_address, verify_checksum};
 
@@ -80,7 +80,7 @@ fn decode_accepts_uppercase_and_rejects_mixed_case() {
         decode_address(Network::Mainnet, &upper),
         Ok((OutputKind::SingleKey, payload()))
     );
-    let mixed = MAINNET_0.replacen("hsis", "HSIS", 1);
+    let mixed = MAINNET_0.replacen("hsis", "ZVRG", 1);
     assert_eq!(
         decode_address(Network::Mainnet, &mixed),
         Err(AddressError::MixedCase)

@@ -187,7 +187,7 @@ fn bip340_official_csv_vectors_all_32_byte_messages_pass() {
 
         let msg_vec = decode_hex_vec(msg_hex).unwrap();
         if msg_vec.len() != 32 {
-            // API Homeostasis hanya menerima pesan tepat 32 byte (sighash).
+            // API Zevrigo hanya menerima pesan tepat 32 byte (sighash).
             skipped_non_32_byte_msgs.push((index, msg_vec.len()));
             continue;
         }

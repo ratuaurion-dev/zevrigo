@@ -36,7 +36,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetClose, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import { HomeostasisLogo } from './shared';
+import { ZevrigoLogo } from './shared';
 import { cn } from '@/lib/utils';
 
 export function ExplorerShell({ children }: { children: React.ReactNode }) {
@@ -105,10 +105,10 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
               href="/"
               className="flex items-center gap-2 text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap shrink-0"
             >
-              <HomeostasisLogo className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
-              <span>Homeostasis</span>
+              <ZevrigoLogo className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+              <span>Zevrigo</span>
               <span className="hidden sm:inline font-mono text-xs font-medium text-teal-700 dark:text-teal-400">
-                HSIS
+                ZVRG
               </span>
             </Link>
             <span
@@ -459,8 +459,8 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
         <SheetContent aria-describedby={undefined}>
         <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
           <SheetTitle className="flex items-center gap-2 font-bold text-sm">
-            <HomeostasisLogo className="w-5 h-5" />
-            <span>Homeostasis (HSIS)</span>
+            <ZevrigoLogo className="w-5 h-5" />
+            <span>Zevrigo (ZVRG)</span>
           </SheetTitle>
           <SheetClose asChild>
             <Button

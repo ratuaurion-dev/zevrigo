@@ -7,8 +7,8 @@
 
 use std::sync::Arc;
 
-use homeostasis_pow::{RandomxService, key_height};
-use homeostasis_primitives::{BlockHeight, Hash32, Header};
+use zevrigo_pow::{RandomxService, key_height};
+use zevrigo_primitives::{BlockHeight, Hash32, Header};
 
 /// Penghitung hash PoW RandomX untuk V3 testnet dan mainnet.
 pub trait RandomxHasher {

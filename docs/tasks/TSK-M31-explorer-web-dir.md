@@ -4,7 +4,7 @@
 - **Estimasi:** S · **Ditulis:** Quick (kode dan test), 2 November 2026
 
 ## Tujuan
-Program `homeostasis-explorer` menyajikan hasil build antarmuka web (`apps/explorer/web/dist`) di origin yang sama dengan
+Program `zevrigo-explorer` menyajikan hasil build antarmuka web (`apps/explorer/web/dist`) di origin yang sama dengan
 API, sesuai Spesifikasi Explorer Web v0.1 Bagian 7, tanpa dependensi baru.
 
 ## Isi

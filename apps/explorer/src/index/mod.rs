@@ -8,12 +8,12 @@
 
 use std::path::Path;
 
-use homeostasis_consensus::block_subsidy;
-use homeostasis_crypto::{block_id, txid};
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{Amount, Block, BlockHeight, Decode, Encode, Hash32, Output, TxBody};
 use rusqlite::{Connection, OptionalExtension, params};
 use thiserror::Error;
+use zevrigo_consensus::block_subsidy;
+use zevrigo_crypto::{block_id, txid};
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{Amount, Block, BlockHeight, Decode, Encode, Hash32, Output, TxBody};
 
 use crate::db::{
     META_MINED_TOTAL, META_NETWORK_ID, META_SCHEMA_VERSION, SCHEMA, SCHEMA_VERSION,

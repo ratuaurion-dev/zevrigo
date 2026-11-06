@@ -7,11 +7,11 @@
 
 use std::collections::BTreeSet;
 
-use homeostasis_crypto::{SecretKey, sighash_v1, sign, verify};
-use homeostasis_primitives::encoding::{varint_u64_len, varint_u128_len};
-use homeostasis_primitives::params::MAX_BLOCK_SIZE;
-use homeostasis_primitives::tx::SIGNATURE_LEN;
-use homeostasis_primitives::{
+use zevrigo_crypto::{SecretKey, sighash_v1, sign, verify};
+use zevrigo_primitives::encoding::{varint_u64_len, varint_u128_len};
+use zevrigo_primitives::params::MAX_BLOCK_SIZE;
+use zevrigo_primitives::tx::SIGNATURE_LEN;
+use zevrigo_primitives::{
     Amount, DecodeError, Hash32, Input, OutPoint, Output, OutputKind, Transaction, Witness,
 };
 

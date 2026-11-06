@@ -1,5 +1,5 @@
-use homeostasis_primitives::Hash32;
 use proptest::prelude::*;
+use zevrigo_primitives::Hash32;
 
 use super::Target;
 

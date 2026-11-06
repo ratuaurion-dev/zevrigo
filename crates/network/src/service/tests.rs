@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use homeostasis_primitives::{Block, BlockHeight, Hash32};
 use libp2p::identity::Keypair;
 use libp2p::multiaddr::Protocol;
 use libp2p::{Multiaddr, PeerId};
+use zevrigo_primitives::{Block, BlockHeight, Hash32};
 
 use super::{NetEvent, Network, NetworkConfig, Offense, ip_of, peer_of, strip_p2p};
 use crate::message::{Ack, Blocks, GetBlocks, GetHeaders, Headers, Status};

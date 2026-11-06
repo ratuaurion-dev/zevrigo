@@ -1,4 +1,4 @@
-//! MOD-02: Primitif kriptografi Homeostasis Coin (`HSIS`): hash BLAKE3 berpemisah domain, Merkle root, Schnorr BIP340, ID data chain, sighash v1, dan penjumlahan skalar/titik secp256k1 untuk turunan kunci BIP32 wallet.
+//! MOD-02: Primitif kriptografi Zevrigo Coin (`ZVRG`): hash BLAKE3 berpemisah domain, Merkle root, Schnorr BIP340, ID data chain, sighash v1, dan penjumlahan skalar/titik secp256k1 untuk turunan kunci BIP32 wallet.
 
 #![forbid(unsafe_code)]
 #![deny(

@@ -1,8 +1,8 @@
-# MOD-08: RPC (`homeostasis-rpc`)
+# MOD-08: RPC (`zevrigo-rpc`)
 
 - **ID:** `MOD-08`
 - **Path:** `crates/rpc`
-- **Paket:** `homeostasis-rpc`
+- **Paket:** `zevrigo-rpc`
 - **Status:** 🟢 selesai untuk regtest (TSK-M12: tipe, encoding, server, dan klien)
 - **Bergantung pada:** `MOD-01`
 - **Dipakai oleh:** `MOD-11`, `MOD-12`, `MOD-13`, `MOD-14`, `MOD-15`, `MOD-16`, `MOD-17`

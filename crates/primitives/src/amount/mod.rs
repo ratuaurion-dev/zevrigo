@@ -1,32 +1,32 @@
 //! Tipe jumlah koin (`Amount`) dalam satuan terkecil quanta (`u128`).
 //!
-//! Satu koin `HSIS` setara dengan `10^18` quanta ([`QUANTA_PER_HSIS`]).
+//! Satu koin `ZVRG` setara dengan `10^18` quanta ([`QUANTA_PER_ZVRG`]).
 //! Seluruh operasi aritmetika pada [`Amount`] bersifat eksplisit (`checked_*` atau
 //! `saturating_sub`) tanpa implementasi operator `+` atau `-` agar tidak ada luapan diam-diam.
 
 use std::fmt;
 
-/// Jumlah quanta dalam tepat `1 HSIS` (`10^18` quanta).
-pub const QUANTA_PER_HSIS: u128 = 1_000_000_000_000_000_000;
+/// Jumlah quanta dalam tepat `1 ZVRG` (`10^18` quanta).
+pub const QUANTA_PER_ZVRG: u128 = 1_000_000_000_000_000_000;
 
-/// Jumlah digit pecahan maksimum untuk format teks `HSIS` (`10^18` -> 18 digit).
+/// Jumlah digit pecahan maksimum untuk format teks `ZVRG` (`10^18` -> 18 digit).
 const MAX_FRACTIONAL_DIGITS: usize = 18;
 
-/// Galat saat mengurai teks angka `HSIS` melalui [`Amount::from_hsis_str`].
+/// Galat saat mengurai teks angka `ZVRG` melalui [`Amount::from_zvrg_str`].
 #[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
 pub enum AmountParseError {
-    /// Format teks melanggar tata bahasa angka `HSIS` (kosong, spasi, tanda, nol depan, titik gantung, atau karakter non-digit).
-    #[error("format jumlah HSIS tidak valid")]
+    /// Format teks melanggar tata bahasa angka `ZVRG` (kosong, spasi, tanda, nol depan, titik gantung, atau karakter non-digit).
+    #[error("format jumlah ZVRG tidak valid")]
     InvalidFormat,
     /// Bagian pecahan setelah titik memiliki lebih dari 18 digit desimal.
     #[error("jumlah digit desimal melebihi batas maksimum 18 digit")]
     TooManyDecimals,
     /// Nilai yang diurai melebihi kapasitas maksimum `u128` quanta.
-    #[error("jumlah HSIS melampaui kapasitas maksimum u128 quanta")]
+    #[error("jumlah ZVRG melampaui kapasitas maksimum u128 quanta")]
     Overflow,
 }
 
-/// Jumlah koin Homeostasis yang disimpan sebagai bilangan bulat tak bertanda `u128` dalam quanta.
+/// Jumlah koin Zevrigo yang disimpan sebagai bilangan bulat tak bertanda `u128` dalam quanta.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Amount(u128);
 
@@ -84,15 +84,15 @@ impl Amount {
         Some(total)
     }
 
-    /// Memformat nilai [`Amount`] menjadi teks angka `HSIS` kanonis (tanpa akhiran satuan).
+    /// Memformat nilai [`Amount`] menjadi teks angka `ZVRG` kanonis (tanpa akhiran satuan).
     ///
     /// Bagian bulat ditulis penuh; jika bagian pecahan tidak nol, diikuti titik dan maksimal
     /// 18 digit pecahan tanpa nol di belakang. Jika bagian pecahan nol, titik ditiadakan.
     #[must_use]
-    pub fn to_hsis_string(&self) -> String {
-        // QUANTA_PER_HSIS bernilai konstanta tak-nol (10^18), sehingga pembagian selalu berhasil.
-        let whole = self.0.checked_div(QUANTA_PER_HSIS).unwrap_or(0);
-        let frac = self.0.checked_rem(QUANTA_PER_HSIS).unwrap_or(0);
+    pub fn to_zvrg_string(&self) -> String {
+        // QUANTA_PER_ZVRG bernilai konstanta tak-nol (10^18), sehingga pembagian selalu berhasil.
+        let whole = self.0.checked_div(QUANTA_PER_ZVRG).unwrap_or(0);
+        let frac = self.0.checked_rem(QUANTA_PER_ZVRG).unwrap_or(0);
 
         if frac == 0 {
             return whole.to_string();
@@ -103,7 +103,7 @@ impl Amount {
         format!("{whole}.{frac_trimmed}")
     }
 
-    /// Mengurai teks angka `HSIS` menjadi [`Amount`] dengan aturan ketat.
+    /// Mengurai teks angka `ZVRG` menjadi [`Amount`] dengan aturan ketat.
     ///
     /// Aturan validasi:
     /// - Hanya digit ASCII (`0`–`9`) dan paling banyak satu titik (`.`).
@@ -117,7 +117,7 @@ impl Amount {
     /// - [`AmountParseError::InvalidFormat`] jika struktur atau karakter melanggar aturan tata bahasa.
     /// - [`AmountParseError::TooManyDecimals`] jika terdapat lebih dari 18 digit sesudah titik.
     /// - [`AmountParseError::Overflow`] jika nilai quanta melampaui `u128::MAX`.
-    pub fn from_hsis_str(s: &str) -> Result<Self, AmountParseError> {
+    pub fn from_zvrg_str(s: &str) -> Result<Self, AmountParseError> {
         let (int_part, frac_part_opt) = match s.split_once('.') {
             Some((int_part, rest)) => {
                 if rest.contains('.') {
@@ -159,7 +159,7 @@ impl Amount {
                 .ok_or(AmountParseError::Overflow)?;
         }
         let whole_quanta = whole
-            .checked_mul(QUANTA_PER_HSIS)
+            .checked_mul(QUANTA_PER_ZVRG)
             .ok_or(AmountParseError::Overflow)?;
 
         let frac_quanta = match frac_part_opt {
@@ -193,7 +193,7 @@ impl Amount {
 
 impl fmt::Display for Amount {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} HSIS", self.to_hsis_string())
+        write!(f, "{} ZVRG", self.to_zvrg_string())
     }
 }
 

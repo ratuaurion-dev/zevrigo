@@ -1,11 +1,11 @@
-//! MOD-14: Pustaka explorer Homeostasis Coin (`homeostasis-explorer`), sesuai Spesifikasi Explorer v0.1 (DEC-25).
+//! MOD-14: Pustaka explorer Zevrigo Coin (`zevrigo-explorer`), sesuai Spesifikasi Explorer v0.1 (DEC-25).
 //!
 //! - [`source`]: sumber data chain untuk indexer; [`rpc_source`]: node lewat RPC v0.1.
 //! - [`db`]: skema SQLite dan encoding nilai tersimpan.
 //! - [`index`]: [`Indexer`], sinkronisasi tahan reorg dan pemeriksaan I1 sampai I4.
 //! - [`query`]: bacaan indeks (blok, transaksi, alamat, pasokan, alokasi genesis, mempool).
 //! - [`api`]: API HTTP baca saja sebagai fungsi murni.
-//! - [`cli`] dan [`server`]: argumen, server axum, sinkronisasi berkala, dan program `homeostasis-explorer`.
+//! - [`cli`] dan [`server`]: argumen, server axum, sinkronisasi berkala, dan program `zevrigo-explorer`.
 //! - [`limit`]: batas laju API per klien dan bersama, tanpa menyimpan alamat IP.
 //! - [`web`]: penyajian antarmuka web (static export Next.js `apps/explorer/web/out`) dan kebijakan keamanan konten
 //!   dengan hash skrip inline setiap halaman.

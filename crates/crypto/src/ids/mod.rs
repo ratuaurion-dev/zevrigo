@@ -3,10 +3,10 @@
 //! Sesuai `docs/reference/spesifikasi-format-v0.1.md` Bagian 3, 4.1, 5.3, 6.1, 6.3, dan 7,
 //! modul ini adalah satu-satunya tempat di proyek yang menghitung identitas data chain.
 
-use homeostasis_primitives::block::{Block, Header};
-use homeostasis_primitives::encoding::Encode;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::tx::{Condition, Transaction};
+use zevrigo_primitives::block::{Block, Header};
+use zevrigo_primitives::encoding::Encode;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::tx::{Condition, Transaction};
 
 use crate::hash::{Domain, hash};
 use crate::merkle::merkle_root;

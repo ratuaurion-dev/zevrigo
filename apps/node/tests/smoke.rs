@@ -1,10 +1,10 @@
-//! Smoke test CLI untuk biner `homeostasis-node` (MOD-11).
+//! Smoke test CLI untuk biner `zevrigo-node` (MOD-11).
 
 #![forbid(unsafe_code)]
 
 use std::process::Command;
 
-const BIN: &str = env!("CARGO_BIN_EXE_homeostasis-node");
+const BIN: &str = env!("CARGO_BIN_EXE_zevrigo-node");
 
 #[test]
 fn version_flag_prints_package_version() {
@@ -13,7 +13,7 @@ fn version_flag_prints_package_version() {
     let stdout = String::from_utf8(out.stdout).unwrap();
     assert_eq!(
         stdout,
-        format!("homeostasis-node {}\n", env!("CARGO_PKG_VERSION"))
+        format!("zevrigo-node {}\n", env!("CARGO_PKG_VERSION"))
     );
 }
 
@@ -23,7 +23,7 @@ fn help_and_no_args_print_usage() {
         let out = Command::new(BIN).args(args).output().unwrap();
         assert_eq!(out.status.code(), Some(0));
         let stdout = String::from_utf8(out.stdout).unwrap();
-        assert!(stdout.contains("homeostasis-node"));
+        assert!(stdout.contains("zevrigo-node"));
         assert!(stdout.contains("MOD-11"));
         assert!(stdout.contains("--regtest --datadir <folder>"));
         assert!(!stdout.contains("kerangka R0"));

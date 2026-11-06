@@ -7,9 +7,9 @@
 
 use std::fmt::Display;
 
-use homeostasis_primitives::Hash32;
-use homeostasis_rpc::{Hex32, RpcClient, error_code};
 use tokio::runtime::Handle;
+use zevrigo_primitives::Hash32;
+use zevrigo_rpc::{Hex32, RpcClient, error_code};
 
 use crate::api::NodeView;
 use crate::source::{ChainSource, SourceBlock, SourceError};

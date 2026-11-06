@@ -14,7 +14,7 @@ struct Site(PathBuf);
 impl Site {
     fn new(name: &str) -> Self {
         let path =
-            std::env::temp_dir().join(format!("homeostasis-q90-web-{name}-{}", std::process::id()));
+            std::env::temp_dir().join(format!("zevrigo-q90-web-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&path);
         for folder in [
             "_next/static/chunks",

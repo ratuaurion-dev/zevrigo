@@ -1,30 +1,30 @@
-# Homeostasis Coin regtest dalam Docker (TSK-M33, Spesifikasi Docker v0.1). Explorer dan miner berbagi namespace
+# Zevrigo Coin regtest dalam Docker (TSK-M33, Spesifikasi Docker v0.1). Explorer dan miner berbagi namespace
 # jaringan dengan node (network_mode: service:node), sehingga RPC node tetap hanya di 127.0.0.1 di dalam container dan
 # tidak pernah terbuka. Di komputer host, explorer hanya bisa dibuka dari komputer itu sendiri: http://127.0.0.1:28802/
 #
-#   docker compose build                                     image homeostasis:regtest
+#   docker compose build                                     image zevrigo:regtest
 #   docker compose up -d                                     node + explorer
-#   HSIS_PAYOUT=<payload hex 64> docker compose --profile miner up -d miner
-#   docker compose exec node homeostasis-cli --datadir /data wallet-create
-#   docker compose down                                      berhenti (data tetap di volume homeostasis_hsis-data)
-name: homeostasis
+#   ZVRG_PAYOUT=<payload hex 64> docker compose --profile miner up -d miner
+#   docker compose exec node zevrigo-cli --datadir /data wallet-create
+#   docker compose down                                      berhenti (data tetap di volume zevrigo_zvrg-data)
+name: zevrigo
 
 services:
   node:
-    image: homeostasis:regtest
+    image: zevrigo:regtest
     build: .
     command: ["--regtest", "--datadir", "/data"]
     volumes:
-      - hsis-data:/data
+      - zvrg-data:/data
     ports:
       - "127.0.0.1:28802:28802"
     stop_grace_period: 30s
     restart: unless-stopped
 
   explorer:
-    image: homeostasis:regtest
+    image: zevrigo:regtest
     pull_policy: never
-    entrypoint: ["homeostasis-explorer"]
+    entrypoint: ["zevrigo-explorer"]
     command:
       - --regtest
       - --datadir
@@ -32,20 +32,20 @@ services:
       - --http-bind
       - 0.0.0.0
       - --web-dir
-      - /usr/share/homeostasis/web
+      - /usr/share/zevrigo/web
     network_mode: "service:node"
     volumes:
-      - hsis-data:/data
+      - zvrg-data:/data
     depends_on:
       - node
     stop_grace_period: 30s
     restart: unless-stopped
 
   miner:
-    image: homeostasis:regtest
+    image: zevrigo:regtest
     pull_policy: never
-    entrypoint: ["homeostasis-miner"]
-    command: ["--payout", "${HSIS_PAYOUT:-}"]
+    entrypoint: ["zevrigo-miner"]
+    command: ["--payout", "${ZVRG_PAYOUT:-}"]
     network_mode: "service:node"
     depends_on:
       - node
@@ -53,4 +53,4 @@ services:
       - miner
 
 volumes:
-  hsis-data:
+  zvrg-data:

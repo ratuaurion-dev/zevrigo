@@ -1,10 +1,10 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use homeostasis_consensus::regtest_network_id;
-use homeostasis_primitives::{Encode, Hash32};
-use homeostasis_rpc::{RpcClient, RpcServer};
 use tokio::runtime::Runtime;
+use zevrigo_consensus::regtest_network_id;
+use zevrigo_primitives::{Encode, Hash32};
+use zevrigo_rpc::{RpcClient, RpcServer};
 
 use super::RpcSource;
 use crate::index::Indexer;

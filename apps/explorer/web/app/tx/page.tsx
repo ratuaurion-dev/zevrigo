@@ -24,7 +24,7 @@ import {
   ApiStateView,
   ConfirmationsBadge,
   HashValue,
-  HsisAmount,
+  ZvrgAmount,
   TableSkeleton,
 } from '@/components/explorer/shared';
 
@@ -180,7 +180,7 @@ function TxDetailContent() {
                     {t('txFieldFeeNone')}
                   </span>
                 ) : (
-                  <HsisAmount quanta={tx.fee} />
+                  <ZvrgAmount quanta={tx.fee} />
                 )}
               </dd>
             </div>

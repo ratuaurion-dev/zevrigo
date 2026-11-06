@@ -1,4 +1,4 @@
-//! FTR-03 (TSK-F03): kirim dan terima HSIS lewat CLI di regtest, dari ujung ke ujung.
+//! FTR-03 (TSK-F03): kirim dan terima ZVRG lewat CLI di regtest, dari ujung ke ujung.
 //!
 //! Node (MOD-11, `RedbStore` di memori), server RPC (MOD-08), miner (MOD-13), dan perintah wallet CLI (MOD-12, DEC-23)
 //! berjalan di satu proses lewat RPC HTTP sungguhan. Selesai bila (Dokumen fitur FTR-03): wallet CLI membuat alamat,
@@ -16,25 +16,25 @@ mod ftr03 {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicU64, Ordering};
 
-    use homeostasis_cli::{
+    use tokio::runtime::Runtime;
+    use zevrigo_cli::{
         Balance, Cli, CliError, Protection, Sent, next_address, wallet_create, wallet_restore,
     };
-    use homeostasis_consensus::{
+    use zevrigo_consensus::{
         ChainParams, REGTEST_GENESIS_TIMESTAMP, ScheduleEntry, SupplySchedule,
     };
-    use homeostasis_crypto::SecretKey;
-    use homeostasis_mempool::DEFAULT_MAX_BYTES;
-    use homeostasis_miner::Miner;
-    use homeostasis_node::{Clock, Node};
-    use homeostasis_primitives::{Amount, Block, Decode, Network, OutputKind};
-    use homeostasis_rpc::{Hex32, KindNumber, RpcClient, RpcServer};
-    use homeostasis_storage::RedbStore;
-    use homeostasis_wallet_core::{KdfParams, SendError, decode_address};
-    use tokio::runtime::Runtime;
+    use zevrigo_crypto::SecretKey;
+    use zevrigo_mempool::DEFAULT_MAX_BYTES;
+    use zevrigo_miner::Miner;
+    use zevrigo_node::{Clock, Node};
+    use zevrigo_primitives::{Amount, Block, Decode, Network, OutputKind};
+    use zevrigo_rpc::{Hex32, KindNumber, RpcClient, RpcServer};
+    use zevrigo_storage::RedbStore;
+    use zevrigo_wallet_core::{KdfParams, SendError, decode_address};
 
-    /// Dikirim wallet A ke wallet B: 0,005 HSIS (butuh dua coinbase matang A, sehingga ada dua input dan kembalian).
+    /// Dikirim wallet A ke wallet B: 0,005 ZVRG (butuh dua coinbase matang A, sehingga ada dua input dan kembalian).
     const A_TO_B: u128 = 5_000_000_000_000_000;
-    /// Dikirim balik wallet B ke wallet A: 0,001 HSIS (satu input bukan coinbase, dengan kembalian).
+    /// Dikirim balik wallet B ke wallet A: 0,001 ZVRG (satu input bukan coinbase, dengan kembalian).
     const B_TO_A: u128 = 1_000_000_000_000_000;
     /// Tarif biaya bawaan CLI: 1 quanta per byte.
     const FEE_RATE: u128 = 1;
@@ -45,7 +45,7 @@ mod ftr03 {
     impl TempDir {
         fn new(name: &str) -> Self {
             let path =
-                std::env::temp_dir().join(format!("homeostasis-q75-{name}-{}", std::process::id()));
+                std::env::temp_dir().join(format!("zevrigo-q75-{name}-{}", std::process::id()));
             let _ = std::fs::remove_dir_all(&path);
             Self(path)
         }

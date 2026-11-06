@@ -6,13 +6,13 @@
 use core::fmt;
 
 use hmac::{Hmac, Mac};
-use homeostasis_crypto::{
+use sha2::Sha512;
+use zeroize::Zeroize;
+use zevrigo_crypto::{
     COMPRESSED_PUBLIC_KEY_LEN, is_valid_public_key, public_key_compressed, public_tweak_add,
     secret_tweak_add,
 };
-use homeostasis_primitives::Network;
-use sha2::Sha512;
-use zeroize::Zeroize;
+use zevrigo_primitives::Network;
 
 use crate::mnemonic::Seed;
 
@@ -21,7 +21,7 @@ type HmacSha512 = Hmac<Sha512>;
 /// Bit penanda indeks hardened BIP32 (`2^31`).
 pub const HARDENED: u32 = 0x8000_0000;
 
-/// Tujuan jalur `44'` (hanya struktur jalur; HSIS tidak punya skrip).
+/// Tujuan jalur `44'` (hanya struktur jalur; ZVRG tidak punya skrip).
 pub const PURPOSE: u32 = 44;
 
 /// Nomor `coin` untuk regtest dan testnet (konvensi SLIP-44 "testnet semua koin").
@@ -338,7 +338,7 @@ fn lower_hex_value(digit: u8) -> Option<u8> {
 ///
 /// # Errors
 ///
-/// [`Bip32Error::MainnetCoinTypeUnset`] untuk mainnet, sampai nomor SLIP-44 HSIS ditetapkan.
+/// [`Bip32Error::MainnetCoinTypeUnset`] untuk mainnet, sampai nomor SLIP-44 ZVRG ditetapkan.
 pub fn coin_type(network: Network) -> Result<u32, Bip32Error> {
     match network {
         Network::Testnet | Network::Regtest => Ok(TESTNET_COIN_TYPE),

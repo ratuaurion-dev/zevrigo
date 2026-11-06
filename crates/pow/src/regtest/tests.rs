@@ -1,7 +1,7 @@
-use homeostasis_primitives::block::Header;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
 use proptest::prelude::*;
+use zevrigo_primitives::block::Header;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
 
 use super::{PowError, mine_regtest, regtest_pow_hash, verify_regtest_pow};
 use crate::target::Target;
@@ -152,7 +152,7 @@ fn vectors_p8_p9_p11_nonce_overflow_and_zero_attempts() {
 fn vector_p10_regtest_pow_hash_differs_from_block_id() {
     let v4 = build_v4();
     let h_pow = regtest_pow_hash(&v4);
-    let h_block = homeostasis_crypto::block_id(&v4);
+    let h_block = zevrigo_crypto::block_id(&v4);
     assert_ne!(h_pow, h_block);
     assert_eq!(
         h_block,

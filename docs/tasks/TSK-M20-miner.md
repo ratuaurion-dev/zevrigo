@@ -8,7 +8,7 @@ Penambang CPU yang mengambil template dari node lewat RPC (MOD-08), mencari nonc
 DEC-09), lalu mengirim blok. Hanya regtest; PoW mainnet menunggu DEC-01.
 
 ## Pemakaian
-`homeostasis-miner --payout <payload hex 64> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]`
+`zevrigo-miner --payout <payload hex 64> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]`
 - `--payout`: kunci x-only (jenis 0) atau hash kondisi (jenis 1) penerima hadiah, sebagai payload hex. (Koreksi
   31 Oktober 2026: format alamat bech32m sudah final sejak DEC-11; miner belum memakainya karena encode/decode alamat
   baru dibuat di MOD-09, TSK-M15. Opsi alamat untuk miner menyusul.)

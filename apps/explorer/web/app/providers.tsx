@@ -12,7 +12,7 @@ import {
 } from '@/lib/i18n';
 
 export type Theme = 'light' | 'dark';
-const THEME_STORAGE_KEY = 'hsis-explorer-theme';
+const THEME_STORAGE_KEY = 'zvrg-explorer-theme';
 
 interface AppContextValue {
   lang: Lang;

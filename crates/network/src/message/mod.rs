@@ -5,14 +5,14 @@
 //! elemennya dibaca, dan setiap byte wajib terbaca habis. Pengirim wajib mematuhi batas; [`Wire::to_wire`] tidak
 //! memeriksanya, penerima menolak lewat [`Wire::from_wire`].
 
-use homeostasis_primitives::encoding::{
+use thiserror::Error;
+use zevrigo_primitives::encoding::{
     write_bytes, write_u8, write_u64_le, write_varint_u64, write_vec,
 };
-use homeostasis_primitives::{
+use zevrigo_primitives::{
     Block, BlockHeight, Decode, DecodeError, Encode, HEADER_SIZE, Hash32, Header, Reader,
     Transaction,
 };
-use thiserror::Error;
 
 /// Panjang isi pesan paling besar di dalam bingkai (`2_097_152` byte, 2 MiB).
 pub const MAX_MESSAGE_SIZE: usize = 2_097_152;

@@ -3,20 +3,20 @@
 
 use std::sync::Arc;
 
-use homeostasis_consensus::{
+use zevrigo_consensus::{
     ChainParams, RandomxHasher, ScheduleEntry, SupplySchedule, check_block_pow, randomx_hasher,
     randomx_key_height,
 };
-use homeostasis_crypto::{Domain, SecretKey, block_id, block_merkle_root, hash};
-use homeostasis_mempool::DEFAULT_MAX_BYTES;
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{
+use zevrigo_crypto::{Domain, SecretKey, block_id, block_merkle_root, hash};
+use zevrigo_mempool::DEFAULT_MAX_BYTES;
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Encode, Hash32, Header, Network, Output, OutputKind, Transaction,
 };
-use homeostasis_rpc::{
+use zevrigo_rpc::{
     GetBlockTemplateParams, Hex32, KindNumber, RpcBackend, SubmitBlockResult, SubmitStatus,
 };
-use homeostasis_storage::MemoryStore;
+use zevrigo_storage::MemoryStore;
 
 use super::{Clock, HeadersOutcome, Node, NodeError, NodeLimits, Presync, PresyncOutcome, Randomx};
 

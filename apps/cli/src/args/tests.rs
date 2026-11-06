@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use homeostasis_primitives::{Amount, Network};
+use zevrigo_primitives::{Amount, Network};
 
 use super::{Action, ArgError, Command, Config, USAGE, default_rpc_url, parse_args};
 
@@ -42,7 +42,7 @@ fn parses_help_version_and_info() {
     assert!(USAGE.contains("wallet-restore --mnemonic"));
     assert!(USAGE.contains("wallet-encrypt"));
     assert!(USAGE.contains("wallet-show-phrase"));
-    assert!(USAGE.contains("HOMEOSTASIS_WALLET_PASSWORD"));
+    assert!(USAGE.contains("ZEVRIGO_WALLET_PASSWORD"));
 }
 
 #[test]

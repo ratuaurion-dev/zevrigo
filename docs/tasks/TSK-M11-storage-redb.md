@@ -29,7 +29,7 @@ isi kedua store wajib sama persis. Pruning TIDAK termasuk task ini (dipindah ke 
 - `Cargo.toml` root, di `[workspace.dependencies]`, tepat setelah baris `k256 = ...`, tambahkan tepat:
   `redb = { version = "4.4.0", default-features = false, features = ["std"] }`
 - `crates/storage/Cargo.toml`, di `[dependencies]`, tambahkan tepat satu baris `redb.workspace = true`
-  (urutan: homeostasis-primitives, redb, thiserror). Tidak ada dependensi lain, termasuk dev-dependency.
+  (urutan: zevrigo-primitives, redb, thiserror). Tidak ada dependensi lain, termasuk dev-dependency.
 - `Cargo.lock`: blok `[[package]]` baru hanya `redb`, ditambah `libc` jika sebelumnya belum ada.
 - Jangan diubah: crate lain, AGENTS.md, docs/system-map.md, `src/memory/**` (MemoryStore dan test-nya tetap persis).
 - Di luar lingkup: pruning (TSK-M23), blok cabang samping, validasi, migrasi skema.
@@ -124,7 +124,7 @@ Data rusak (semua wajib `Err(StoreError::CorruptData)`):
 - C4 `decode_utxo_entry` dari U1 tanpa byte terakhir (42 byte)
 - C5 `decode_block_undo` dari B1 dengan 4 byte pertama `02000000` (jumlah spent 2, isi hanya 1)
 
-## Daftar test (nama persis; test homeostasis-storage menjadi tepat 23)
+## Daftar test (nama persis; test zevrigo-storage menjadi tepat 23)
 Helper test yang wajib dipakai, ditulis persis di file test yang membutuhkannya:
 ```rust
 fn to_hex(bytes: &[u8]) -> String {
@@ -163,12 +163,12 @@ tidak diubah. Di `src/codec/tests.rs`, salin `h` saja.
    h(0x04) yang menghabiskan (h(0x03),0)) dijalankan di MemoryStore dan RedbStore::in_memory(). Hasil setiap
    apply/undo wajib sama, dan `assert_same_state` dipanggil setelah setiap langkah, termasuk setelah undo kedua dan
    undo ketiga (`Err(EmptyChain)`).
-8. `reopen_file_preserves_state`: path `std::env::temp_dir().join("homeostasis-tsk-m11-reopen.redb")`; hapus file
+8. `reopen_file_preserves_state`: path `std::env::temp_dir().join("zevrigo-tsk-m11-reopen.redb")`; hapus file
    lama jika ada (`let _ = std::fs::remove_file(&path);`). `create` → apply G dan blok 1 dari test 7 → drop.
    `open` → `tip()` = `Some((BlockHeight::new(1), h(0xb1)))`, UTXO (h(0x04),0) ada, (h(0x01),0) tidak ada, dan
    `undo_data(h(0xb1))` sama dengan hasil MemoryStore → `undo_tip()` = `Ok((h(0xb1), blok 1))` → drop. `open` lagi →
    `tip()` = `Some((BlockHeight::new(0), h(0xb0)))` → drop → hapus file.
-9. `open_rejects_unknown_schema_version`: path `homeostasis-tsk-m11-schema.redb` di temp_dir, hapus file lama.
+9. `open_rejects_unknown_schema_version`: path `zevrigo-tsk-m11-schema.redb` di temp_dir, hapus file lama.
    `create` → drop. Buka langsung dengan `redb::Database::open`, tulis META[SCHEMA_KEY] = 2, commit, drop.
    `RedbStore::open` = `Err(StoreError::UnsupportedSchema { found: 2 })`. Hapus file.
 10. `prop_differential_against_memory_store`: `#![proptest_config(ProptestConfig::with_cases(64))]`. Input
@@ -213,8 +213,8 @@ Test lama (12 test TSK-M10) tidak diubah.
 - docs/system-map.md dan kartu modul lain TIDAK diubah.
 
 ## Kriteria penerimaan
-- [ ] K1, U1, B1, dan C1–C5 sesuai; 23 test homeostasis-storage lolos dengan nama persis
-- [ ] Uji diferensial lolos; tidak ada file `homeostasis-tsk-m11-*` tersisa di temp_dir
+- [ ] K1, U1, B1, dan C1–C5 sesuai; 23 test zevrigo-storage lolos dengan nama persis
+- [ ] Uji diferensial lolos; tidak ada file `zevrigo-tsk-m11-*` tersisa di temp_dir
 - [ ] Cargo.toml root dan crate persis seperti Ruang lingkup; Cargo.lock hanya menambah redb (dan libc jika belum ada)
 - [ ] Tanpa HashMap/HashSet; tanpa unwrap/expect/panic di kode non-test; lint konsensus tetap aktif
 - [ ] `make check-all` lolos tanpa warning
@@ -229,12 +229,12 @@ Jika kode akhir berbeda dari rencana yang disetujui selain karena rustfmt, sebut
 - L3: `git show --stat HEAD`
 - L4: `git diff HEAD~1 -- Cargo.toml crates/storage/Cargo.toml`
 - L5: `git diff HEAD~1 -- Cargo.lock`
-- L6: `cargo tree -p homeostasis-storage -e normal`
+- L6: `cargo tree -p zevrigo-storage -e normal`
 - L7: `git show HEAD -- crates/storage/src/lib.rs crates/storage/src/store/mod.rs crates/storage/src/tests.rs`
 - L8: `cat crates/storage/src/codec/mod.rs crates/storage/src/redb_store/mod.rs`
 - L9: `cat crates/storage/src/codec/tests.rs crates/storage/src/redb_store/tests.rs`
-- L10: `cargo test -p homeostasis-storage 2>&1 | grep -E "^test |test result"`
+- L10: `cargo test -p zevrigo-storage 2>&1 | grep -E "^test |test result"`
 - L11: `make check-all > /tmp/m11-check.log 2>&1; echo "exit=$?"; grep -cE "^test .* ok$" /tmp/m11-check.log; grep -E "^(warning|error)|FAILED" /tmp/m11-check.log || echo "(tidak ada warning/error)"`
 - L12: `grep -rnE "unwrap\(|expect\(|panic!|HashMap|HashSet|unsafe" crates/storage/src/lib.rs crates/storage/src/store/mod.rs crates/storage/src/codec/mod.rs crates/storage/src/redb_store/mod.rs || echo "(tidak ada)"`
-- L13: `ls "${TMPDIR:-/tmp}"/homeostasis-tsk-m11-* 2>/dev/null || echo "(tidak ada file sisa)"`
+- L13: `ls "${TMPDIR:-/tmp}"/zevrigo-tsk-m11-* 2>/dev/null || echo "(tidak ada file sisa)"`
 - L14: `git show HEAD -- docs/`

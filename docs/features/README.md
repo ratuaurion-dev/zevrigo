@@ -9,7 +9,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 |---|---|---|---|---|
 | FTR-01 | Node regtest tunggal memvalidasi dan menyimpan chain sendiri | MOD-01..05, MOD-08, MOD-11 | TSK-F01 | 🟢 |
 | FTR-02 | Menambang blok di regtest | MOD-01, 03, 04, 08, 11, 13 | TSK-F02 | 🟢 |
-| FTR-03 | Kirim dan terima HSIS lewat CLI di regtest | MOD-01, 02, 04, 07, 08, 09, 11, 12 | TSK-F03 | 🟢 |
+| FTR-03 | Kirim dan terima ZVRG lewat CLI di regtest | MOD-01, 02, 04, 07, 08, 09, 11, 12 | TSK-F03 | 🟢 |
 | FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | 🟢 |
 | FTR-05 | Explorer minimal (hanya data sistem sejak DEC-28) | MOD-01, 02, 04, 08, 14 (DEC-25, DEC-28) | TSK-F05, TSK-M39 | 🟢 |
 | FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 TSK-M06 |

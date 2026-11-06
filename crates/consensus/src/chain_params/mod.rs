@@ -4,10 +4,10 @@
 //! 5 November 2026 (DEC-01, TSK-M06 bagian C2); cap waktu genesis testnet ditetapkan saat peluncuran (TSK-F06). Nilai
 //! mainnet ditetapkan dari pengukuran testnet.
 
-use homeostasis_crypto::{merkle_root, network_id, wtxid};
-use homeostasis_pow::Target;
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{
+use zevrigo_crypto::{merkle_root, network_id, wtxid};
+use zevrigo_pow::Target;
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{
     Block, BlockHeight, DecodeError, GENESIS_EXTRA_LEN, Hash32, Header, Network, Output,
     OutputKind, Transaction,
 };

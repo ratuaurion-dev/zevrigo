@@ -1,15 +1,15 @@
-# MOD-12: CLI (`homeostasis-cli`)
+# MOD-12: CLI (`zevrigo-cli`)
 
 - **ID:** `MOD-12`
 - **Path:** `apps/cli`
-- **Paket:** `homeostasis-cli` (bin)
+- **Paket:** `zevrigo-cli` (bin)
 - **Status:** 🟢 TSK-M19 selesai: `info`, `wallet-create`, `wallet-restore`, `address`, `balance`, `send`; regtest dan testnet (`--testnet`, TSK-M06 bagian C3b)
 - **Bergantung pada:** `MOD-01`, `MOD-08`, `MOD-09` (DEC-21)
 - **Dipakai oleh:** —
 
 ## Tujuan
 
-Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan berinteraksi dengan daemon `homeostasis-node` melalui JSON-RPC.
+Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan berinteraksi dengan daemon `zevrigo-node` melalui JSON-RPC.
 
 ## Tanggung Jawab
 
@@ -23,6 +23,6 @@ Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan 
 - Menulis sendiri logika frasa, kunci, alamat, atau tanda tangan; semuanya dari `MOD-09`.
 
 ## Task terkait
-- [TSK-M19](../tasks/TSK-M19-cli-wallet.md) — 🟢 selesai (pustaka `homeostasis_cli`: `args`, `wallet_file`, `scan`, `commands`)
+- [TSK-M19](../tasks/TSK-M19-cli-wallet.md) — 🟢 selesai (pustaka `zevrigo_cli`: `args`, `wallet_file`, `scan`, `commands`)
 - [TSK-M36](../tasks/TSK-M36-saldo-tertunda.md) — 🟢 selesai (saldo dan pemilihan koin dengan transaksi tertunda)
 - [TSK-M37](../tasks/TSK-M37-enkripsi-wallet.md) — 🟢 selesai (file wallet versi 2 dikunci password, `wallet-encrypt`, `wallet-show-phrase`, DEC-27)

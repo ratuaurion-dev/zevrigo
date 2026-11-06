@@ -1,4 +1,4 @@
-# Spesifikasi RPC Homeostasis Coin (HSIS) v0.1: 9 metode JSON-RPC untuk node regtest (FTR-01 sampai FTR-03)
+# Spesifikasi RPC Zevrigo Coin (ZVRG) v0.1: 9 metode JSON-RPC untuk node regtest (FTR-01 sampai FTR-03)
 
 > Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S04 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-rpc-v0.1.md`

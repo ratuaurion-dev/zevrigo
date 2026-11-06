@@ -4,8 +4,8 @@
 //! bit dan `REAL` adalah float (dilarang). Fungsi agregat SQL tidak pernah dipakai pada kolom jumlah; penjumlahan di
 //! Rust dengan `checked_add`.
 
-use homeostasis_primitives::Amount;
 use rusqlite::{Connection, OptionalExtension, params};
+use zevrigo_primitives::Amount;
 
 /// Versi skema indeks (`1`).
 pub const SCHEMA_VERSION: u32 = 1;

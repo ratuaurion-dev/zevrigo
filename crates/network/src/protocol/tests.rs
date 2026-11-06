@@ -1,4 +1,4 @@
-use homeostasis_primitives::Hash32;
+use zevrigo_primitives::Hash32;
 
 use super::{ProtocolKind, network_prefix, protocol_name, stream_protocol};
 

@@ -1,11 +1,11 @@
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::block::{Block, Header};
-use homeostasis_primitives::encoding::{Decode, Encode};
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::params::Network;
-use homeostasis_primitives::tx::{Output, OutputKind, Transaction};
-use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::block::{Block, Header};
+use zevrigo_primitives::encoding::{Decode, Encode};
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::params::Network;
+use zevrigo_primitives::tx::{Output, OutputKind, Transaction};
+use zevrigo_primitives::utxo::{OutPoint, UtxoEntry};
 
 use super::{
     BlockInfo, ChainInfo, GetBlockHashParams, GetBlockParams, GetBlockTemplateParams,

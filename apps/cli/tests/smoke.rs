@@ -1,10 +1,10 @@
-//! Smoke test CLI untuk biner `homeostasis-cli` (MOD-12).
+//! Smoke test CLI untuk biner `zevrigo-cli` (MOD-12).
 
 #![forbid(unsafe_code)]
 
 use std::process::Command;
 
-const BIN: &str = env!("CARGO_BIN_EXE_homeostasis-cli");
+const BIN: &str = env!("CARGO_BIN_EXE_zevrigo-cli");
 
 #[test]
 fn version_flag_prints_package_version() {
@@ -13,7 +13,7 @@ fn version_flag_prints_package_version() {
     let stdout = String::from_utf8(out.stdout).unwrap();
     assert_eq!(
         stdout,
-        format!("homeostasis-cli {}\n", env!("CARGO_PKG_VERSION"))
+        format!("zevrigo-cli {}\n", env!("CARGO_PKG_VERSION"))
     );
 }
 
@@ -23,10 +23,10 @@ fn help_and_no_args_print_usage() {
         let out = Command::new(BIN).args(args).output().unwrap();
         assert_eq!(out.status.code(), Some(0));
         let stdout = String::from_utf8(out.stdout).unwrap();
-        assert!(stdout.contains("homeostasis-cli"));
+        assert!(stdout.contains("zevrigo-cli"));
         assert!(stdout.contains("MOD-12"));
         assert!(stdout.contains("wallet-create"));
-        assert!(stdout.contains("send --to <alamat> --amount <HSIS>"));
+        assert!(stdout.contains("send --to <alamat> --amount <ZVRG>"));
         assert!(!stdout.contains("kerangka R0"));
     }
 }
@@ -49,15 +49,14 @@ impl Drop for TempDir {
 
 #[test]
 fn encrypted_wallet_with_password_from_environment() {
-    let dir =
-        TempDir(std::env::temp_dir().join(format!("homeostasis-q89-cli-{}", std::process::id())));
+    let dir = TempDir(std::env::temp_dir().join(format!("zevrigo-q89-cli-{}", std::process::id())));
     let _ = std::fs::remove_dir_all(&dir.0);
     let cli = |args: &[&str], password: Option<&str>| {
         let mut command = Command::new(BIN);
         command.arg("--datadir").arg(&dir.0).args(args);
-        command.env_remove("HOMEOSTASIS_WALLET_PASSWORD");
+        command.env_remove("ZEVRIGO_WALLET_PASSWORD");
         if let Some(password) = password {
-            command.env("HOMEOSTASIS_WALLET_PASSWORD", password);
+            command.env("ZEVRIGO_WALLET_PASSWORD", password);
         }
         command.output().unwrap()
     };
@@ -97,14 +96,13 @@ fn encrypted_wallet_with_password_from_environment() {
     );
 
     // Password baru terlalu pendek: wallet tidak dibuat.
-    let other = TempDir(
-        std::env::temp_dir().join(format!("homeostasis-q89-cli-short-{}", std::process::id())),
-    );
+    let other =
+        TempDir(std::env::temp_dir().join(format!("zevrigo-q89-cli-short-{}", std::process::id())));
     let short = Command::new(BIN)
         .arg("--datadir")
         .arg(&other.0)
         .arg("wallet-create")
-        .env("HOMEOSTASIS_WALLET_PASSWORD", "pendek")
+        .env("ZEVRIGO_WALLET_PASSWORD", "pendek")
         .output()
         .unwrap();
     assert_eq!(short.status.code(), Some(1));

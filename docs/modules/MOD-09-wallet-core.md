@@ -1,15 +1,15 @@
-# MOD-09: Wallet Core (`homeostasis-wallet-core`)
+# MOD-09: Wallet Core (`zevrigo-wallet-core`)
 
 - **ID:** `MOD-09`
 - **Path:** `crates/wallet-core`
-- **Paket:** `homeostasis-wallet-core`
+- **Paket:** `zevrigo-wallet-core`
 - **Status:** 🟡 sedang berjalan (TSK-M15 dan TSK-M16 selesai: frasa BIP39, turunan BIP32, kunci akun publik, alamat bech32m, pemilihan koin, biaya, kembalian, tanda tangan; sisa: output jenis 1 dan MuSig2)
 - **Bergantung pada:** `MOD-01`, `MOD-02`
 - **Dipakai oleh:** `MOD-10`, `MOD-12` (DEC-21), `MOD-15`, `MOD-17`
 
 ## Tujuan
 
-Menyediakan pustaka inti pengelolaan kunci, pemilihan UTXO, penyusunan, dan penandatanganan transaksi bagi dompet HSIS.
+Menyediakan pustaka inti pengelolaan kunci, pemilihan UTXO, penyusunan, dan penandatanganan transaksi bagi dompet ZVRG.
 
 ## Tanggung Jawab
 

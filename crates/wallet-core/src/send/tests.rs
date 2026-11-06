@@ -6,24 +6,24 @@
 
 use std::collections::BTreeMap;
 
-use homeostasis_crypto::{PublicKey, Signature, sighash_v1, txid, verify};
-use homeostasis_primitives::{
+use proptest::prelude::*;
+use zevrigo_crypto::{PublicKey, Signature, sighash_v1, txid, verify};
+use zevrigo_primitives::{
     Amount, Encode, Hash32, Network, OutPoint, Output, OutputKind, TxBody, Witness,
 };
-use proptest::prelude::*;
 
 use super::{Coin, Plan, SendError, SendRequest, build_transaction, plan, sign_plan};
 use crate::bip32::{CHANGE_BRANCH, ExtendedPrivKey, RECEIVE_BRANCH, account_key};
 use crate::mnemonic::Mnemonic;
 
-const HSIS: u128 = 1_000_000_000_000_000_000;
-const THREE_HSIS: u128 = 3 * HSIS;
-const FIVE_HSIS: u128 = 5 * HSIS;
-const SIX_HSIS: u128 = 6 * HSIS;
-const SEVEN_HSIS: u128 = 7 * HSIS;
-/// Kembalian T1: 8 HSIS − 6 HSIS − biaya 284.
-const T1_CHANGE: u128 = 2 * HSIS - 284;
-const HSIS_MINUS_ONE: u128 = HSIS - 1;
+const ZVRG: u128 = 1_000_000_000_000_000_000;
+const THREE_ZVRG: u128 = 3 * ZVRG;
+const FIVE_ZVRG: u128 = 5 * ZVRG;
+const SIX_ZVRG: u128 = 6 * ZVRG;
+const SEVEN_ZVRG: u128 = 7 * ZVRG;
+/// Kembalian T1: 8 ZVRG − 6 ZVRG − biaya 284.
+const T1_CHANGE: u128 = 2 * ZVRG - 284;
+const ZVRG_MINUS_ONE: u128 = ZVRG - 1;
 const W5_XONLY: &str = "5a6f28253f35e2ff1ab0b086b8c87f731159661157e5be2ca98188369625dc32";
 const W6_XONLY: &str = "8f33099c2cc3739e24c329d9e2d72ff7ce8bb4f4491b1763f69ca8693ea34806";
 const W7_XONLY: &str = "c71cdd713224479fff24b56db524c2385acf09725605e7440de0c34272e2abf5";
@@ -72,7 +72,7 @@ fn t1_coins() -> Vec<Coin> {
     vec![
         Coin::new(
             outpoint(0xa1, 0),
-            Amount::from_quanta(FIVE_HSIS),
+            Amount::from_quanta(FIVE_ZVRG),
             h32(W5_XONLY),
             101,
             RECEIVE_BRANCH,
@@ -80,7 +80,7 @@ fn t1_coins() -> Vec<Coin> {
         ),
         Coin::new(
             outpoint(0xb2, 1),
-            Amount::from_quanta(THREE_HSIS),
+            Amount::from_quanta(THREE_ZVRG),
             h32(W6_XONLY),
             50,
             RECEIVE_BRANCH,
@@ -89,7 +89,7 @@ fn t1_coins() -> Vec<Coin> {
         // Belum matang di tinggi ujung 150 (spendable_at 200), jadi tidak dipilih.
         Coin::new(
             outpoint(0xc3, 0),
-            Amount::from_quanta(SEVEN_HSIS),
+            Amount::from_quanta(SEVEN_ZVRG),
             h32(W7_XONLY),
             200,
             CHANGE_BRANCH,
@@ -102,7 +102,7 @@ fn t1_request() -> SendRequest {
     SendRequest {
         recipient_kind: OutputKind::SingleKey,
         recipient_payload: h32(RECIPIENT),
-        amount: Amount::from_quanta(SIX_HSIS),
+        amount: Amount::from_quanta(SIX_ZVRG),
         fee_rate: 1,
         change_payload: h32(CHANGE_1_1_XONLY),
         tip_height: 150,
@@ -263,9 +263,9 @@ fn plan_fee_and_change_edge_cases() {
         assert_eq!(chosen.outputs().len(), expected_outputs, "total {total}");
     }
     // Tarif 0: seluruh sisa menjadi kembalian.
-    let free = plan(&[coin(1, 0, HSIS, 0)], &request(1, 0)).expect("cukup");
+    let free = plan(&[coin(1, 0, ZVRG, 0)], &request(1, 0)).expect("cukup");
     assert_eq!(free.fee(), Amount::ZERO);
-    assert_eq!(free.change(), Some(Amount::from_quanta(HSIS_MINUS_ONE)));
+    assert_eq!(free.change(), Some(Amount::from_quanta(ZVRG_MINUS_ONE)));
     assert_eq!(free.size(), 178);
 }
 
@@ -332,15 +332,15 @@ fn sign_rejects_key_mismatch() {
     // Payload W5 (0/0) dengan jalur 0/1: kunci turunan tidak cocok.
     let wrong = [Coin::new(
         outpoint(0xa1, 0),
-        Amount::from_quanta(FIVE_HSIS),
+        Amount::from_quanta(FIVE_ZVRG),
         h32(W5_XONLY),
         0,
         RECEIVE_BRANCH,
         1,
     )];
-    let mut one_hsis = t1_request();
-    one_hsis.amount = Amount::from_quanta(HSIS);
-    let chosen = plan(&wrong, &one_hsis).expect("cukup");
+    let mut one_zvrg = t1_request();
+    one_zvrg.amount = Amount::from_quanta(ZVRG);
+    let chosen = plan(&wrong, &one_zvrg).expect("cukup");
     assert_eq!(
         sign_plan(
             &chosen,

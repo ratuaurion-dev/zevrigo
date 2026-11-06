@@ -1,18 +1,18 @@
 //! Argumen baris perintah miner (tanpa `clap`, DEC-10 bagian 2).
 
-use homeostasis_primitives::{Network, OutputKind};
-use homeostasis_rpc::transport::{DEFAULT_HOST, default_port};
-use homeostasis_rpc::{Hex32, KindNumber};
 use thiserror::Error;
+use zevrigo_primitives::{Network, OutputKind};
+use zevrigo_rpc::transport::{DEFAULT_HOST, default_port};
+use zevrigo_rpc::{Hex32, KindNumber};
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
-    "homeostasis-miner (MOD-13): penambang CPU Homeostasis Coin (regtest: PoW dev; testnet: RandomX)\n",
+    "zevrigo-miner (MOD-13): penambang CPU Zevrigo Coin (regtest: PoW dev; testnet: RandomX)\n",
     "\n",
     "Pemakaian:\n",
-    "  homeostasis-miner --payout <payload hex 64> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]\n",
-    "  homeostasis-miner --testnet [--light] --payout <payload hex 64> [opsi yang sama]\n",
-    "  homeostasis-miner --help | --version\n",
+    "  zevrigo-miner --payout <payload hex 64> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]\n",
+    "  zevrigo-miner --testnet [--light] --payout <payload hex 64> [opsi yang sama]\n",
+    "  zevrigo-miner --help | --version\n",
     "\n",
     "Opsi:\n",
     "  --regtest           jaringan regtest (bawaan)\n",

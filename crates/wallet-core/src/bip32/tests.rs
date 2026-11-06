@@ -2,7 +2,7 @@
 // Kolom chain_code, secret, dan public adalah isi ext prv dan ext pub resmi (Base58Check didekode Quick) untuk
 // setiap jalur. W4 sampai W7: Spesifikasi Wallet v0.1 Bagian 4.
 
-use homeostasis_primitives::Network;
+use zevrigo_primitives::Network;
 
 use super::{
     ACCOUNT_KEY_HEX_LEN, Bip32Error, CHANGE_BRANCH, ExtendedPrivKey, ExtendedPubKey, HARDENED,

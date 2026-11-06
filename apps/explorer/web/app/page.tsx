@@ -24,7 +24,7 @@ import {
 import {
   computeBasisPoints,
   formatBasisPointsPercent,
-  formatHsis,
+  formatZvrg,
   formatInt,
   MINING_SUPPLY_QUANTA,
 } from '@/lib/amount';
@@ -52,7 +52,7 @@ import {
   ApiStateView,
   ConfirmationsBadge,
   HashValue,
-  HsisAmount,
+  ZvrgAmount,
   RecentBlocksCharts,
   TableSkeleton,
 } from '@/components/explorer/shared';
@@ -118,7 +118,7 @@ export default function DashboardPage() {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
-            <span>Homeostasis Coin (HSIS)</span>
+            <span>Zevrigo Coin (ZVRG)</span>
             <span aria-hidden="true">·</span>
             <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-teal-700 dark:text-teal-400">
               <RefreshCw
@@ -280,14 +280,14 @@ export default function DashboardPage() {
             ) : (
               <div className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">
                 {supply ? (
-                  <HsisAmount quanta={supply.mined_total} compact maxDecimals={6} />
+                  <ZvrgAmount quanta={supply.mined_total} compact maxDecimals={6} />
                 ) : (
                   '—'
                 )}
               </div>
             )}
             <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono tabular-nums">
-              {minedPercentLabel} / 43.8M HSIS
+              {minedPercentLabel} / 43.8M ZVRG
             </div>
           </CardContent>
         </Card>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
             ) : (
               <div className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">
                 {supply ? (
-                  <HsisAmount quanta={supply.fees_total} compact maxDecimals={6} />
+                  <ZvrgAmount quanta={supply.fees_total} compact maxDecimals={6} />
                 ) : (
                   '—'
                 )}
@@ -331,7 +331,7 @@ export default function DashboardPage() {
             ) : (
               <div className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">
                 {supply ? (
-                  <HsisAmount quanta={supply.next_subsidy} compact maxDecimals={6} />
+                  <ZvrgAmount quanta={supply.next_subsidy} compact maxDecimals={6} />
                 ) : (
                   '—'
                 )}
@@ -400,8 +400,8 @@ export default function DashboardPage() {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300 font-mono tabular-nums">
               <div>
-                <HsisAmount quanta={supply.mined_total} /> /{' '}
-                {formatHsis(MINING_SUPPLY_QUANTA, lang)} ({minedPercentLabel})
+                <ZvrgAmount quanta={supply.mined_total} /> /{' '}
+                {formatZvrg(MINING_SUPPLY_QUANTA, lang)} ({minedPercentLabel})
               </div>
             </div>
           </CardContent>

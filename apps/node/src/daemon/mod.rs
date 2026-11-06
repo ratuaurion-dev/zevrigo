@@ -11,31 +11,31 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use homeostasis_consensus::{ChainParams, ParamsError};
-use homeostasis_mempool::DEFAULT_MAX_BYTES;
-use homeostasis_network::{
+use thiserror::Error;
+use tokio::sync::mpsc;
+use zevrigo_consensus::{ChainParams, ParamsError};
+use zevrigo_mempool::DEFAULT_MAX_BYTES;
+use zevrigo_network::{
     KeyError, Multiaddr, Network as P2pNetwork, NetworkConfig, NetworkError, P2P_KEY_FILE,
     load_or_create,
 };
-use homeostasis_primitives::Network;
-use homeostasis_rpc::transport::default_port;
-use homeostasis_rpc::{RpcBackend, RpcError, RpcServer, ServerError};
-use homeostasis_storage::{ChainStore, RedbStore, StoreError};
-use thiserror::Error;
-use tokio::sync::mpsc;
+use zevrigo_primitives::Network;
+use zevrigo_rpc::transport::default_port;
+use zevrigo_rpc::{RpcBackend, RpcError, RpcServer, ServerError};
+use zevrigo_storage::{ChainStore, RedbStore, StoreError};
 
 use crate::chain::{Clock, Node, NodeError};
 use crate::p2p::{P2pService, Relay, local_status};
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
-    "homeostasis-node (MOD-11): daemon node Homeostasis Coin\n",
+    "zevrigo-node (MOD-11): daemon node Zevrigo Coin\n",
     "\n",
     "Pemakaian:\n",
-    "  homeostasis-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>]\n",
+    "  zevrigo-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>]\n",
     "                   [--connect <multiaddr>]...\n",
-    "  homeostasis-node --testnet --datadir <folder> [opsi yang sama]\n",
-    "  homeostasis-node --help | --version\n",
+    "  zevrigo-node --testnet --datadir <folder> [opsi yang sama]\n",
+    "  zevrigo-node --help | --version\n",
     "\n",
     "Opsi:\n",
     "  --regtest           jaringan regtest (PoW dev, untuk pengembangan)\n",

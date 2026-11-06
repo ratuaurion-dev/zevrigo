@@ -1,12 +1,12 @@
-//! MOD-12: Alat baris perintah node dan wallet regtest dan testnet Homeostasis Coin (`homeostasis-cli`).
+//! MOD-12: Alat baris perintah node dan wallet regtest dan testnet Zevrigo Coin (`zevrigo-cli`).
 
 #![forbid(unsafe_code)]
 
 use std::process::ExitCode;
 
-use homeostasis_cli::{Command, USAGE, os_random, parse_args, run, terminal_password};
+use zevrigo_cli::{Command, USAGE, os_random, parse_args, run, terminal_password};
 
-const BIN_NAME: &str = "homeostasis-cli";
+const BIN_NAME: &str = "zevrigo-cli";
 
 fn main() -> ExitCode {
     let config = match parse_args(std::env::args().skip(1)) {

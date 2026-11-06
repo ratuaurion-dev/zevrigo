@@ -10,9 +10,9 @@
 
 use std::collections::BTreeMap;
 
-use homeostasis_primitives::OutputKind;
-use homeostasis_rpc::{Hex32, MAX_SCAN_PAYLOADS, UtxoInfo};
-use homeostasis_wallet_core::{CHANGE_BRANCH, ExtendedPubKey, HARDENED, RECEIVE_BRANCH};
+use zevrigo_primitives::OutputKind;
+use zevrigo_rpc::{Hex32, MAX_SCAN_PAYLOADS, UtxoInfo};
+use zevrigo_wallet_core::{CHANGE_BRANCH, ExtendedPubKey, HARDENED, RECEIVE_BRANCH};
 
 use crate::wallet_file::NextIndex;
 

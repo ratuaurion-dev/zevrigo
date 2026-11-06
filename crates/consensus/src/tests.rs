@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use homeostasis_primitives::{Amount, BlockHeight, Network, OutPoint, UtxoEntry};
+use zevrigo_primitives::{Amount, BlockHeight, Network, OutPoint, UtxoEntry};
 
 use crate::{
     BlockError, ChainParams, MODULE_ID, REGTEST_POW_LIMIT_COMPACT, SupplySchedule, TxError, U256,

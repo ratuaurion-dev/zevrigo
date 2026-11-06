@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pemindai larangan mutlak kode Rust Homeostasis Coin (HSIS):
+# Pemindai larangan mutlak kode Rust Zevrigo Coin (ZVRG):
 # - Tipe floating point kata utuh: f32, f64
 # - Literal floating point (desimal seperti 1.0 / 1.5 atau eksponen seperti 2e3)
 # - Kata kunci unsafe

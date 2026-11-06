@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use homeostasis_primitives::Network;
-use homeostasis_wallet_core::{ExtendedPubKey, KdfParams, Mnemonic, seal, unseal};
+use zevrigo_primitives::Network;
+use zevrigo_wallet_core::{ExtendedPubKey, KdfParams, Mnemonic, seal, unseal};
 
 use super::{
     NextIndex, WalletFile, WalletFileError, create_new, load, load_network, network_name, save,
@@ -70,8 +70,7 @@ struct TempDir(PathBuf);
 
 impl TempDir {
     fn new(name: &str) -> Self {
-        let path =
-            std::env::temp_dir().join(format!("homeostasis-q74-{name}-{}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("zevrigo-q74-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&path);
         Self(path)
     }

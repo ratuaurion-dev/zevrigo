@@ -1,4 +1,4 @@
-# Spesifikasi Antarmuka Web Explorer Homeostasis Coin (HSIS) v0.1: React, dua bahasa, tanpa sumber luar
+# Spesifikasi Antarmuka Web Explorer Zevrigo Coin (ZVRG) v0.1: React, dua bahasa, tanpa sumber luar
 
 > Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S07 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-explorer-web-v0.1.md`
@@ -24,7 +24,7 @@ pemeriksaan, atau kunci di browser. Siapa pun yang menjalankan node dan explorer
 | Lokasi | `apps/explorer/web/` (bagian MOD-14, bukan crate Rust) |
 | Perangkat | Vite + React + TypeScript, build statis ke `apps/explorer/web/dist/` (tidak di-commit) |
 | Tanpa | Tailwind, shadcn/ui, pustaka router, pustaka i18n, pustaka state, pustaka HTTP, pustaka angka. Semua ditulis sendiri di atas React dan `fetch` bawaan browser |
-| Penyajian | Program `homeostasis-explorer --web-dir <folder dist>` di origin yang sama dengan API (tanpa CORS), Bagian 7 |
+| Penyajian | Program `zevrigo-explorer --web-dir <folder dist>` di origin yang sama dengan API (tanpa CORS), Bagian 7 |
 | Pengembangan | `npm run dev` (server Vite) meneruskan `/api` ke `http://127.0.0.1:28802` |
 | Dependensi | DEC-10 bagian 7 (Bagian 8) |
 
@@ -62,16 +62,16 @@ Jalur memakai hash (`#/…`), sehingga server cukup menyajikan file yang ada tan
 - Bahasa Indonesia (bawaan) dan English. Kamus di kode (`src/i18n/id.ts`, `src/i18n/en.ts`) dengan kunci yang sama;
   test memastikan kedua kamus punya kunci yang persis sama dan tidak ada teks kosong.
 - Pilihan pertama: `navigator.language` berawalan `en` → English, selain itu Indonesia. Tombol ganti bahasa di kepala
-  halaman. Pilihan disimpan di `localStorage` (`hsis-explorer-lang`) di browser saja, tidak pernah dikirim ke server.
-- Istilah teknis tidak diterjemahkan: block_id, txid, hash, Merkle root, nonce, quanta, HSIS.
+  halaman. Pilihan disimpan di `localStorage` (`zvrg-explorer-lang`) di browser saja, tidak pernah dikirim ke server.
+- Istilah teknis tidak diterjemahkan: block_id, txid, hash, Merkle root, nonce, quanta, ZVRG.
 
 ---
 
 ## 4. Angka, jumlah koin, dan waktu
 
-- **Jumlah koin** (string desimal quanta dari API) diubah ke `bigint` dan ditampilkan sebagai HSIS dengan 18 desimal,
-  nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `4.380.000 HSIS`, `0,005 HSIS`; English
-  `4,380,000 HSIS`, `0.005 HSIS`. Nilai quanta lengkap tersedia di atribut `title`.
+- **Jumlah koin** (string desimal quanta dari API) diubah ke `bigint` dan ditampilkan sebagai ZVRG dengan 18 desimal,
+  nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `4.380.000 ZVRG`, `0,005 ZVRG`; English
+  `4,380,000 ZVRG`, `0.005 ZVRG`. Nilai quanta lengkap tersedia di atribut `title`.
 - **Dilarang** untuk jumlah koin: tipe `number`, `parseFloat`, `Number(`, `toFixed`, `Math.*`, `Intl.NumberFormat`
   (AGENTS.md, larangan floating point). Diperiksa skrip gerbang dengan pencarian pola di `src/` (kecuali file test).
 - Tinggi, konfirmasi, ukuran, dan posisi tetap `number` (bilangan bulat dari API, jauh di bawah 2^53).
@@ -100,7 +100,7 @@ Jalur memakai hash (`#/…`), sehingga server cukup menyajikan file yang ada tan
 | `package.json`, `package-lock.json` | Versi persis (tanpa `^`), skrip `dev`, `typecheck`, `test`, `build`, `check` |
 | `index.html`, `vite.config.ts`, `tsconfig.json` | Titik masuk, build, TypeScript `strict` |
 | `src/api.ts` | Tipe jawaban API (jumlah sebagai `string`) dan klien `fetch` |
-| `src/amount.ts` | quanta ↔ `bigint`, format HSIS per bahasa |
+| `src/amount.ts` | quanta ↔ `bigint`, format ZVRG per bahasa |
 | `src/route.ts` | Mengurai dan menyusun jalur hash |
 | `src/i18n/` | Kamus Indonesia dan English, pemilih bahasa |
 | `src/pages/`, `src/components/` | Halaman dan komponen |

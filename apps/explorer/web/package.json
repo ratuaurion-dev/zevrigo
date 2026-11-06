@@ -1,8 +1,8 @@
 {
-  "name": "homeostasis-explorer-web",
+  "name": "zevrigo-explorer-web",
   "version": "0.3.0",
   "private": true,
-  "description": "Antarmuka web explorer Homeostasis Coin (MOD-14, DEC-26): Next.js static export, Tailwind CSS, shadcn/ui",
+  "description": "Antarmuka web explorer Zevrigo Coin (MOD-14, DEC-26): Next.js static export, Tailwind CSS, shadcn/ui",
   "license": "MIT OR Apache-2.0",
   "engines": {
     "node": ">=22.12.0"

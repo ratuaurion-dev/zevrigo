@@ -2,7 +2,7 @@ import { id, type Dictionary, type DictionaryKey } from './id';
 import { en } from './en';
 
 export type Lang = 'id' | 'en';
-export const LANG_STORAGE_KEY = 'hsis-explorer-lang';
+export const LANG_STORAGE_KEY = 'zvrg-explorer-lang';
 
 export const dictionaries: Record<Lang, Dictionary> = {
   id,
@@ -29,7 +29,7 @@ export function translate(
 
 /**
  * Detects initial language on the client:
- * 1. Saved value in localStorage key `hsis-explorer-lang` ('id' | 'en')
+ * 1. Saved value in localStorage key `zvrg-explorer-lang` ('id' | 'en')
  * 2. `navigator.language` starting with 'en' -> 'en'
  * 3. Default -> 'id' (Bahasa Indonesia)
  */

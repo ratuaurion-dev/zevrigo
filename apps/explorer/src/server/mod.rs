@@ -18,13 +18,13 @@ use axum::Router;
 use axum::extract::{ConnectInfo, State};
 use axum::http::{Extensions, HeaderValue, Method, StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
-use homeostasis_consensus::ChainParams;
-use homeostasis_primitives::Network;
-use homeostasis_rpc::RpcClient;
 use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::runtime::Handle;
 use tokio::time::MissedTickBehavior;
+use zevrigo_consensus::ChainParams;
+use zevrigo_primitives::Network;
+use zevrigo_rpc::RpcClient;
 
 use crate::api::{ApiResponse, SyncStatus, respond};
 use crate::cli::{Config, db_path};

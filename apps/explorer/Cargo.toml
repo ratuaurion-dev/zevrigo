@@ -1,5 +1,5 @@
 [package]
-name = "homeostasis-explorer"
+name = "zevrigo-explorer"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,17 +7,17 @@ publish.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "homeostasis-explorer"
+name = "zevrigo-explorer"
 path = "src/main.rs"
 
 [dependencies]
 # DEC-10 bagian 6: API HTTP. Hanya `http1` dan `tokio`; Json, Query, dan fitur bawaan lain tidak dipakai.
 axum = { workspace = true, features = ["http1", "tokio"] }
 # DEC-25 bagian 2: MOD-01, 02, 04, 08. MOD-05 tidak dipakai; MOD-09 (alamat) tidak dipakai lagi sejak DEC-28.
-homeostasis-consensus.workspace = true
-homeostasis-crypto.workspace = true
-homeostasis-primitives.workspace = true
-homeostasis-rpc.workspace = true
+zevrigo-consensus.workspace = true
+zevrigo-crypto.workspace = true
+zevrigo-primitives.workspace = true
+zevrigo-rpc.workspace = true
 # DEC-10 bagian 6: SQLite 3.54.1 ikut dikompilasi (fitur `bundled`); fitur bawaan rusqlite tidak dipakai.
 # `fallible_uint`: u64 dan usize lewat konversi i64 yang diperiksa (galat jika di luar jangkauan), tanpa paket baru.
 rusqlite = { workspace = true, features = ["bundled", "fallible_uint"] }

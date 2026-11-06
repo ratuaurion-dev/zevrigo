@@ -1,6 +1,6 @@
-# Homeostasis Coin (HSIS)
+# Zevrigo Coin (ZVRG)
 
-Homeostasis Coin (HSIS) adalah blockchain Layer 1 Proof of Work yang ditulis dari nol dalam Rust dengan fokus utama pada kebenaran konsensus, determinisme penuh, dan ketiadaan hak istimewa. Lapisan dasarnya sengaja minimal: model UTXO, tanpa VM serbaguna, dan hanya mendukung tipe transaksi bawaan (transfer, multi-tanda tangan MuSig2, serta kunci waktu).
+Zevrigo Coin (ZVRG) adalah blockchain Layer 1 Proof of Work yang ditulis dari nol dalam Rust dengan fokus utama pada kebenaran konsensus, determinisme penuh, dan ketiadaan hak istimewa. Lapisan dasarnya sengaja minimal: model UTXO, tanpa VM serbaguna, dan hanya mendukung tipe transaksi bawaan (transfer, multi-tanda tangan MuSig2, serta kunci waktu).
 
 Dokumentasi arsitektur, peta modul, keputusan desain, dan glosarium tersedia di [docs/README.md](docs/README.md) (serta aturan pengembangan lengkap di [AGENTS.md](AGENTS.md)).
 
@@ -21,10 +21,10 @@ make check-all
 ## Menjalankan node regtest
 
 ```bash
-cargo run -p homeostasis-node -- --regtest --datadir ~/.homeostasis
+cargo run -p zevrigo-node -- --regtest --datadir ~/.zevrigo
 ```
 
-Node membuat chain regtest di `~/.homeostasis/regtest/chain.redb`, lalu mencetak alamat JSON-RPC (bawaan
+Node membuat chain regtest di `~/.zevrigo/regtest/chain.redb`, lalu mencetak alamat JSON-RPC (bawaan
 `http://127.0.0.1:28801`). Delapan metode RPC dijelaskan di
 [docs/reference/spesifikasi-rpc-v0.1.md](docs/reference/spesifikasi-rpc-v0.1.md). Hentikan dengan Ctrl-C.
 
@@ -32,7 +32,7 @@ Node juga mendengar P2P di `127.0.0.1:28800` dan mencetak alamatnya sebagai `p2p
 Node kedua di folder lain bisa tersambung dan mengejar chain:
 
 ```bash
-cargo run -p homeostasis-node -- --regtest --datadir ~/.homeostasis-2 --rpc-port 28811 --p2p-port 28810 \
+cargo run -p zevrigo-node -- --regtest --datadir ~/.zevrigo-2 --rpc-port 28811 --p2p-port 28810 \
   --connect /ip4/127.0.0.1/tcp/28800/p2p/<PeerId>
 ```
 
@@ -46,7 +46,7 @@ cap waktu genesis testnet ditetapkan saat peluncuran (TSK-F06), dan penambang te
 Dengan node berjalan, di terminal lain:
 
 ```bash
-cargo run -p homeostasis-miner -- --payout <kunci x-only hex 64> --blocks 10
+cargo run -p zevrigo-miner -- --payout <kunci x-only hex 64> --blocks 10
 ```
 
 Miner mengambil template dari node, mencari nonce dengan PoW dev regtest, dan mengirim blok. Hadiah coinbase bisa
@@ -58,33 +58,33 @@ sekitar satu menit setiap kunci berganti). `--light` memakai mode ringan (256 MB
 ## Wallet CLI regtest
 
 ```bash
-cargo run -p homeostasis-cli -- --datadir ~/.homeostasis wallet-create
-cargo run -p homeostasis-cli -- --datadir ~/.homeostasis address
-cargo run -p homeostasis-cli -- --datadir ~/.homeostasis balance
-cargo run -p homeostasis-cli -- --datadir ~/.homeostasis send --to <alamat rhsis1...> --amount 1.5
+cargo run -p zevrigo-cli -- --datadir ~/.zevrigo wallet-create
+cargo run -p zevrigo-cli -- --datadir ~/.zevrigo address
+cargo run -p zevrigo-cli -- --datadir ~/.zevrigo balance
+cargo run -p zevrigo-cli -- --datadir ~/.zevrigo send --to <alamat rhsis1...> --amount 1.5
 ```
 
-Wallet disimpan di `~/.homeostasis/regtest/wallet.json` (izin `0600`), dikunci password: `wallet-create` meminta
+Wallet disimpan di `~/.zevrigo/regtest/wallet.json` (izin `0600`), dikunci password: `wallet-create` meminta
 password baru dua kali (minimal 8 karakter, tidak tampil di layar), dan `send` serta `wallet-show-phrase` memintanya
 lagi. `address` dan `balance` tidak butuh password. Simpan frasa 24 kata yang dicetak `wallet-create`; password tidak
 bisa memulihkan wallet tanpa frasa itu. Wallet lama tanpa password dikunci dengan `wallet-encrypt`. Untuk skrip regtest,
-password boleh diberikan lewat variabel lingkungan `HOMEOSTASIS_WALLET_PASSWORD`. `address` juga mencetak payload hex yang bisa dipakai untuk `--payout`
+password boleh diberikan lewat variabel lingkungan `ZEVRIGO_WALLET_PASSWORD`. `address` juga mencetak payload hex yang bisa dipakai untuk `--payout`
 miner, sehingga hadiah tambang masuk ke wallet. `balance` juga menampilkan transaksi yang masih menunggu di mempool
 (`keluar tertunda`, `masuk tertunda`, dan saldo setelah semuanya masuk blok), dan `send` tidak memilih koin yang sedang
 dibelanjakan. Aturan lengkap di [docs/reference/spesifikasi-wallet-v0.1.md](docs/reference/spesifikasi-wallet-v0.1.md).
 
 Untuk node `--testnet`, tambahkan `--testnet` ke setiap perintah: wallet disimpan terpisah di
-`~/.homeostasis/testnet/wallet.json`, alamatnya `thsis1...`, dan RPC bawaan `http://127.0.0.1:18801`.
+`~/.zevrigo/testnet/wallet.json`, alamatnya `thsis1...`, dan RPC bawaan `http://127.0.0.1:18801`.
 
 ## Explorer regtest
 
 Dengan node berjalan, di terminal lain:
 
 ```bash
-cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis
+cargo run -p zevrigo-explorer -- --regtest --datadir ~/.zevrigo
 ```
 
-Explorer membaca chain dari node lewat RPC, menyimpan indeks di `~/.homeostasis/regtest/explorer.sqlite`, memeriksa
+Explorer membaca chain dari node lewat RPC, menyimpan indeks di `~/.zevrigo/regtest/explorer.sqlite`, memeriksa
 sendiri jumlah koin setiap blok, lalu melayani API JSON baca saja di `http://127.0.0.1:28802/api/v1/` (misalnya
 `/status`, `/blocks`, `/block/<tinggi>`, `/tx/<txid>`, `/supply`, `/mempool`). Jumlah koin selalu string desimal quanta.
 Explorer hanya menyajikan data sistem (DEC-28): tanpa alamat, saldo, jumlah per penerima, jejak koin, dan alokasi genesis.
@@ -97,7 +97,7 @@ Butuh Node.js 22.12 atau lebih baru. Build sekali, lalu jalankan explorer dengan
 
 ```bash
 make web-check
-cargo run -p homeostasis-explorer -- --regtest --datadir ~/.homeostasis --web-dir apps/explorer/web/out
+cargo run -p zevrigo-explorer -- --regtest --datadir ~/.zevrigo --web-dir apps/explorer/web/out
 ```
 
 Buka `http://127.0.0.1:28802/` di browser. Tampilan (Next.js, Tailwind CSS, shadcn/ui) tersedia dalam Bahasa Indonesia
@@ -114,13 +114,13 @@ docker compose build
 docker compose up -d
 ```
 
-Buka `http://127.0.0.1:28802/`. Node dan explorer berjalan di container dengan data di volume `homeostasis_hsis-data`;
+Buka `http://127.0.0.1:28802/`. Node dan explorer berjalan di container dengan data di volume `zevrigo_zvrg-data`;
 RPC node tidak terbuka ke host, dan explorer hanya bisa dibuka dari komputer ini. Wallet dan miner di dalam container:
 
 ```bash
-docker compose exec node homeostasis-cli --datadir /data wallet-create
-docker compose exec node homeostasis-cli --datadir /data address
-HSIS_PAYOUT=<payload dari perintah address> docker compose --profile miner up -d miner
+docker compose exec node zevrigo-cli --datadir /data wallet-create
+docker compose exec node zevrigo-cli --datadir /data address
+ZVRG_PAYOUT=<payload dari perintah address> docker compose --profile miner up -d miner
 docker compose down
 ```
 

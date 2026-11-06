@@ -3,7 +3,7 @@
 //!
 //! Alamat bukan bagian konsensus: chain hanya menyimpan `kind` dan `payload` output.
 
-use homeostasis_primitives::{Network, OutputKind};
+use zevrigo_primitives::{Network, OutputKind};
 
 /// Panjang payload output (`32` byte).
 pub const PAYLOAD_LEN: usize = 32;

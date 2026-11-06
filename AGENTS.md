@@ -1,7 +1,7 @@
-# AGENTS.md: Homeostasis Coin (HSIS)
+# AGENTS.md: Zevrigo Coin (ZVRG)
 
 ## Tentang proyek
-Homeostasis Coin adalah blockchain Layer 1 Proof of Work yang ditulis dari nol dalam Rust.
+Zevrigo Coin adalah blockchain Layer 1 Proof of Work yang ditulis dari nol dalam Rust.
 Lapisan dasarnya sengaja minimal: model UTXO, tanpa VM serbaguna, dan hanya tipe transaksi
 bawaan (transfer, multi-tanda tangan, kunci waktu).
 
@@ -29,13 +29,13 @@ JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti 
 
 | Parameter | Nilai |
 |---|---|
-| Satuan | 1 HSIS = 10^18 quanta. Semua jumlah disimpan sebagai `u128` dalam quanta |
+| Satuan | 1 ZVRG = 10^18 quanta. Semua jumlah disimpan sebagai `u128` dalam quanta |
 | Waktu blok target | 120 detik |
 | Blok per tahun (konstanta) | 262_800 |
-| Pasokan utama `S` (hasil tambang) | 43_800_000 HSIS = 43_800_000 × 10^18 quanta |
-| Alokasi genesis pencipta `G` | 4_380_000 HSIS, hanya di blok genesis, DI LUAR `S`, tanpa kunci waktu |
+| Pasokan utama `S` (hasil tambang) | 43_800_000 ZVRG = 43_800_000 × 10^18 quanta |
+| Alokasi genesis pencipta `G` | 4_380_000 ZVRG, hanya di blok genesis, DI LUAR `S`, tanpa kunci waktu |
 | Konstanta paruh `D` | 2_274_842 |
-| Hadiah ekor `T` | tepat 1 HSIS = 10^18 quanta per blok |
+| Hadiah ekor `T` | tepat 1 ZVRG = 10^18 quanta per blok |
 | `M` | total quanta hasil tambang yang sudah keluar SEBELUM blok yang sedang dihitung (`G` tidak dihitung) |
 | Hadiah dasar | `base(M) = max((S − M) / D, T)`, pembagian bilangan bulat dibulatkan ke bawah. Jika `M ≥ S`, `(S − M)` dianggap 0 |
 | Slow start | untuk tinggi `h` dengan `1 ≤ h < 10_080`: `subsidy = base(M) × h / 10_080` (bilangan bulat). Untuk `h ≥ 10_080`: `subsidy = base(M)` |
@@ -73,30 +73,30 @@ homeostasis_lab/
 │   ├── integration/          # MOD-17: uji lintas crate
 │   └── vectors/              # vektor uji konsensus (data)
 ├── scripts/                  # skrip pemeriksaan (check-forbidden)
-├── vendor/                   # salinan kode pihak ketiga: randomx-rs + RandomX dengan salt HSIS (DEC-01, vendor/README.md)
+├── vendor/                   # salinan kode pihak ketiga: randomx-rs + RandomX dengan salt ZVRG (DEC-01, vendor/README.md)
 ├── docs/                     # README, system-map, modules, features, tasks, decisions, glossary, reference
 └── .github/workflows/        # CI (asumsi GitHub)
 ```
 
 | ID | Path | Paket | Fungsi | Bergantung pada |
 |---|---|---|---|---|
-| MOD-01 | crates/primitives | homeostasis-primitives | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — |
-| MOD-02 | crates/crypto | homeostasis-crypto | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 |
-| MOD-03 | crates/pow | homeostasis-pow | Proof of Work: antarmuka, PoW dev regtest (DEC-09), RandomX testnet/mainnet lewat randomx-rs (DEC-01) | MOD-01, 02 (DEC-14) |
-| MOD-04 | crates/consensus | homeostasis-consensus | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 |
-| MOD-05 | crates/storage | homeostasis-storage | Penyimpanan blok, set UTXO, pruning | MOD-01 |
-| MOD-06 | crates/network | homeostasis-network | P2P (rust-libp2p) | MOD-01 |
-| MOD-07 | crates/mempool | homeostasis-mempool | Antrean transaksi | MOD-01, 04 |
-| MOD-08 | crates/rpc | homeostasis-rpc | Tipe dan klien/server JSON-RPC | MOD-01 |
-| MOD-09 | crates/wallet-core | homeostasis-wallet-core | Kunci, penyusunan dan penandatanganan transaksi | MOD-01, 02 |
-| MOD-10 | crates/merchant-core | homeostasis-merchant-core | Tagihan watch-only, status pembayaran | MOD-01, 09 |
-| MOD-11 | apps/node | homeostasis-node (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) |
-| MOD-12 | apps/cli | homeostasis-cli (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) |
-| MOD-13 | apps/miner | homeostasis-miner (bin) | Penambang CPU | MOD-01, 03, 08 |
-| MOD-14 | apps/explorer | homeostasis-explorer (bin) | Indexer, API, dan antarmuka web Next.js + Tailwind + shadcn/ui di `web/` (DEC-26), hanya data sistem (DEC-28) | MOD-01, 02, 04, 08 (DEC-25, DEC-28) |
+| MOD-01 | crates/primitives | zevrigo-primitives | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — |
+| MOD-02 | crates/crypto | zevrigo-crypto | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 |
+| MOD-03 | crates/pow | zevrigo-pow | Proof of Work: antarmuka, PoW dev regtest (DEC-09), RandomX testnet/mainnet lewat randomx-rs (DEC-01) | MOD-01, 02 (DEC-14) |
+| MOD-04 | crates/consensus | zevrigo-consensus | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 |
+| MOD-05 | crates/storage | zevrigo-storage | Penyimpanan blok, set UTXO, pruning | MOD-01 |
+| MOD-06 | crates/network | zevrigo-network | P2P (rust-libp2p) | MOD-01 |
+| MOD-07 | crates/mempool | zevrigo-mempool | Antrean transaksi | MOD-01, 04 |
+| MOD-08 | crates/rpc | zevrigo-rpc | Tipe dan klien/server JSON-RPC | MOD-01 |
+| MOD-09 | crates/wallet-core | zevrigo-wallet-core | Kunci, penyusunan dan penandatanganan transaksi | MOD-01, 02 |
+| MOD-10 | crates/merchant-core | zevrigo-merchant-core | Tagihan watch-only, status pembayaran | MOD-01, 09 |
+| MOD-11 | apps/node | zevrigo-node (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) |
+| MOD-12 | apps/cli | zevrigo-cli (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) |
+| MOD-13 | apps/miner | zevrigo-miner (bin) | Penambang CPU | MOD-01, 03, 08 |
+| MOD-14 | apps/explorer | zevrigo-explorer (bin) | Indexer, API, dan antarmuka web Next.js + Tailwind + shadcn/ui di `web/` (DEC-26), hanya data sistem (DEC-28) | MOD-01, 02, 04, 08 (DEC-25, DEC-28) |
 | MOD-15 | apps/wallet | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 |
 | MOD-16 | apps/merchant | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 |
-| MOD-17 | tests/integration | homeostasis-integration-tests | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, MOD-13 (DEC-20), MOD-12 (DEC-23), MOD-14 (DEC-25) |
+| MOD-17 | tests/integration | zevrigo-integration-tests | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, MOD-13 (DEC-20), MOD-12 (DEC-23), MOD-14 (DEC-25) |
 
 Aturan arah dependensi:
 - Crate di `crates/` tidak boleh bergantung pada apa pun di `apps/` atau `tests/`.
@@ -113,7 +113,7 @@ make test-slow   # cargo test --workspace --release -- --ignored
 make check-forbidden  # gagal jika ada f32/f64 atau kata kunci unsafe di kode proyek
 make check-all   # fmt-check + lint + check-forbidden + test
 make web-check   # antarmuka web explorer: npm ci --ignore-scripts, typecheck, test, next build ke out/ (Node.js >= 22.12, DEC-26)
-make docker-build # image Docker regtest homeostasis:regtest (TSK-M33, Spesifikasi Docker v0.1)
+make docker-build # image Docker regtest zevrigo:regtest (TSK-M33, Spesifikasi Docker v0.1)
 ```
 
 ## Larangan mutlak: `unsafe` dan floating point
@@ -128,7 +128,7 @@ Berlaku untuk SEMUA kode milik proyek ini: setiap crate di `crates/`, setiap apl
    konversi `as f32`/`as f64`, atau fungsi matematika float.
    - Persentase, rasio, dan statistik dihitung dengan bilangan bulat, misalnya basis poin
      (1/10_000) atau pasangan pembilang/penyebut.
-   - Jumlah koin selalu `u128` quanta. Ditampilkan sebagai teks lewat `Amount::to_hsis_string`.
+   - Jumlah koin selalu `u128` quanta. Ditampilkan sebagai teks lewat `Amount::to_zvrg_string`.
    - Lint wajib di `[workspace.lints.clippy]`: `float_arithmetic`, `float_cmp`, `float_cmp_const`,
      `lossy_float_literal`, `cast_precision_loss`, `imprecise_flops`, `suboptimal_flops`, semuanya `"deny"`.
    - UI berbasis TypeScript (tugas berikutnya): jumlah koin tidak boleh disimpan di tipe `number`.

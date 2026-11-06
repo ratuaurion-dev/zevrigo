@@ -1,15 +1,15 @@
-# MOD-04: Consensus (`homeostasis-consensus`)
+# MOD-04: Consensus (`zevrigo-consensus`)
 
 - **ID:** `MOD-04`
 - **Path:** `crates/consensus`
-- **Paket:** `homeostasis-consensus`
+- **Paket:** `zevrigo-consensus`
 - **Status:** 🟢 selesai untuk regtest (`TSK-M07`, `TSK-M08`, `TSK-M09`); V3 RandomX testnet/mainnet (`TSK-M06` bagian B, DEC-01)
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-03`
 - **Dipakai oleh:** `MOD-07`, `MOD-11`, `MOD-17`
 
 ## Tujuan
 
-Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeostasis Coin.
+Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Zevrigo Coin.
 
 ## Tanggung Jawab
 

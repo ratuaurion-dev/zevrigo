@@ -37,9 +37,9 @@ menurunkan payload kembalian, dan memberikan `aux_rand` dari sumber acak sistem 
 
 ## Vektor
 - T1 (implementasi referensi Python: BIP340 yang lolos vektor resmi, BLAKE3 `alat/blake3_ref.py`, kunci
-  `alat/wallet_ref.py`): wallet W1, koin 5 HSIS di 0/0, 3 HSIS di 0/1, dan 7 HSIS di 1/0 yang belum matang;
-  kirim 6 HSIS ke kunci contoh BIP340, tarif 1, kembalian ke 1/1. Hasil: 2 input, biaya 284, kembalian
-  `2 HSIS − 284`, 284 byte, txid `2dd7f50382bab1376d77991113bfde898a48d9f1594670dd88f74e61e2ea4d86`, encoding
+  `alat/wallet_ref.py`): wallet W1, koin 5 ZVRG di 0/0, 3 ZVRG di 0/1, dan 7 ZVRG di 1/0 yang belum matang;
+  kirim 6 ZVRG ke kunci contoh BIP340, tarif 1, kembalian ke 1/1. Hasil: 2 input, biaya 284, kembalian
+  `2 ZVRG − 284`, 284 byte, txid `2dd7f50382bab1376d77991113bfde898a48d9f1594670dd88f74e61e2ea4d86`, encoding
   lengkap byte demi byte.
 - E1 sampai E6: kasus batas biaya satu input (pas, sisa 30/33/34 ke biaya, kembalian 1 quanta, batas varint 127).
 - Simulasi Python 20_000 kasus acak: Σ input = Σ output + biaya, biaya ≥ tarif × ukuran, prefiks terpendek.

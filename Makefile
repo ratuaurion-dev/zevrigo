@@ -28,6 +28,6 @@ check-all: fmt-check lint check-forbidden test
 web-check:
 	cd apps/explorer/web && npm ci --ignore-scripts --no-audit --no-fund && npm run check
 
-# Paket Docker regtest (TSK-M33): image homeostasis:regtest berisi node, explorer, miner, CLI, dan antarmuka web.
+# Paket Docker regtest (TSK-M33): image zevrigo:regtest berisi node, explorer, miner, CLI, dan antarmuka web.
 docker-build:
-	docker build -t homeostasis:regtest .
+	docker build -t zevrigo:regtest .

@@ -1,4 +1,4 @@
-//! Uji integrasi daemon `homeostasis-node` lewat RPC dan P2P sungguhan (TSK-M18 bagian B, TSK-F01, TSK-M28).
+//! Uji integrasi daemon `zevrigo-node` lewat RPC dan P2P sungguhan (TSK-M18 bagian B, TSK-F01, TSK-M28).
 //!
 //! Biner dijalankan di folder data sementara dengan port RPC dan P2P bebas. Uji pertama menambang satu blok lewat
 //! `get_block_template` dan `submit_block`, memeriksa `scan_utxos`, lalu menghentikan node dengan SIGINT dan
@@ -17,17 +17,15 @@ mod regtest_node {
     use std::thread::sleep;
     use std::time::{Duration, Instant};
 
-    use homeostasis_consensus::{
-        BlockError, ChainParams, check_block_context_free, regtest_genesis,
-    };
-    use homeostasis_crypto::{SecretKey, sighash_v1, sign, txid};
-    use homeostasis_primitives::{
+    use tokio::runtime::Runtime;
+    use zevrigo_consensus::{BlockError, ChainParams, check_block_context_free, regtest_genesis};
+    use zevrigo_crypto::{SecretKey, sighash_v1, sign, txid};
+    use zevrigo_primitives::{
         Amount, Block, Decode, Encode, Header, Input, Output, OutputKind, Transaction, Witness,
     };
-    use homeostasis_rpc::{Hex32, KindNumber, RpcClient, SubmitStatus};
-    use tokio::runtime::Runtime;
+    use zevrigo_rpc::{Hex32, KindNumber, RpcClient, SubmitStatus};
 
-    const BIN: &str = env!("CARGO_BIN_EXE_homeostasis-node");
+    const BIN: &str = env!("CARGO_BIN_EXE_zevrigo-node");
     /// Subsidy tinggi 1 (Spesifikasi Format Bagian 5.5).
     const SUBSIDY_1: u128 = 1_910_127_426_536_917;
 
@@ -156,7 +154,7 @@ mod regtest_node {
 
     #[test]
     fn daemon_mines_over_rpc_and_restarts() {
-        let datadir = std::env::temp_dir().join(format!("homeostasis-q68-{}", std::process::id()));
+        let datadir = std::env::temp_dir().join(format!("zevrigo-q68-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&datadir);
         let rt = Runtime::new().unwrap();
         let payout = Hex32::new(key(2));
@@ -265,7 +263,7 @@ mod regtest_node {
 
     #[test]
     fn two_daemons_sync_and_relay_over_p2p() {
-        let base = std::env::temp_dir().join(format!("homeostasis-q79-{}", std::process::id()));
+        let base = std::env::temp_dir().join(format!("zevrigo-q79-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&base);
         let rt = Runtime::new().unwrap();
         let payout = Hex32::new(key(2));

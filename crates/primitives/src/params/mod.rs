@@ -1,9 +1,9 @@
-//! Konstanta parameter protokol Homeostasis Coin (`HSIS`) sesuai sumber kebenaran di `AGENTS.md`.
+//! Konstanta parameter protokol Zevrigo Coin (`ZVRG`) sesuai sumber kebenaran di `AGENTS.md`.
 //!
 //! Nilai di modul ini bersifat tetap dan diperiksa konsistensinya pada waktu kompilasi.
 //! Parameter yang baru ditetapkan saat peluncuran testnet sengaja belum dimasukkan di sini.
 
-use crate::amount::{Amount, QUANTA_PER_HSIS};
+use crate::amount::{Amount, QUANTA_PER_ZVRG};
 
 /// Waktu antar-blok target dalam satuan detik (`120` detik = 2 menit).
 pub const BLOCK_TIME_SECS: u64 = 120;
@@ -11,17 +11,17 @@ pub const BLOCK_TIME_SECS: u64 = 120;
 /// Jumlah blok konstan per tahun protokol (`365 × 24 × 3600 / 120 = 262_800` blok).
 pub const BLOCKS_PER_YEAR: u64 = 262_800;
 
-/// Pasokan utama `S` yang berasal dari penambangan (`43_800_000 HSIS` dalam quanta).
-pub const MAIN_SUPPLY: Amount = Amount::from_quanta(43_800_000 * QUANTA_PER_HSIS);
+/// Pasokan utama `S` yang berasal dari penambangan (`43_800_000 ZVRG` dalam quanta).
+pub const MAIN_SUPPLY: Amount = Amount::from_quanta(43_800_000 * QUANTA_PER_ZVRG);
 
-/// Alokasi genesis pencipta `G` (`4_380_000 HSIS` dalam quanta), hanya di blok genesis, di luar `S`, tanpa kunci waktu.
-pub const GENESIS_ALLOCATION: Amount = Amount::from_quanta(4_380_000 * QUANTA_PER_HSIS);
+/// Alokasi genesis pencipta `G` (`4_380_000 ZVRG` dalam quanta), hanya di blok genesis, di luar `S`, tanpa kunci waktu.
+pub const GENESIS_ALLOCATION: Amount = Amount::from_quanta(4_380_000 * QUANTA_PER_ZVRG);
 
 /// Konstanta pembagi peluruhan emisi `D` (`2_274_842`) pada rumus hadiah dasar `base(M) = max((S - M) / D, T)`.
 pub const HALF_LIFE_DIVISOR: u128 = 2_274_842;
 
-/// Hadiah ekor minimum `T` per blok (`1 HSIS = 10^18` quanta).
-pub const TAIL_REWARD: Amount = Amount::from_quanta(QUANTA_PER_HSIS);
+/// Hadiah ekor minimum `T` per blok (`1 ZVRG = 10^18` quanta).
+pub const TAIL_REWARD: Amount = Amount::from_quanta(QUANTA_PER_ZVRG);
 
 /// Ambang tinggi blok fase *slow start* (`10_080` blok; untuk `1 <= h < 10_080`, `subsidy = base(M) * h / 10_080`).
 pub const SLOW_START_BLOCKS: u64 = 10_080;
@@ -47,7 +47,7 @@ pub const MEDIAN_TIME_SPAN: usize = 11;
 /// Toleransi maksimum cap waktu blok di masa depan relatif terhadap waktu lokal node (`3_600` detik = 1 jam).
 pub const MAX_FUTURE_BLOCK_TIME_SECS: u64 = 3_600;
 
-/// Jaringan Homeostasis Coin (Spesifikasi Validasi Bagian 2).
+/// Jaringan Zevrigo Coin (Spesifikasi Validasi Bagian 2).
 ///
 /// Aturan konsensus sama di semua jaringan. Yang berbeda hanya fungsi PoW, `pow_limit`, dan genesis.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -84,8 +84,8 @@ const _: () = assert!(
 // 2. Alokasi genesis pencipta tepat 10% dari pasokan utama S: G == S / 10
 const _: () = assert!(GENESIS_ALLOCATION.as_quanta() == MAIN_SUPPLY.as_quanta() / 10);
 
-// 3. Hadiah ekor tepat 1 HSIS
-const _: () = assert!(TAIL_REWARD.as_quanta() == QUANTA_PER_HSIS);
+// 3. Hadiah ekor tepat 1 ZVRG
+const _: () = assert!(TAIL_REWARD.as_quanta() == QUANTA_PER_ZVRG);
 
 #[cfg(test)]
 mod tests;

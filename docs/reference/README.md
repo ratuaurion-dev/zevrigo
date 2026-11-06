@@ -1,6 +1,6 @@
 # Dokumen Referensi Utama (`docs/reference/`)
 
-Folder ini disediakan sebagai tempat penyimpanan dua dokumen sumber kebenaran desain Homeostasis Coin (HSIS) yang disalin langsung oleh pengguna:
+Folder ini disediakan sebagai tempat penyimpanan dua dokumen sumber kebenaran desain Zevrigo Coin (ZVRG) yang disalin langsung oleh pengguna:
 
 1. **Dokumen Konsep v1.1** — spesifikasi filosofi desain, ekonomi moneter, jadwal pasokan, Proof of Work, ASERT, dan aturan konsensus inti.
 2. **Dokumen Aplikasi v0.1** — spesifikasi ekosistem aplikasi pengguna (node, CLI, miner, explorer, dompet personal, dan aplikasi pelaku usaha/merchant).

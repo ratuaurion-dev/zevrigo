@@ -1,15 +1,15 @@
 use std::collections::BTreeMap;
 
-use homeostasis_crypto::{
+use proptest::prelude::*;
+use zevrigo_crypto::{
     SecretKey, block_id, condition_hash, merkle_root, sighash_v1, sign, txid, wtxid,
 };
-use homeostasis_pow::mine_regtest;
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{
+use zevrigo_pow::mine_regtest;
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Condition, DecodeError, Encode, Hash32, Header, Input, Network,
     OutPoint, Output, OutputKind, SigEntry, Transaction, UtxoEntry, Witness,
 };
-use proptest::prelude::*;
 
 use super::{
     BlockError, BlockSummary, ParentContext, TxError, check_block_context_free,

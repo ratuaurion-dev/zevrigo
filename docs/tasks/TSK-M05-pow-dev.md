@@ -11,7 +11,7 @@ Isinya: tipe `Target` 256-bit, hash PoW dev dari header 96 byte, pemeriksaan `ha
 - Sumber kebenaran: `docs/reference/spesifikasi-format-v0.1.md` Bagian 3 (domain `regtest pow`) dan Bagian 6.1
   (hash PoW regtest dibaca sebagai bilangan 256-bit big-endian dan wajib ≤ target).
   Jika kartu ini dan spesifikasi berbeda, BERHENTI dan laporkan.
-- DEC-14: MOD-03 bergantung pada MOD-02. Pakai `homeostasis_crypto::{hash, Domain}` dengan `Domain::RegtestPow`
+- DEC-14: MOD-03 bergantung pada MOD-02. Pakai `zevrigo_crypto::{hash, Domain}` dengan `Domain::RegtestPow`
   (sudah ada sejak TSK-M02). Jangan memanggil crate blake3 langsung.
 - DEC-15: task ini menerima target sebagai `Target` 256-bit. Field `target: u32` (compact) di header TIDAK dibaca
   di task ini. Konversinya dikerjakan di TSK-M08.
@@ -21,9 +21,9 @@ Isinya: tipe `Target` 256-bit, hash PoW dev dari header 96 byte, pemeriksaan `ha
 - Lint konsensus aktif di crate ini. Jangan dinonaktifkan.
 
 ## Ruang lingkup
-- Boleh diubah: `crates/pow/**`; `Cargo.lock` (hanya karena dependensi homeostasis-pow bertambah); serta teks status
+- Boleh diubah: `crates/pow/**`; `Cargo.lock` (hanya karena dependensi zevrigo-pow bertambah); serta teks status
   yang tertulis persis di bagian "Status yang ditulis saat task selesai".
-- `crates/pow/Cargo.toml`: di bagian `[dependencies]` tambahkan tepat dua baris, `homeostasis-crypto.workspace = true`
+- `crates/pow/Cargo.toml`: di bagian `[dependencies]` tambahkan tepat dua baris, `zevrigo-crypto.workspace = true`
   dan `thiserror.workspace = true`. Tambahkan bagian baru `[dev-dependencies]` berisi `proptest.workspace = true`.
   Tidak boleh ada crate pihak ketiga baru di Cargo.lock, karena semuanya sudah ada di workspace.
 - Jangan diubah: crate lain (termasuk crates/primitives dan crates/crypto), Cargo.toml root, AGENTS.md,
@@ -93,13 +93,13 @@ Target uji (hex big-endian, 64 karakter):
 | P7 | `mine_regtest(V4, T256, 325)` dan `mine_regtest(V4, T256, 326)` | `None` dan `Some` dengan nonce 367 |
 | P8 | `mine_regtest(V4 dengan nonce u64::MAX, Target::ZERO, 10)` | `None`, tanpa panic |
 | P9 | `mine_regtest(V4 dengan nonce u64::MAX, Target::MAX, 1)` | `Some`, header sama persis (nonce u64::MAX) |
-| P10 | `regtest_pow_hash(V4)` dibanding `homeostasis_crypto::block_id(V4)` (H6 = `1de077cc1a2c8ad7c055df207ce40cca9643f961d0df21c1c67c7f121d107cfa`) | berbeda |
+| P10 | `regtest_pow_hash(V4)` dibanding `zevrigo_crypto::block_id(V4)` (H6 = `1de077cc1a2c8ad7c055df207ce40cca9643f961d0df21c1c67c7f121d107cfa`) | berbeda |
 | P11 | `mine_regtest(V4, Target::MAX, 0)` | `None` |
 
 Catatan P5 sampai P7: hasil `mine_regtest` juga dicek field lainnya (height, prev_block_id, merkle_root, timestamp,
 target) sama dengan V4, dan hanya nonce yang berubah.
 
-## Daftar test (nama persis; jumlah test homeostasis-pow menjadi tepat 12)
+## Daftar test (nama persis; jumlah test zevrigo-pow menjadi tepat 12)
 `src/target/tests.rs`:
 1. `zero_and_max_constants_and_is_met_by_extremes`: `Target::MAX` dipenuhi oleh hash 32×0xff; `Target::ZERO`
    dipenuhi oleh `Hash32::ZERO` tetapi tidak oleh hash yang byte terakhirnya 0x01.
@@ -122,7 +122,7 @@ target) sama dengan V4, dan hanya nonce yang berubah.
 
 `src/tests.rs`:
 11. `module_id_matches` (lama, tidak diubah)
-12. `crate_root_reexports_are_accessible`: memanggil kelima item re-export lewat `homeostasis_pow::...` atau `crate::...`.
+12. `crate_root_reexports_are_accessible`: memanggil kelima item re-export lewat `zevrigo_pow::...` atau `crate::...`.
 
 ## Status yang ditulis saat task selesai (teks persis, di commit yang sama)
 - docs/tasks/README.md, baris yang diawali `| TSK-M05 | MOD-03 |`: kolom terakhir
@@ -142,7 +142,7 @@ target) sama dengan V4, dan hanya nonce yang berubah.
 
 ## Kriteria penerimaan
 - [ ] P1 sampai P11 lolos, dan nilainya sama dengan hasil b3sum
-- [ ] 12 test homeostasis-pow lolos dengan nama persis seperti daftar di atas
+- [ ] 12 test zevrigo-pow lolos dengan nama persis seperti daftar di atas
 - [ ] Cargo.toml crate pow persis seperti di Ruang lingkup; tidak ada crate pihak ketiga baru di Cargo.lock
 - [ ] `#![forbid(unsafe_code)]` dan lint konsensus tetap aktif; tanpa unwrap/expect/panic di kode non-test;
       tidak ada pemanggilan `blake3::` di crates/pow
@@ -175,7 +175,7 @@ pertanyaan terbuka.
 - L4: `cat crates/pow/Cargo.toml`
 - L5: `git diff HEAD~1 -- Cargo.lock`
 - L6: `cat crates/pow/src/lib.rs crates/pow/src/target/mod.rs crates/pow/src/regtest/mod.rs`
-- L7: `cargo test -p homeostasis-pow 2>&1 | grep -E "^test |test result"`
+- L7: `cargo test -p zevrigo-pow 2>&1 | grep -E "^test |test result"`
 - L8: `make check-all > /tmp/m05-check.log 2>&1; echo "exit=$?"; grep -cE "^test .* ok$" /tmp/m05-check.log; grep -E "^(warning|error)|FAILED" /tmp/m05-check.log || echo "(tidak ada warning/error)"`
 - L9: semua perintah dan output di bagian Verifikasi
 - L10: `grep -rnE "unwrap\(|expect\(|panic!|blake3::" crates/pow/src/lib.rs crates/pow/src/target/mod.rs crates/pow/src/regtest/mod.rs || echo "(tidak ada)"`

@@ -2,21 +2,21 @@
 
 use std::path::PathBuf;
 
-use homeostasis_primitives::{Amount, Network};
-use homeostasis_rpc::transport::{DEFAULT_HOST, default_port};
 use thiserror::Error;
+use zevrigo_primitives::{Amount, Network};
+use zevrigo_rpc::transport::{DEFAULT_HOST, default_port};
 
 /// Tarif biaya bawaan perintah `send`: 1 quanta per byte (Spesifikasi Wallet v0.1 Bagian 5).
 pub const DEFAULT_FEE_RATE: u128 = 1;
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
-    "homeostasis-cli (MOD-12): alat baris perintah node dan wallet Homeostasis Coin (regtest dan testnet)\n",
+    "zevrigo-cli (MOD-12): alat baris perintah node dan wallet Zevrigo Coin (regtest dan testnet)\n",
     "\n",
     "Pemakaian:\n",
-    "  homeostasis-cli [--rpc-url <url>] info\n",
-    "  homeostasis-cli --datadir <folder> [--passphrase <teks>] [--rpc-url <url>] <perintah wallet> [opsi]\n",
-    "  homeostasis-cli --help | --version\n",
+    "  zevrigo-cli [--rpc-url <url>] info\n",
+    "  zevrigo-cli --datadir <folder> [--passphrase <teks>] [--rpc-url <url>] <perintah wallet> [opsi]\n",
+    "  zevrigo-cli --help | --version\n",
     "\n",
     "Perintah:\n",
     "  info                                ringkasan chain dari node\n",
@@ -26,8 +26,8 @@ pub const USAGE: &str = concat!(
     "  wallet-show-phrase                  tampilkan frasa pemulihan (butuh password)\n",
     "  address                             alamat penerimaan baru dan payload-nya (tanpa node)\n",
     "  balance                             saldo dari node lewat scan_utxos\n",
-    "  send --to <alamat> --amount <HSIS> [--fee-rate <quanta per byte>]\n",
-    "                                      kirim HSIS (tarif bawaan 1 quanta per byte, butuh password)\n",
+    "  send --to <alamat> --amount <ZVRG> [--fee-rate <quanta per byte>]\n",
+    "                                      kirim ZVRG (tarif bawaan 1 quanta per byte, butuh password)\n",
     "\n",
     "Opsi umum:\n",
     "  --regtest             jaringan regtest (bawaan): alamat rhsis1..., wallet di <folder>/regtest/\n",
@@ -37,7 +37,7 @@ pub const USAGE: &str = concat!(
     "  --passphrase <teks>   passphrase BIP39, ASCII cetak; tidak disimpan di file wallet\n",
     "\n",
     "Password wallet (minimal 8 karakter) diketik tanpa tampil di layar; untuk skrip boleh lewat variabel\n",
-    "lingkungan HOMEOSTASIS_WALLET_PASSWORD. address dan balance tidak butuh password.",
+    "lingkungan ZEVRIGO_WALLET_PASSWORD. address dan balance tidak butuh password.",
 );
 
 /// Perintah hasil membaca argumen.
@@ -98,7 +98,7 @@ pub enum Action {
     Address,
     /// `balance`: saldo dari node.
     Balance,
-    /// `send`: kirim HSIS.
+    /// `send`: kirim ZVRG.
     Send {
         /// Alamat penerima.
         to: String,
@@ -189,8 +189,8 @@ pub enum ArgError {
         /// Nama perintah.
         action: &'static str,
     },
-    /// Jumlah bukan angka HSIS yang sah, atau nol.
-    #[error("jumlah HSIS tidak sah: {0}")]
+    /// Jumlah bukan angka ZVRG yang sah, atau nol.
+    #[error("jumlah ZVRG tidak sah: {0}")]
     InvalidAmount(String),
     /// Tarif biaya bukan bilangan bulat tak bertanda.
     #[error("tarif biaya tidak sah: {0}")]
@@ -364,7 +364,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
             }
             "--amount" => {
                 let value = value_of(&mut iter, "--amount")?;
-                let amount = Amount::from_hsis_str(&value)
+                let amount = Amount::from_zvrg_str(&value)
                     .ok()
                     .filter(|amount| *amount != Amount::ZERO)
                     .ok_or_else(|| ArgError::InvalidAmount(value.clone()))?;

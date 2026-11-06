@@ -23,7 +23,7 @@ yang diperiksa saat kompilasi.
 ## Persyaratan
 
 ### 1. Modul `amount`: `pub struct Amount(u128)` dalam quanta
-- `pub const QUANTA_PER_HSIS: u128 = 1_000_000_000_000_000_000;` (10^18)
+- `pub const QUANTA_PER_ZVRG: u128 = 1_000_000_000_000_000_000;` (10^18)
 - `Amount::ZERO`, `Amount::from_quanta(u128)`, `Amount::as_quanta(self) -> u128`. Keduanya `const fn`
   supaya bisa dipakai di pemeriksaan saat kompilasi.
 - `checked_add`, `checked_sub` → `Option<Amount>`; `saturating_sub` → `Amount`
@@ -31,10 +31,10 @@ yang diperiksa saat kompilasi.
 - Derive: `Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default`
 - TIDAK ada implementasi operator `Add`/`Sub` (agar tidak ada aritmetika tanpa pemeriksaan).
 - Format teks (bukan bagian konsensus, tetapi harus deterministik):
-  - `Amount::to_hsis_string(&self) -> String`: bagian bulat, lalu titik dan pecahan maksimal
+  - `Amount::to_zvrg_string(&self) -> String`: bagian bulat, lalu titik dan pecahan maksimal
     18 digit tanpa nol di belakang. Tanpa titik jika pecahan nol.
     Contoh: 0 → "0"; 10^18 → "1"; 1_500_000_000_000_000_000 → "1.5"; 1 → "0.000000000000000001".
-  - `Amount::from_hsis_str(&str) -> Result<Amount, AmountParseError>` dengan aturan ketat:
+  - `Amount::from_zvrg_str(&str) -> Result<Amount, AmountParseError>` dengan aturan ketat:
     hanya digit ASCII dan paling banyak satu titik; bagian bulat wajib ada dan tanpa nol di depan
     (kecuali "0"); jika ada titik, harus diikuti 1–18 digit; tanpa tanda +/−, spasi, eksponen,
     pemisah ribuan, atau titik di akhir.
@@ -42,7 +42,7 @@ yang diperiksa saat kompilasi.
     Diterima: "0", "1", "1.5", "0.000000000000000001", "12.30" (hasil format ulang "12.3").
   - Contoh angka di atas ditulis sebagai string di test, sehingga tidak melanggar larangan literal float.
   - Kegagalan dilaporkan dengan enum error `thiserror` yang spesifik (format tidak valid, terlalu banyak desimal, overflow).
-  - `impl Display` memakai `to_hsis_string()` diikuti " HSIS".
+  - `impl Display` memakai `to_zvrg_string()` diikuti " ZVRG".
 
 ### 2. Modul `height`: `pub struct BlockHeight(u64)`
 - `GENESIS = BlockHeight(0)`, `new`, `get`, `checked_add(u64)`, `checked_sub(u64)`, `next() -> Option<Self>`.
@@ -60,13 +60,13 @@ yang diperiksa saat kompilasi.
 - Pemeriksaan saat kompilasi (`const _: () = assert!(...)`):
   - `TAIL_REWARD == MAIN_SUPPLY × 6 / 1000 / BLOCKS_PER_YEAR` (hadiah ekor tepat 0,6% S per tahun)
   - `GENESIS_ALLOCATION == MAIN_SUPPLY / 10`
-  - `TAIL_REWARD == 1 HSIS`
+  - `TAIL_REWARD == 1 ZVRG`
   - Jika lint konsensus menandai aritmetika di dalam const assert, laporkan dan usulkan solusinya. Jangan menonaktifkan lint.
 - Parameter testnet (lihat AGENTS.md) BELUM dibuat di task ini.
 
 ## Kriteria penerimaan
 - [ ] Semua contoh diterima/ditolak di atas menjadi unit test dan lolos
-- [ ] Property test: untuk setiap `u128` acak, `from_hsis_str(to_hsis_string(x)) == x`
+- [ ] Property test: untuk setiap `u128` acak, `from_zvrg_str(to_zvrg_string(x)) == x`
 - [ ] Property test: `checked_add` mengembalikan `None` tepat saat penjumlahan u128 meluap
 - [ ] Test: `Amount::from_quanta(u128::MAX)` bisa diformat dan diparse ulang
 - [ ] Test hex: round-trip `Hash32` dan penolakan panjang/karakter salah

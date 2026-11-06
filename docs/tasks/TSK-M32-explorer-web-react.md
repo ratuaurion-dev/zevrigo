@@ -15,7 +15,7 @@ lewat `--web-dir apps/explorer/web/dist`.
 | `package.json`, `package-lock.json` | Versi persis (DEC-10 bagian 7); skrip `dev`, `typecheck`, `test`, `build`, `check`; Node.js ≥ 22.12 |
 | `index.html`, `vite.config.ts`, `tsconfig.json`, `.gitignore` | Titik masuk tanpa skrip inline, build ke `dist/` tanpa polyfill dan tanpa aset inline, TypeScript `strict`, proxy `/api` untuk `npm run dev` |
 | `src/api.ts` | Tipe jawaban API (jumlah = `string`), `getJson` (tidak pernah melempar: `http`/`network`/`format`), `createApi`, `browserApi` (tanpa cookie, tanpa referrer) |
-| `src/amount.ts`, `src/time.ts` | quanta ↔ `bigint`, format HSIS per bahasa; waktu UTC dengan aritmetika `bigint` |
+| `src/amount.ts`, `src/time.ts` | quanta ↔ `bigint`, format ZVRG per bahasa; waktu UTC dengan aritmetika `bigint` |
 | `src/route.ts` | Jalur hash `#/…`, pemeriksaan tinggi, hash, alamat, dan masukan pencarian, `searchHref` |
 | `src/i18n/` | Kamus `id` (bawaan) dan `en` (100 kunci), `detectLanguage`, `fill` |
 | `src/load.ts`, `src/ui.ts` | `useLoad` (muat dan perbarui berkala), konteks tampilan |

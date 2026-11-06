@@ -1,4 +1,4 @@
-# TSK-M30 · API HTTP explorer dan program `homeostasis-explorer` · 🟢 selesai · Prioritas: Tinggi
+# TSK-M30 · API HTTP explorer dan program `zevrigo-explorer` · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-14 (apps/explorer) · **Untuk:** FTR-05
 - **Bergantung pada:** TSK-M29 · **Memblokir:** TSK-F05
 - **Estimasi:** M · **Ditulis:** Quick (kode dan test), 2 November 2026

@@ -1,8 +1,8 @@
-# MOD-10: Merchant Core (`homeostasis-merchant-core`)
+# MOD-10: Merchant Core (`zevrigo-merchant-core`)
 
 - **ID:** `MOD-10`
 - **Path:** `crates/merchant-core`
-- **Paket:** `homeostasis-merchant-core`
+- **Paket:** `zevrigo-merchant-core`
 - **Status:** ⚪ belum dimulai (kerangka R0)
 - **Bergantung pada:** `MOD-01`, `MOD-09`
 - **Dipakai oleh:** `MOD-16`, `MOD-17`

@@ -1,5 +1,5 @@
 [package]
-name = "homeostasis-mempool"
+name = "zevrigo-mempool"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,13 +7,13 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
-homeostasis-consensus.workspace = true
-homeostasis-primitives.workspace = true
+zevrigo-consensus.workspace = true
+zevrigo-primitives.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
 # DEC-18: hanya untuk menandatangani transaksi di test. Kode produksi MOD-07 tidak memakai MOD-02 langsung.
-homeostasis-crypto.workspace = true
+zevrigo-crypto.workspace = true
 
 [lints]
 workspace = true

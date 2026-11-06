@@ -1,7 +1,7 @@
-//! MOD-11: Pustaka node Homeostasis Coin (`homeostasis-node`): logika chain aktif, blok cabang dan reorg (TSK-M27),
+//! MOD-11: Pustaka node Zevrigo Coin (`zevrigo-node`): logika chain aktif, blok cabang dan reorg (TSK-M27),
 //! sinkronisasi header lalu blok dan siaran P2P (TSK-M28), backend RPC, dan daemon (TSK-M18).
 //!
-//! Biner `homeostasis-node` (`src/main.rs`) hanya membaca argumen lalu memanggil [`daemon::run`].
+//! Biner `zevrigo-node` (`src/main.rs`) hanya membaca argumen lalu memanggil [`daemon::run`].
 
 #![forbid(unsafe_code)]
 

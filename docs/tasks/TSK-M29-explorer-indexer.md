@@ -4,7 +4,7 @@
 - **Estimasi:** M · **Ditulis:** Quick (kode dan test), 2 November 2026
 
 ## Tujuan
-Pustaka `homeostasis_explorer` dengan indeks SQLite sesuai Spesifikasi Explorer v0.1 Bagian 2 sampai 4. API HTTP,
+Pustaka `zevrigo_explorer` dengan indeks SQLite sesuai Spesifikasi Explorer v0.1 Bagian 2 sampai 4. API HTTP,
 program, dan adaptor RPC menyusul di TSK-M30. API `rusqlite` 0.41.1 diperiksa Quick dari file .crate resmi.
 
 ## Isi
@@ -28,7 +28,7 @@ program, dan adaptor RPC menyusul di TSK-M30. API `rusqlite` 0.41.1 diperiksa Qu
 - **Fitur `fallible_uint` rusqlite** (ditambah di Q82b): tanpa fitur ini rusqlite 0.41 tidak menerima `u64`/`usize`
   sebagai parameter atau kolom. Konversinya lewat `i64::try_from` dan galat jika di luar jangkauan, sesuai Spesifikasi
   Explorer Bagian 2. Tanpa paket baru; Cargo.lock sama dengan percobaan pertama Q82.
-- `homeostasis-storage` dilepas dari dependensi MOD-14 (DEC-25 bagian 2). `homeostasis-wallet-core` baru ditambah di
+- `zevrigo-storage` dilepas dari dependensi MOD-14 (DEC-25 bagian 2). `zevrigo-wallet-core` baru ditambah di
   TSK-M30 (alamat bech32m di API).
 
 ## Test (explorer 3 → 10, workspace 343 → 350)

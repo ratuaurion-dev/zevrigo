@@ -1,4 +1,4 @@
-# Spesifikasi P2P Homeostasis Coin (HSIS) v0.1: transport libp2p, 5 protokol, sinkronisasi header lalu blok, siaran blok dan transaksi
+# Spesifikasi P2P Zevrigo Coin (ZVRG) v0.1: transport libp2p, 5 protokol, sinkronisasi header lalu blok, siaran blok dan transaksi
 
 > Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S05 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-p2p-v0.1.md`
@@ -165,7 +165,7 @@ ditulis lewat `--connect` juga bisa diblokir.
 
 ## 8. Opsi daemon (MOD-11, TSK-M28)
 
-`homeostasis-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>] [--connect <multiaddr>]…`
+`zevrigo-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>] [--connect <multiaddr>]…`
 
 - `--p2p-port 0` memilih port bebas. Setelah baris `rpc: http://<alamat>`, stdout mencetak satu baris
   `p2p: /ip4/<alamat>/tcp/<port>/p2p/<PeerId>`, sehingga test dan skrip bisa menyambungkan node lain.

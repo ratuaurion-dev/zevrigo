@@ -7,17 +7,17 @@
 //! hanya ada di dalam pustaka itu; modul ini tetap tanpa keduanya. Hash PoW dari 96 byte header dibaca sebagai bilangan
 //! 256-bit big-endian dan harus ≤ target, sama dengan PoW regtest.
 //!
-//! Varian HSIS (Konsep Bagian 5.10, DEC-01): salt Argon2 `RandomHSIS\x01`, satu-satunya perbedaan dari RandomX resmi
+//! Varian ZVRG (Konsep Bagian 5.10, DEC-01): salt Argon2 `RandomHSIS\x01`, satu-satunya perbedaan dari RandomX resmi
 //! (vendor/README.md). Pemilihan jaringan dan sumber kunci adalah aturan konsensus MOD-04 (TSK-M06 bagian B).
 
 use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
 use std::thread;
 
-use homeostasis_primitives::block::Header;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::params::{RANDOMX_KEY_INTERVAL, RANDOMX_KEY_LAG};
 use randomx_rs::{RandomXCache, RandomXDataset, RandomXError, RandomXFlag, RandomXVM};
+use zevrigo_primitives::block::Header;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::params::{RANDOMX_KEY_INTERVAL, RANDOMX_KEY_LAG};
 
 use crate::target::Target;
 
@@ -271,7 +271,7 @@ impl RandomxService {
         let (sender, receiver) = mpsc::channel::<Request>();
         // Utas tidak ditunggu: utas berhenti sendiri setelah semua handle dilepas.
         let _worker = thread::Builder::new()
-            .name("homeostasis-randomx".to_owned())
+            .name("zevrigo-randomx".to_owned())
             .spawn(move || serve(&receiver))
             .map_err(|error| RandomxError::Service(error.to_string()))?;
         Ok(Self { sender })

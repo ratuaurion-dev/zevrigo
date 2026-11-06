@@ -1,6 +1,6 @@
 use crate::{
     Amount, Block, BlockHeight, Decode, Encode, GENESIS_EXTRA_LEN, HEADER_SIZE, HEADER_VERSION,
-    Hash32, Header, MODULE_ID, OutPoint, Output, OutputKind, QUANTA_PER_HSIS, Reader, Transaction,
+    Hash32, Header, MODULE_ID, OutPoint, Output, OutputKind, QUANTA_PER_ZVRG, Reader, Transaction,
     UtxoEntry, params,
 };
 
@@ -11,7 +11,7 @@ fn module_id_matches() {
 
 #[test]
 fn crate_root_reexports_are_accessible() {
-    assert_eq!(Amount::from_quanta(QUANTA_PER_HSIS), params::TAIL_REWARD);
+    assert_eq!(Amount::from_quanta(QUANTA_PER_ZVRG), params::TAIL_REWARD);
     assert_eq!(BlockHeight::GENESIS.get(), 0);
     assert_eq!(Hash32::ZERO.as_bytes().len(), 32);
     assert_eq!(HEADER_SIZE, 96);

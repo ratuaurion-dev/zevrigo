@@ -1,19 +1,19 @@
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-use homeostasis_pow::{
+use tokio::runtime::Runtime;
+use zevrigo_pow::{
     RandomxMode, RandomxService, RandomxVerifier, Target, regtest_pow_hash, verify_regtest_pow,
 };
-use homeostasis_primitives::{
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Decode, Encode, Hash32, Header, Network, Output, OutputKind,
     Transaction,
 };
-use homeostasis_rpc::{
+use zevrigo_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, HexBytes,
     KindNumber, MempoolInfo, MempoolScan, NetworkName, Quanta, RpcBackend, RpcError, RpcServer,
     SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
-use tokio::runtime::Runtime;
 
 use super::{Miner, MinerError, MinerPow, Round};
 

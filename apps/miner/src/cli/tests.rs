@@ -1,5 +1,5 @@
-use homeostasis_primitives::{Network, OutputKind};
-use homeostasis_rpc::{Hex32, KindNumber};
+use zevrigo_primitives::{Network, OutputKind};
+use zevrigo_rpc::{Hex32, KindNumber};
 
 use super::{ArgError, Command, MinerConfig, USAGE, default_rpc_url, parse_args};
 

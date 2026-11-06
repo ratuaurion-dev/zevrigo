@@ -1,4 +1,4 @@
-# Spesifikasi Antarmuka Web Explorer Homeostasis Coin (HSIS) v0.2: Next.js, Tailwind CSS, shadcn/ui, dua bahasa
+# Spesifikasi Antarmuka Web Explorer Zevrigo Coin (ZVRG) v0.2: Next.js, Tailwind CSS, shadcn/ui, dua bahasa
 
 > Diperbarui: 3 November 2026 (DEC-28) · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S07, TSK-M38, TSK-M39 · Status: 🟢 v0.2
 > Lokasi di repo: `docs/reference/spesifikasi-explorer-web-v0.2.md` · Menggantikan
@@ -24,7 +24,7 @@ pemeriksaan, atau kunci di browser. Siapa pun yang menjalankan node dan explorer
 | Lokasi | `apps/explorer/web/` (bagian MOD-14, bukan crate Rust) |
 | Perangkat | Next.js App Router dengan `output: 'export'` dan `trailingSlash: true`: build statis ke `apps/explorer/web/out/` (tidak di-commit). Tanpa server Node.js, route handler, middleware, optimasi gambar, atau `next/font` |
 | Tampilan | Tailwind CSS 4, komponen shadcn/ui (`components/ui/`, di atas `radix-ui`), ikon `lucide-react`, notifikasi `sonner` |
-| Penyajian | Program `homeostasis-explorer --web-dir apps/explorer/web/out` di origin yang sama dengan API (tanpa CORS), Bagian 7 |
+| Penyajian | Program `zevrigo-explorer --web-dir apps/explorer/web/out` di origin yang sama dengan API (tanpa CORS), Bagian 7 |
 | Pengembangan | `npm run dev:mock` (server Next.js di `http://127.0.0.1:3000/` dengan data Regtest tiruan). Static export tidak bisa meneruskan `/api`, jadi tampilan dengan data sungguhan dilihat lewat build + explorer |
 | Dependensi | DEC-10 bagian 7 (Bagian 8) |
 
@@ -64,18 +64,18 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 
 - Bahasa Indonesia (bawaan) dan English. Kamus di `lib/i18n/id.ts` dan `lib/i18n/en.ts` dengan kunci yang sama; uji
   memastikan kunci dan placeholder `{nama}` di kedua kamus persis sama.
-- Pilihan pertama: tersimpan di `localStorage` (`hsis-explorer-lang`), lalu `navigator.language` berawalan `en` →
-  English, selain itu Indonesia. Tema terang atau gelap di `hsis-explorer-theme`, bawaan mengikuti sistem. Keduanya hanya
+- Pilihan pertama: tersimpan di `localStorage` (`zvrg-explorer-lang`), lalu `navigator.language` berawalan `en` →
+  English, selain itu Indonesia. Tema terang atau gelap di `zvrg-explorer-theme`, bawaan mengikuti sistem. Keduanya hanya
   di browser, tidak pernah dikirim ke server.
-- Istilah teknis tidak diterjemahkan: block_id, txid, hash, Merkle root, nonce, quanta, HSIS.
+- Istilah teknis tidak diterjemahkan: block_id, txid, hash, Merkle root, nonce, quanta, ZVRG.
 
 ---
 
 ## 4. Angka, jumlah koin, dan waktu
 
-- **Jumlah koin** (string desimal quanta dari API, sampai `u128::MAX`) diubah ke `bigint` dan ditampilkan sebagai HSIS
-  dengan 18 desimal, nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `4.380.000 HSIS`, `0,005 HSIS`;
-  English `4,380,000 HSIS`, `0.005 HSIS`. Nilai quanta lengkap di tooltip. Persentase (alokasi, jadwal) dihitung dalam
+- **Jumlah koin** (string desimal quanta dari API, sampai `u128::MAX`) diubah ke `bigint` dan ditampilkan sebagai ZVRG
+  dengan 18 desimal, nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `4.380.000 ZVRG`, `0,005 ZVRG`;
+  English `4,380,000 ZVRG`, `0.005 ZVRG`. Nilai quanta lengkap di tooltip. Persentase (alokasi, jadwal) dihitung dalam
   basis poin `bigint`.
 - **Dilarang** di kode aplikasi: `parseFloat`, `toFixed`, `Intl.*`, `dangerouslySetInnerHTML`, `innerHTML`, `eval`,
   `new Function`, dan URL luar (kecuali namespace SVG). Diperiksa skrip gerbang. `number` hanya untuk tinggi,

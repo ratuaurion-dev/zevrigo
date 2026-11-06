@@ -1,6 +1,6 @@
-use homeostasis_primitives::block::Header;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
+use zevrigo_primitives::block::Header;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
 
 use crate::{MODULE_ID, PowError, Target, mine_regtest, regtest_pow_hash, verify_regtest_pow};
 

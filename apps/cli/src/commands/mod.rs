@@ -16,19 +16,19 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use homeostasis_primitives::{Amount, Encode, Network, OutPoint, OutputKind};
-use homeostasis_rpc::{
+use thiserror::Error;
+use tokio::runtime::Runtime;
+use zeroize::Zeroizing;
+use zevrigo_primitives::{Amount, Encode, Network, OutPoint, OutputKind};
+use zevrigo_rpc::{
     ChainInfo, Hex32, MAX_SCAN_PAYLOADS, MempoolOutput, MempoolScan, RpcClient, reject_reason,
 };
-use homeostasis_wallet_core::{
+use zevrigo_wallet_core::{
     AddressError, Bip32Error, CHANGE_BRANCH, Coin, ExtendedPrivKey, ExtendedPubKey, HARDENED,
     KdfParams, Mnemonic, MnemonicError, NONCE_LEN, RECEIVE_BRANCH, SALT_LEN, Sealed, SendError,
     SendRequest, VaultError, account_key, build_transaction, decode_address, encode_address, seal,
     unseal,
 };
-use thiserror::Error;
-use tokio::runtime::Runtime;
-use zeroize::Zeroizing;
 
 use crate::args::{Action, Config};
 use crate::scan::{ScanResult, scan_wallet, wallet_payloads};
@@ -122,7 +122,7 @@ impl From<VaultError> for CliError {
 pub const MIN_PASSWORD_CHARS: usize = 8;
 
 /// Variabel lingkungan berisi password wallet, untuk skrip. Jika ada, terminal tidak ditanya.
-pub const PASSWORD_ENV: &str = "HOMEOSTASIS_WALLET_PASSWORD";
+pub const PASSWORD_ENV: &str = "ZEVRIGO_WALLET_PASSWORD";
 
 /// Pertanyaan password ke pengguna.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

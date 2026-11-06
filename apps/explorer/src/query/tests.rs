@@ -1,7 +1,7 @@
-use homeostasis_consensus::{SupplySchedule, block_subsidy, regtest_network_id};
-use homeostasis_crypto::txid;
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{Amount, BlockHeight, Hash32};
+use zevrigo_consensus::{SupplySchedule, block_subsidy, regtest_network_id};
+use zevrigo_crypto::txid;
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{Amount, BlockHeight, Hash32};
 
 use super::SpentBy;
 use crate::index::Indexer;

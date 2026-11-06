@@ -1,7 +1,7 @@
 //! Implementasi Proof-of-Work khusus pengembangan di jaringan `regtest` (`DEC-09`).
 
-use homeostasis_primitives::block::Header;
-use homeostasis_primitives::hash::Hash32;
+use zevrigo_primitives::block::Header;
+use zevrigo_primitives::hash::Hash32;
 
 use crate::target::Target;
 
@@ -24,7 +24,7 @@ pub enum PowError {
 /// di testnet dan mainnet dilakukan oleh MOD-04 (TSK-M09).
 #[must_use]
 pub fn regtest_pow_hash(header: &Header) -> Hash32 {
-    homeostasis_crypto::hash(homeostasis_crypto::Domain::RegtestPow, &header.to_array())
+    zevrigo_crypto::hash(zevrigo_crypto::Domain::RegtestPow, &header.to_array())
 }
 
 /// Memverifikasi bahwa header blok memenuhi target kesulitan PoW regtest.

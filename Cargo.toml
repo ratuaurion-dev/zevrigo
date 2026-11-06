@@ -17,7 +17,7 @@ members = [
     "apps/explorer",
     "tests/integration",
 ]
-# DEC-01: salinan randomx-rs + RandomX dengan salt HSIS (vendor/README.md), dipakai lewat [patch.crates-io], bukan anggota.
+# DEC-01: salinan randomx-rs + RandomX dengan salt ZVRG (vendor/README.md), dipakai lewat [patch.crates-io], bukan anggota.
 exclude = ["vendor"]
 
 [workspace.package]
@@ -28,16 +28,16 @@ publish = false
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-homeostasis-primitives = { path = "crates/primitives" }
-homeostasis-crypto = { path = "crates/crypto" }
-homeostasis-pow = { path = "crates/pow" }
-homeostasis-consensus = { path = "crates/consensus" }
-homeostasis-storage = { path = "crates/storage" }
-homeostasis-network = { path = "crates/network" }
-homeostasis-mempool = { path = "crates/mempool" }
-homeostasis-rpc = { path = "crates/rpc" }
-homeostasis-wallet-core = { path = "crates/wallet-core" }
-homeostasis-merchant-core = { path = "crates/merchant-core" }
+zevrigo-primitives = { path = "crates/primitives" }
+zevrigo-crypto = { path = "crates/crypto" }
+zevrigo-pow = { path = "crates/pow" }
+zevrigo-consensus = { path = "crates/consensus" }
+zevrigo-storage = { path = "crates/storage" }
+zevrigo-network = { path = "crates/network" }
+zevrigo-mempool = { path = "crates/mempool" }
+zevrigo-rpc = { path = "crates/rpc" }
+zevrigo-wallet-core = { path = "crates/wallet-core" }
+zevrigo-merchant-core = { path = "crates/merchant-core" }
 thiserror = "2.0.21"
 proptest = "1.12.0"
 blake3 = "1.8.7"

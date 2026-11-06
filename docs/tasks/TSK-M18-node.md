@@ -6,7 +6,7 @@
 ## Tujuan
 Menyatukan MOD-04 (aturan), MOD-05 (penyimpanan), MOD-07 (mempool), dan MOD-08 (RPC) menjadi node regtest satu
 chain. Dipecah dua:
-- **Bagian A (selesai):** pustaka `homeostasis_node` (`src/lib.rs`, `src/chain/`): `Node<S: ChainStore>` dan
+- **Bagian A (selesai):** pustaka `zevrigo_node` (`src/lib.rs`, `src/chain/`): `Node<S: ChainStore>` dan
   implementasi `RpcBackend` untuk 8 metode. Diuji tanpa jaringan dengan `MemoryStore` dan `RedbStore`.
 - **Bagian B (selesai):** biner daemon (argumen, folder data `RedbStore`, logging, server RPC, berhenti dengan
   Ctrl-C) dan uji integrasi lewat RPC sungguhan, sekaligus menutup TSK-F01.
@@ -28,7 +28,7 @@ chain. Dipecah dua:
   RPC menyebut `orphan` untuk induk yang belum dikenal; dicatat untuk v0.2). Blok `deferred` (V8) tidak antre;
   pengirim mengirim ulang.
 - Ringkasan chain disimpan di memori dan disusun ulang saat dibuka, sehingga skema `RedbStore` tetap versi 1.
-- Paket `homeostasis-node` kini berisi pustaka dan biner; biner belum diubah di bagian A.
+- Paket `zevrigo-node` kini berisi pustaka dan biner; biner belum diubah di bagian A.
 
 ## Test bagian A (node 3 → 10, workspace 229 → 236)
 `src/chain/tests.rs`: `starts_from_regtest_genesis`, `mines_blocks_from_template`, `submit_block_statuses_and_rules`
@@ -39,7 +39,7 @@ chain. Dipecah dua:
 ## Isi bagian B
 | Item | Isi |
 |---|---|
-| Argumen | `homeostasis-node --regtest --datadir <folder> [--rpc-port <port>]`, `--help`, `--version`. Tanpa argumen = `--help`. `--testnet`/`--mainnet` ditolak (DEC-01). Galat argumen keluar dengan kode 2, galat saat berjalan kode 1 |
+| Argumen | `zevrigo-node --regtest --datadir <folder> [--rpc-port <port>]`, `--help`, `--version`. Tanpa argumen = `--help`. `--testnet`/`--mainnet` ditolak (DEC-01). Galat argumen keluar dengan kode 2, galat saat berjalan kode 1 |
 | Folder data | `<datadir>/regtest/chain.redb` (RedbStore). Folder dibuat jika belum ada; isi lama dipakai ulang |
 | Server RPC | `127.0.0.1:<port>`, bawaan regtest 28_801, `0` memilih port bebas. Setelah siap, stdout berisi satu baris `rpc: http://<alamat>` |
 | Logging | `tracing-subscriber` ke stderr, level INFO, tanpa warna |

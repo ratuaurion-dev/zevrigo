@@ -1,5 +1,5 @@
-use homeostasis_consensus::TxError;
-use homeostasis_primitives::Hash32;
+use zevrigo_consensus::TxError;
+use zevrigo_primitives::Hash32;
 
 #[test]
 fn module_id_matches() {

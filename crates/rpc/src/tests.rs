@@ -1,6 +1,6 @@
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::params::Network;
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::params::Network;
 
 use crate::error::{
     INTERNAL_ERROR, INVALID_ENCODING, INVALID_PARAMS, INVALID_REQUEST, INVALID_TRANSACTION,

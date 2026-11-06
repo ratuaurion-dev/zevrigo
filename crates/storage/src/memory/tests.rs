@@ -1,10 +1,10 @@
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::block::{Block, Header};
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::tx::{Input, Output, OutputKind, Transaction, Witness};
-use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
 use proptest::prelude::*;
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::block::{Block, Header};
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::tx::{Input, Output, OutputKind, Transaction, Witness};
+use zevrigo_primitives::utxo::{OutPoint, UtxoEntry};
 
 use super::MemoryStore;
 use crate::store::{BlockUndo, ChainStore, StoreError};

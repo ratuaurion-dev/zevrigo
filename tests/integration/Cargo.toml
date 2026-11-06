@@ -1,5 +1,5 @@
 [package]
-name = "homeostasis-integration-tests"
+name = "zevrigo-integration-tests"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,25 +7,25 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
-homeostasis-consensus.workspace = true
-homeostasis-crypto.workspace = true
-homeostasis-mempool.workspace = true
-homeostasis-merchant-core.workspace = true
-homeostasis-network.workspace = true
-homeostasis-pow.workspace = true
-homeostasis-primitives.workspace = true
-homeostasis-rpc.workspace = true
-homeostasis-storage.workspace = true
-homeostasis-wallet-core.workspace = true
+zevrigo-consensus.workspace = true
+zevrigo-crypto.workspace = true
+zevrigo-mempool.workspace = true
+zevrigo-merchant-core.workspace = true
+zevrigo-network.workspace = true
+zevrigo-pow.workspace = true
+zevrigo-primitives.workspace = true
+zevrigo-rpc.workspace = true
+zevrigo-storage.workspace = true
+zevrigo-wallet-core.workspace = true
 
 [dev-dependencies]
 # DEC-20, DEC-23, dan DEC-25 bagian 3: aplikasi hanya untuk uji ujung ke ujung (FTR-02 sampai FTR-05), tidak pernah
 # sebagai dependensi biasa. Dirujuk lewat path, bukan [workspace.dependencies], agar daftar dependensi workspace tetap hanya
 # berisi pustaka inti dan crate lain tidak bisa memakai aplikasi dengan `.workspace = true`.
-homeostasis-cli = { path = "../../apps/cli" }
-homeostasis-explorer = { path = "../../apps/explorer" }
-homeostasis-miner = { path = "../../apps/miner" }
-homeostasis-node = { path = "../../apps/node" }
+zevrigo-cli = { path = "../../apps/cli" }
+zevrigo-explorer = { path = "../../apps/explorer" }
+zevrigo-miner = { path = "../../apps/miner" }
+zevrigo-node = { path = "../../apps/node" }
 # Membaca jawaban JSON API explorer (FTR-05).
 serde_json.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "sync"] }

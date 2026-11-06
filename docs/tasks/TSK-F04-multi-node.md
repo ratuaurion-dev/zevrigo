@@ -28,7 +28,7 @@ berkerja sama.
    `get_chain_info` E sama persis dengan C.
 
 ## Keputusan teknis (Quick, tanpa DEC)
-- **Satu proses, bukan biner.** MOD-17 tidak bisa menjalankan biner `homeostasis-node` (`CARGO_BIN_EXE_*` hanya ada
+- **Satu proses, bukan biner.** MOD-17 tidak bisa menjalankan biner `zevrigo-node` (`CARGO_BIN_EXE_*` hanya ada
   untuk uji di paket biner itu), jadi node dan layanan P2P dijalankan sebagai pustaka (DEC-20). Uji dua biner sungguhan
   sudah ada di `apps/node/tests/regtest_node.rs` (TSK-M28).
 - **"Offline" = sesi P2P dihentikan**, isi node tetap (seperti daemon yang dibuka ulang dari `chain.redb`). Blok cabang dan

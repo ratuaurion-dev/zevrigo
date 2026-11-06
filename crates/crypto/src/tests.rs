@@ -1,8 +1,8 @@
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::block::{Block, Header};
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::tx::{Condition, Output, OutputKind, Transaction};
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::block::{Block, Header};
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::tx::{Condition, Output, OutputKind, Transaction};
 
 use crate::{
     Domain, DomainHasher, MODULE_ID, PublicKey, SchnorrError, SecretKey, Signature, block_id,

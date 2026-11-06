@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
-use homeostasis_consensus::{BlockError, ChainParams, TxError, check_block_context_free};
-use homeostasis_crypto::block_id;
-use homeostasis_mempool::{DEFAULT_MAX_BYTES, MempoolError};
-use homeostasis_network::Ack;
-use homeostasis_primitives::{
+use tokio::sync::mpsc;
+use zevrigo_consensus::{BlockError, ChainParams, TxError, check_block_context_free};
+use zevrigo_crypto::block_id;
+use zevrigo_mempool::{DEFAULT_MAX_BYTES, MempoolError};
+use zevrigo_network::Ack;
+use zevrigo_primitives::{
     Block, BlockHeight, Decode, Encode, Hash32, Header, OutPoint, OutputKind,
 };
-use homeostasis_rpc::{GetBlockTemplateParams, Hex32, KindNumber, RpcBackend, SubmitStatus};
-use homeostasis_storage::MemoryStore;
-use tokio::sync::mpsc;
+use zevrigo_rpc::{GetBlockTemplateParams, Hex32, KindNumber, RpcBackend, SubmitStatus};
+use zevrigo_storage::MemoryStore;
 
 use super::{Announcement, Relay, block_ack, local_status, tx_ack};
 use crate::chain::{Node, TxOutcome};

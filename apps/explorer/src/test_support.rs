@@ -4,13 +4,13 @@
 
 use std::sync::Mutex;
 
-use homeostasis_consensus::{block_subsidy, regtest_genesis, total_supply_after};
-use homeostasis_crypto::{block_id, block_merkle_root, txid};
-use homeostasis_primitives::{
+use zevrigo_consensus::{block_subsidy, regtest_genesis, total_supply_after};
+use zevrigo_crypto::{block_id, block_merkle_root, txid};
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Encode, Hash32, Header, Input, Network, Output, OutputKind,
     Transaction, Witness,
 };
-use homeostasis_rpc::{
+use zevrigo_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, MempoolInfo,
     MempoolScan, NetworkName, Quanta, RpcBackend, RpcError, SendRawTransactionResult,
     SubmitBlockResult, UtxoInfo,

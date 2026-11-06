@@ -30,26 +30,26 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Display;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use homeostasis_consensus::{
+use thiserror::Error;
+use zevrigo_consensus::{
     BlockError, ChainParams, ParentContext, RandomxHasher, U256, asert_target, block_subsidy,
     block_work, check_block_context_free, check_block_pow, check_block_transactions,
     check_future_timestamp, check_header_context, decode_block, decode_compact, encode_compact,
     known_genesis, median_time_past, randomx_hasher, randomx_key_height, total_supply_after,
 };
-use homeostasis_crypto::{block_id, block_merkle_root, txid};
-use homeostasis_mempool::{Mempool, MempoolEntry, MempoolError, rule_name};
-use homeostasis_primitives::params::{MAX_BLOCK_SIZE, MEDIAN_TIME_SPAN};
-use homeostasis_primitives::{
+use zevrigo_crypto::{block_id, block_merkle_root, txid};
+use zevrigo_mempool::{Mempool, MempoolEntry, MempoolError, rule_name};
+use zevrigo_primitives::params::{MAX_BLOCK_SIZE, MEDIAN_TIME_SPAN};
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Decode, Encode, Hash32, Header, Network, OutPoint, Output,
     Transaction, TxBody, UtxoEntry,
 };
-use homeostasis_rpc::{
+use zevrigo_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, HexBytes,
     KindNumber, MempoolInfo, MempoolOutput, MempoolScan, MempoolSpend, NetworkName, Quanta,
     RpcBackend, RpcError, SendRawTransactionResult, SubmitBlockResult, SubmitStatus, UtxoInfo,
 };
-use homeostasis_storage::{ChainStore, StoreError};
-use thiserror::Error;
+use zevrigo_storage::{ChainStore, StoreError};
 
 mod sync;
 
@@ -69,7 +69,7 @@ const TEMPLATE_RESERVE_BYTES: usize = 1_000;
 pub type Clock = Box<dyn Fn() -> u64 + Send + Sync>;
 
 /// Penghitung hash RandomX bersama untuk V3 testnet dan mainnet (DEC-01). Node sungguhan memakai layanan MOD-03
-/// ([`homeostasis_consensus::randomx_hasher`]); test boleh memakai penghitung lain.
+/// ([`zevrigo_consensus::randomx_hasher`]); test boleh memakai penghitung lain.
 pub type Randomx = Arc<dyn RandomxHasher + Send + Sync>;
 
 /// Batas data cabang node (Spesifikasi P2P v0.1 Bagian 9): blok cabang (badannya di penyimpanan sejak TSK-M35), indeks

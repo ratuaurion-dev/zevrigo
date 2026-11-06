@@ -1,9 +1,9 @@
 # MOD-15: Aplikasi Wallet (`apps/wallet`)
 
 - **ID Modul:** `MOD-15`
-- **Fungsi:** Aplikasi dompet pengguna untuk mengelola kunci, melihat saldo UTXO, serta menyusun dan mengirim transaksi HSIS (transfer, multi-tanda tangan MuSig2, dan kunci waktu).
+- **Fungsi:** Aplikasi dompet pengguna untuk mengelola kunci, melihat saldo UTXO, serta menyusun dan mengirim transaksi ZVRG (transfer, multi-tanda tangan MuSig2, dan kunci waktu).
 - **Platform Target:** Desktop (Linux, Windows, macOS), Android, dan iOS.
-- **Dependensi Rencana:** `MOD-08` (`homeostasis-rpc`), `MOD-09` (`homeostasis-wallet-core`).
+- **Dependensi Rencana:** `MOD-08` (`zevrigo-rpc`), `MOD-09` (`zevrigo-wallet-core`).
 
 ## Status Kerangka (R0)
 

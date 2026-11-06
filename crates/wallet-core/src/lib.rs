@@ -1,4 +1,4 @@
-//! MOD-09: Wallet inti Homeostasis Coin (`HSIS`): frasa pemulihan BIP39, turunan kunci BIP32, kunci akun publik
+//! MOD-09: Wallet inti Zevrigo Coin (`ZVRG`): frasa pemulihan BIP39, turunan kunci BIP32, kunci akun publik
 //! untuk watch-only, alamat bech32m (TSK-M15), serta pemilihan koin, penyusunan, dan tanda tangan transaksi kirim
 //! (TSK-M16), sesuai Spesifikasi Wallet v0.1.
 //!

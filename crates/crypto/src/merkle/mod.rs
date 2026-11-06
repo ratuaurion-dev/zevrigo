@@ -1,6 +1,6 @@
 //! Perhitungan Merkle root biner secara iteratif sesuai Bagian 6.3 spesifikasi format.
 
-use homeostasis_primitives::Hash32;
+use zevrigo_primitives::Hash32;
 
 use crate::hash::{Domain, DomainHasher, hash};
 

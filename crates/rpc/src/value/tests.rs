@@ -1,8 +1,8 @@
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::params::Network;
-use homeostasis_primitives::tx::OutputKind;
 use proptest::prelude::*;
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::params::Network;
+use zevrigo_primitives::tx::OutputKind;
 
 use super::{
     CompactHex, DecimalU64, Hex32, HexBytes, KindNumber, NetworkName, Quanta, ValueError,

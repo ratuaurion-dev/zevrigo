@@ -2,11 +2,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use homeostasis_primitives::block::Block;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::tx::TxBody;
-use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
+use zevrigo_primitives::block::Block;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::tx::TxBody;
+use zevrigo_primitives::utxo::{OutPoint, UtxoEntry};
 
 use crate::store::{BlockUndo, ChainStore, StoreError};
 

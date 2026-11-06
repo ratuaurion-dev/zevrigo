@@ -10,11 +10,11 @@
 
 use std::cell::RefCell;
 
-use homeostasis_pow::{RandomxMiner, RandomxMode, Target, mine_regtest};
-use homeostasis_primitives::{Block, Decode, Encode, Hash32, Header, Network};
-use homeostasis_rpc::{Hex32, KindNumber, RpcClient, SubmitStatus};
 use thiserror::Error;
 use tokio::runtime::Runtime;
+use zevrigo_pow::{RandomxMiner, RandomxMode, Target, mine_regtest};
+use zevrigo_primitives::{Block, Decode, Encode, Hash32, Header, Network};
+use zevrigo_rpc::{Hex32, KindNumber, RpcClient, SubmitStatus};
 
 /// Jumlah nonce PoW dev regtest yang dicoba untuk satu template sebelum template diambil ulang.
 pub const ATTEMPTS_PER_TEMPLATE: u64 = 1_000_000;
@@ -117,7 +117,7 @@ fn pow_error(error: impl std::fmt::Display) -> MinerError {
 
 /// Nama jaringan seperti di RPC.
 fn network_name(network: Network) -> String {
-    String::from(homeostasis_rpc::NetworkName::new(network))
+    String::from(zevrigo_rpc::NetworkName::new(network))
 }
 
 /// Miner yang terhubung ke satu node. Tidak `Send` jika memakai RandomX (VM pustaka milik satu utas).

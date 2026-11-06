@@ -1,6 +1,6 @@
-use homeostasis_primitives::block::Header;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
+use zevrigo_primitives::block::Header;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
 
 use super::{
     RandomxError, RandomxMiner, RandomxMode, RandomxService, RandomxVerifier, SERVICE_KEYS,
@@ -9,7 +9,7 @@ use super::{
 use crate::target::Target;
 
 /// Kunci dan input vektor resmi RandomX (tevador/RandomX, src/tests/tests.cpp, "Hash test 1a" sampai "1f"). Hash yang
-/// diharapkan adalah hash varian HSIS (salt `RandomHSIS\x01`, DEC-01), dihitung Q101 dengan program uji C++ terhadap
+/// diharapkan adalah hash varian ZVRG (salt `RandomHSIS\x01`, DEC-01), dihitung Q101 dengan program uji C++ terhadap
 /// pustaka vendor/randomx-rs; program yang sama menghasilkan vektor resmi persis dari sumber asli (salt `RandomX\x03`),
 /// dengan flag bawaan dan flag anjuran CPU (JIT).
 const KEY_000: &[u8] = b"test key 000";
@@ -40,7 +40,7 @@ fn check(key: &[u8], cases: &[(Vec<u8>, &str)]) {
 }
 
 #[test]
-fn hsis_vectors_light_mode() {
+fn zvrg_vectors_light_mode() {
     check(
         KEY_000,
         &[
@@ -119,7 +119,7 @@ fn header_hash_and_target_rule() {
         42,
     );
     let pow_hash = verifier.hash(&header).expect("hash header");
-    // Vektor h1 Q101 (header ini, kunci 0x33 × 32, salt HSIS).
+    // Vektor h1 Q101 (header ini, kunci 0x33 × 32, salt ZVRG).
     let h1 = Hash32::from_hex("97a628c587d1c1a463da37f83a33a66c60cf304300392992f3993a708fd62e53")
         .expect("h1");
     assert_eq!(pow_hash, h1);
@@ -193,7 +193,7 @@ fn service_matches_verifier_and_keeps_recent_keys() {
     );
 }
 
-/// Header vektor h1 (Q101) dan hash HSIS-nya dengan kunci 0x33 × 32.
+/// Header vektor h1 (Q101) dan hash ZVRG-nya dengan kunci 0x33 × 32.
 fn h1() -> (Header, Hash32) {
     let header = Header::new(
         BlockHeight::new(1),
@@ -258,7 +258,7 @@ fn light_miner_hashes_and_searches_nonces() {
 }
 
 /// Mode cepat memakai dataset sekitar 2 GiB dan menyusunnya sekitar satu menit, jadi tidak ikut `make check-all`.
-/// Dijalankan skrip gerbang dengan `cargo test -p homeostasis-pow --lib -- --ignored`.
+/// Dijalankan skrip gerbang dengan `cargo test -p zevrigo-pow --lib -- --ignored`.
 #[test]
 #[ignore = "dataset RandomX sekitar 2 GiB"]
 fn fast_miner_matches_light_hash() {

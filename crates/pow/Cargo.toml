@@ -1,5 +1,5 @@
 [package]
-name = "homeostasis-pow"
+name = "zevrigo-pow"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,8 +7,8 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
-homeostasis-crypto.workspace = true
-homeostasis-primitives.workspace = true
+zevrigo-crypto.workspace = true
+zevrigo-primitives.workspace = true
 randomx-rs.workspace = true
 thiserror.workspace = true
 

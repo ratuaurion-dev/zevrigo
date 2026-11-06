@@ -9,11 +9,11 @@
 
 ## Tujuan
 
-Menyediakan aplikasi kasir lintas platform (desktop dan mobile) berbasis *watch-only* bagi pelaku usaha untuk menerima pembayaran HSIS secara aman.
+Menyediakan aplikasi kasir lintas platform (desktop dan mobile) berbasis *watch-only* bagi pelaku usaha untuk menerima pembayaran ZVRG secara aman.
 
 ## Tanggung Jawab
 
-- Pembuatan tagihan dan tampilan kode QR pembayaran menggunakan `MOD-10` (`homeostasis-merchant-core`), pemantauan status konfirmasi melalui `MOD-08` (`homeostasis-rpc`), serta tampilan nilai tagihan tanpa tipe float (*diisi lebih rinci di R2*).
+- Pembuatan tagihan dan tampilan kode QR pembayaran menggunakan `MOD-10` (`zevrigo-merchant-core`), pemantauan status konfirmasi melalui `MOD-08` (`zevrigo-rpc`), serta tampilan nilai tagihan tanpa tipe float (*diisi lebih rinci di R2*).
 
 ## Bukan Tanggung Jawab
 

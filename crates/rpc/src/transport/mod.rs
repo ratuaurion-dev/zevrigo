@@ -1,6 +1,6 @@
 //! Parameter transpor HTTP JSON-RPC (Spesifikasi RPC v0.1 Bagian 1).
 
-use homeostasis_primitives::params::Network;
+use zevrigo_primitives::params::Network;
 
 /// Alamat bawaan server RPC: hanya lokal.
 pub const DEFAULT_HOST: &str = "127.0.0.1";

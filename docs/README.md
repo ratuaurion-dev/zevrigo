@@ -1,4 +1,4 @@
-# Homeostasis Coin (HSIS): node, penambangan, kirim-terima lewat CLI, dan jaringan multi-node berjalan di regtest
+# Zevrigo Coin (ZVRG): node, penambangan, kirim-terima lewat CLI, dan jaringan multi-node berjalan di regtest
 
 > Diperbarui: 2 November 2026 · Pemilik: pencipta · Tahap: 🟢 node regtest (FTR-01), penambangan (FTR-02), kirim dan terima lewat CLI (FTR-03), jaringan multi-node dan reorg dalam (FTR-04), explorer minimal (FTR-05)
 

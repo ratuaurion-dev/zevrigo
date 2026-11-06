@@ -1,7 +1,7 @@
 ---
 trigger: always_on
 ---
-# Aturan inti Homeostasis Coin
+# Aturan inti Zevrigo Coin
 
 - Baca dan patuhi AGENTS.md di root repo sebelum mengerjakan tugas apa pun.
 - Angka di tabel "Parameter protokol" AGENTS.md tidak boleh diubah. Jika ada yang tampak salah, berhenti dan laporkan.

@@ -1065,200 +1065,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "homeostasis-cli"
-version = "0.1.0"
-dependencies = [
- "homeostasis-primitives",
- "homeostasis-rpc",
- "homeostasis-wallet-core",
- "rpassword",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "tokio",
- "zeroize",
-]
-
-[[package]]
-name = "homeostasis-consensus"
-version = "0.1.0"
-dependencies = [
- "homeostasis-crypto",
- "homeostasis-pow",
- "homeostasis-primitives",
- "proptest",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "homeostasis-crypto"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "homeostasis-primitives",
- "k256",
- "proptest",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "homeostasis-explorer"
-version = "0.1.0"
-dependencies = [
- "axum",
- "homeostasis-consensus",
- "homeostasis-crypto",
- "homeostasis-primitives",
- "homeostasis-rpc",
- "rusqlite",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 2.0.21",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "homeostasis-integration-tests"
-version = "0.1.0"
-dependencies = [
- "homeostasis-cli",
- "homeostasis-consensus",
- "homeostasis-crypto",
- "homeostasis-explorer",
- "homeostasis-mempool",
- "homeostasis-merchant-core",
- "homeostasis-miner",
- "homeostasis-network",
- "homeostasis-node",
- "homeostasis-pow",
- "homeostasis-primitives",
- "homeostasis-rpc",
- "homeostasis-storage",
- "homeostasis-wallet-core",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "homeostasis-mempool"
-version = "0.1.0"
-dependencies = [
- "homeostasis-consensus",
- "homeostasis-crypto",
- "homeostasis-primitives",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "homeostasis-merchant-core"
-version = "0.1.0"
-dependencies = [
- "homeostasis-primitives",
- "homeostasis-wallet-core",
-]
-
-[[package]]
-name = "homeostasis-miner"
-version = "0.1.0"
-dependencies = [
- "homeostasis-pow",
- "homeostasis-primitives",
- "homeostasis-rpc",
- "thiserror 2.0.21",
- "tokio",
-]
-
-[[package]]
-name = "homeostasis-network"
-version = "0.1.0"
-dependencies = [
- "homeostasis-primitives",
- "libp2p",
- "libp2p-swarm",
- "libp2p-tcp",
- "thiserror 2.0.21",
- "tokio",
-]
-
-[[package]]
-name = "homeostasis-node"
-version = "0.1.0"
-dependencies = [
- "homeostasis-consensus",
- "homeostasis-crypto",
- "homeostasis-mempool",
- "homeostasis-network",
- "homeostasis-primitives",
- "homeostasis-rpc",
- "homeostasis-storage",
- "thiserror 2.0.21",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "homeostasis-pow"
-version = "0.1.0"
-dependencies = [
- "homeostasis-crypto",
- "homeostasis-primitives",
- "proptest",
- "randomx-rs",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "homeostasis-primitives"
-version = "0.1.0"
-dependencies = [
- "proptest",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "homeostasis-rpc"
-version = "0.1.0"
-dependencies = [
- "homeostasis-primitives",
- "jsonrpsee",
- "jsonrpsee-http-client",
- "proptest",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "tokio",
-]
-
-[[package]]
-name = "homeostasis-storage"
-version = "0.1.0"
-dependencies = [
- "homeostasis-primitives",
- "proptest",
- "redb",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "homeostasis-wallet-core"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "chacha20poly1305",
- "hmac 0.12.1",
- "homeostasis-crypto",
- "homeostasis-primitives",
- "pbkdf2",
- "proptest",
- "sha2 0.10.9",
- "thiserror 2.0.21",
- "zeroize",
-]
-
-[[package]]
 name = "http"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3602,6 +3408,200 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.9",
+]
+
+[[package]]
+name = "zevrigo-cli"
+version = "0.1.0"
+dependencies = [
+ "rpassword",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "zeroize",
+ "zevrigo-primitives",
+ "zevrigo-rpc",
+ "zevrigo-wallet-core",
+]
+
+[[package]]
+name = "zevrigo-consensus"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "thiserror 2.0.21",
+ "zevrigo-crypto",
+ "zevrigo-pow",
+ "zevrigo-primitives",
+]
+
+[[package]]
+name = "zevrigo-crypto"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "k256",
+ "proptest",
+ "thiserror 2.0.21",
+ "zevrigo-primitives",
+]
+
+[[package]]
+name = "zevrigo-explorer"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "rusqlite",
+ "serde_json",
+ "sha2 0.10.9",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "zevrigo-consensus",
+ "zevrigo-crypto",
+ "zevrigo-primitives",
+ "zevrigo-rpc",
+]
+
+[[package]]
+name = "zevrigo-integration-tests"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "tokio",
+ "zevrigo-cli",
+ "zevrigo-consensus",
+ "zevrigo-crypto",
+ "zevrigo-explorer",
+ "zevrigo-mempool",
+ "zevrigo-merchant-core",
+ "zevrigo-miner",
+ "zevrigo-network",
+ "zevrigo-node",
+ "zevrigo-pow",
+ "zevrigo-primitives",
+ "zevrigo-rpc",
+ "zevrigo-storage",
+ "zevrigo-wallet-core",
+]
+
+[[package]]
+name = "zevrigo-mempool"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.21",
+ "zevrigo-consensus",
+ "zevrigo-crypto",
+ "zevrigo-primitives",
+]
+
+[[package]]
+name = "zevrigo-merchant-core"
+version = "0.1.0"
+dependencies = [
+ "zevrigo-primitives",
+ "zevrigo-wallet-core",
+]
+
+[[package]]
+name = "zevrigo-miner"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.21",
+ "tokio",
+ "zevrigo-pow",
+ "zevrigo-primitives",
+ "zevrigo-rpc",
+]
+
+[[package]]
+name = "zevrigo-network"
+version = "0.1.0"
+dependencies = [
+ "libp2p",
+ "libp2p-swarm",
+ "libp2p-tcp",
+ "thiserror 2.0.21",
+ "tokio",
+ "zevrigo-primitives",
+]
+
+[[package]]
+name = "zevrigo-node"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "zevrigo-consensus",
+ "zevrigo-crypto",
+ "zevrigo-mempool",
+ "zevrigo-network",
+ "zevrigo-primitives",
+ "zevrigo-rpc",
+ "zevrigo-storage",
+]
+
+[[package]]
+name = "zevrigo-pow"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "randomx-rs",
+ "thiserror 2.0.21",
+ "zevrigo-crypto",
+ "zevrigo-primitives",
+]
+
+[[package]]
+name = "zevrigo-primitives"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "zevrigo-rpc"
+version = "0.1.0"
+dependencies = [
+ "jsonrpsee",
+ "jsonrpsee-http-client",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "tokio",
+ "zevrigo-primitives",
+]
+
+[[package]]
+name = "zevrigo-storage"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "redb",
+ "thiserror 2.0.21",
+ "zevrigo-primitives",
+]
+
+[[package]]
+name = "zevrigo-wallet-core"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "chacha20poly1305",
+ "hmac 0.12.1",
+ "pbkdf2",
+ "proptest",
+ "sha2 0.10.9",
+ "thiserror 2.0.21",
+ "zeroize",
+ "zevrigo-crypto",
+ "zevrigo-primitives",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-# Spesifikasi Wallet Homeostasis Coin (HSIS) v0.1: frasa BIP39, turunan BIP32, alamat, pemilihan koin, pemindaian saldo
+# Spesifikasi Wallet Zevrigo Coin (ZVRG) v0.1: frasa BIP39, turunan BIP32, alamat, pemilihan koin, pemindaian saldo
 
 > Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S03 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-wallet-v0.1.md`
@@ -34,7 +34,7 @@ Frasa dan passphrase yang sama di wallet BIP39 lain menghasilkan seed yang sama.
 |---|---|
 | Kunci induk | BIP32: `HMAC-SHA512(kunci = "Bitcoin seed", seed)`. Konstanta BIP32 dipertahankan agar vektor resmi BIP32 bisa dipakai |
 | Jalur | `m / 44' / coin' / account' / branch / index` |
-| `coin` | `1` untuk regtest dan testnet (konvensi SLIP-44 "testnet semua koin"). Mainnet: `TODO(param)` sampai nomor SLIP-44 HSIS didaftarkan |
+| `coin` | `1` untuk regtest dan testnet (konvensi SLIP-44 "testnet semua koin"). Mainnet: `TODO(param)` sampai nomor SLIP-44 ZVRG didaftarkan |
 | `account` | `0` di v0.1 |
 | `branch` | `0` penerimaan, `1` kembalian |
 | `index` | `0` sampai `2^31 − 1`, non-hardened |
@@ -42,7 +42,7 @@ Frasa dan passphrase yang sama di wallet BIP39 lain menghasilkan seed yang sama.
 | Tanda tangan | Kunci rahasia BIP32 dipakai langsung. BIP340 menegasikan kunci secara internal jika koordinat y ganjil (sudah dilakukan k256 di MOD-02) |
 | Kunci tidak sah | Jika turunan menghasilkan kunci tidak sah (peluang sekitar 2^-127), indeks itu dilewati, sesuai BIP32 |
 
-- `44'` hanya struktur jalur. HSIS tidak punya skrip, jadi tidak ada arti P2PKH seperti di Bitcoin.
+- `44'` hanya struktur jalur. ZVRG tidak punya skrip, jadi tidak ada arti P2PKH seperti di Bitcoin.
 - **Watch-only (MOD-10):** kunci akun publik = kunci publik terkompresi 33 byte ‖ chain code 32 byte di `m/44'/coin'/0'`,
   ditulis hex huruf kecil 130 karakter. Dari kunci ini, `branch/index` diturunkan dengan CKDpub BIP32 tanpa kunci rahasia.
   Format xpub Base58 BIP32 tidak dipakai di v0.1.
@@ -121,7 +121,7 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
 | Isi versi 2 (DEC-27, semua wallet baru) | `version` (2), `network` (`regtest` atau `testnet`), `account` (kunci akun publik `m/44'/1'/0'`, hex 130 karakter, Bagian 3), `encrypted` (`kdf` `argon2id`, `memory_kib`, `iterations`, `parallelism`, `salt` hex 16 byte, `cipher` `xchacha20poly1305`, `nonce` hex 24 byte, `ciphertext` hex = frasa ternormalkan terenkripsi diikuti tag 16 byte), `next_index` untuk `branch 0` dan `branch 1` |
 | Isi versi 1 (lama) | `version` (1), `network`, `mnemonic` tanpa enkripsi, `next_index`. Tetap bisa dipakai; `wallet-encrypt` mengubahnya ke versi 2 dengan indeks yang sama |
 | Enkripsi (DEC-27, TSK-M37) | Kunci 32 byte = Argon2id versi 0x13 (password UTF-8, salt; bawaan 64 MiB, 3 putaran, 1 jalur; file dengan memori di atas 1 GiB, putaran di atas 64, atau jalur di atas 16 ditolak). Frasa dienkripsi XChaCha20-Poly1305 dengan AAD = `homeostasis wallet vault v1` ‖ `memory_kib` ‖ `iterations` ‖ `parallelism` (masing-masing `u32` big-endian) ‖ salt. Salt dan nonce dari `/dev/urandom` setiap kali file dikunci |
-| Password | Minimal 8 karakter, diketik dua kali saat membuat (`wallet-create`, `wallet-restore`, `wallet-encrypt`), dibaca tanpa tampil di layar. Hanya diminta saat kunci rahasia dibutuhkan: `send` dan `wallet-show-phrase`. `address` dan `balance` memakai `account` tanpa password. Untuk skrip regtest boleh lewat variabel lingkungan `HOMEOSTASIS_WALLET_PASSWORD` |
+| Password | Minimal 8 karakter, diketik dua kali saat membuat (`wallet-create`, `wallet-restore`, `wallet-encrypt`), dibaca tanpa tampil di layar. Hanya diminta saat kunci rahasia dibutuhkan: `send` dan `wallet-show-phrase`. `address` dan `balance` memakai `account` tanpa password. Untuk skrip regtest boleh lewat variabel lingkungan `ZEVRIGO_WALLET_PASSWORD` |
 | Passphrase | Tidak disimpan. Versi 2: dipakai saat wallet dibuat (menentukan `account`) dan saat `send` (wajib menghasilkan `account` yang sama, jika tidak ditolak); `address` dan `balance` tidak memakainya. Versi 1: diminta lewat opsi setiap kali dibutuhkan |
 | Izin file | `0600`, dibuat baru dan tidak menimpa file yang sudah ada |
 | Memori | Frasa, seed, kunci rahasia, kunci turunan, memori kerja Argon2id, dan password dihapus dari memori sesudah dipakai (`zeroize`, upaya terbaik) |

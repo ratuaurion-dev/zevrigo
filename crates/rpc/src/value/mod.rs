@@ -5,12 +5,12 @@
 //! depan, tanpa tanda, tanpa titik). Nilai yang melanggar ditolak saat deserialisasi, dan server memetakannya ke
 //! kode `-32602`. Jumlah koin tidak pernah ditulis sebagai angka JSON.
 
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::params::Network;
-use homeostasis_primitives::tx::OutputKind;
 use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::params::Network;
+use zevrigo_primitives::tx::OutputKind;
 
 /// Galat saat mengurai nilai JSON RPC.
 #[derive(Clone, Debug, PartialEq, Eq, Error)]

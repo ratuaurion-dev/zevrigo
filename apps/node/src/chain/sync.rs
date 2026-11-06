@@ -12,15 +12,15 @@
 
 use std::collections::{BTreeSet, VecDeque};
 
-use homeostasis_consensus::{
+use zevrigo_consensus::{
     ParentContext, U256, check_future_timestamp, check_header_context, check_header_pow,
     randomx_key_height,
 };
-use homeostasis_crypto::block_id;
-use homeostasis_primitives::params::{MEDIAN_TIME_SPAN, RANDOMX_KEY_INTERVAL};
-use homeostasis_primitives::{Block, BlockHeight, Hash32, Header, Network};
-use homeostasis_rpc::RpcError;
-use homeostasis_storage::ChainStore;
+use zevrigo_crypto::block_id;
+use zevrigo_primitives::params::{MEDIAN_TIME_SPAN, RANDOMX_KEY_INTERVAL};
+use zevrigo_primitives::{Block, BlockHeight, Hash32, Header, Network};
+use zevrigo_rpc::RpcError;
+use zevrigo_storage::ChainStore;
 
 use super::{
     ChainState, HeaderEntry, INVALID_ANCESTOR_RULE, Node, Parent, block_rule, header_work,

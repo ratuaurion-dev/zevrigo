@@ -53,7 +53,7 @@ Tipe ini ditaruh di MOD-01 karena MOD-04 dan MOD-05 sama-sama memakainya, padaha
    Doc comment crate dan baris lain tidak diubah.
 3. Tanpa unwrap, expect, panic, atau indexing di kode non-test.
 
-## Daftar test (nama persis; test homeostasis-primitives bertambah dari 52 menjadi tepat 56)
+## Daftar test (nama persis; test zevrigo-primitives bertambah dari 52 menjadi tepat 56)
 `src/utxo/tests.rs`:
 1. `outpoint_new_and_from_input_preserve_txid_and_index`:
    `OutPoint::new(Hash32::from_bytes([0x11; 32]), 7)` mengembalikan txid `[0x11; 32]` dan index 7;
@@ -89,7 +89,7 @@ Test lama di src/tests.rs tidak diubah.
 - docs/system-map.md dan kartu modul lain TIDAK diubah.
 
 ## Kriteria penerimaan
-- [ ] 4 test baru dengan nama persis lolos; homeostasis-primitives tepat 56 test
+- [ ] 4 test baru dengan nama persis lolos; zevrigo-primitives tepat 56 test
 - [ ] Cargo.toml dan Cargo.lock tidak berubah
 - [ ] `#![forbid(unsafe_code)]` dan lint konsensus tetap aktif; tanpa unwrap/expect/panic di kode non-test
 - [ ] `make check-all` lolos tanpa warning
@@ -105,7 +105,7 @@ Setelah L10, boleh ditambah paling banyak 5 butir asumsi, risiko, atau pertanyaa
 - L4: `git diff HEAD~1 -- Cargo.lock Cargo.toml crates/primitives/Cargo.toml || true` (harus kosong)
 - L5: `cat crates/primitives/src/utxo/mod.rs crates/primitives/src/utxo/tests.rs`
 - L6: `git show HEAD -- crates/primitives/src/lib.rs crates/primitives/src/tests.rs`
-- L7: `cargo test -p homeostasis-primitives 2>&1 | grep -E "^test (utxo::|tests::)|test result"`
+- L7: `cargo test -p zevrigo-primitives 2>&1 | grep -E "^test (utxo::|tests::)|test result"`
 - L8: `make check-all > /tmp/m22-check.log 2>&1; echo "exit=$?"; grep -cE "^test .* ok$" /tmp/m22-check.log; grep -E "^(warning|error)|FAILED" /tmp/m22-check.log || echo "(tidak ada warning/error)"`
 - L9: `grep -nE "unwrap\(|expect\(|panic!" crates/primitives/src/utxo/mod.rs || echo "(tidak ada)"`
 - L10: `git show HEAD -- docs/`

@@ -1,4 +1,4 @@
-# Spesifikasi Explorer Homeostasis Coin (HSIS) v0.1: indexer SQLite tahan reorg, API HTTP baca saja, halaman alokasi genesis
+# Spesifikasi Explorer Zevrigo Coin (ZVRG) v0.1: indexer SQLite tahan reorg, API HTTP baca saja, halaman alokasi genesis
 
 > Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S06 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-explorer-v0.1.md`
@@ -19,7 +19,7 @@ sendiri dengan rumus MOD-04 (Bagian 4), sehingga pasokan dan alokasi genesis bis
 
 | Hal | Nilai |
 |---|---|
-| Program | `homeostasis-explorer` (MOD-14, `apps/explorer`): pustaka `homeostasis_explorer` dan biner tipis |
+| Program | `zevrigo-explorer` (MOD-14, `apps/explorer`): pustaka `zevrigo_explorer` dan biner tipis |
 | Sumber data | Node mana pun lewat JSON-RPC v0.1: `get_chain_info`, `get_block_hash`, `get_block`, `get_mempool`. Tanpa metode RPC baru |
 | Penyimpanan indeks | SQLite lewat `rusqlite` 0.41.1 (fitur `bundled`, SQLite 3.54.1 ikut dikompilasi; fitur `fallible_uint` untuk konversi `u64` yang diperiksa), satu file `<datadir>/<jaringan>/explorer.sqlite` |
 | HTTP | `axum` 0.8.9 (fitur `http1` dan `tokio` saja; JSON disusun dengan `serde_json`, query string dibaca sendiri), hanya `GET`, JSON UTF-8 |
@@ -116,7 +116,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 
 ## 6. Program dan privasi
 
-`homeostasis-explorer --regtest|--testnet --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>]`
+`zevrigo-explorer --regtest|--testnet --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>]`
 
 - `--web-dir`: folder hasil build antarmuka web; aturan penyajian di Spesifikasi Explorer Web v0.1 Bagian 7 (TSK-M31).
 
@@ -155,7 +155,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 | Isi | Modul | Task |
 |---|---|---|
 | Skema SQLite, sinkronisasi dan reorg, pemeriksaan I1–I4, query (pustaka) | MOD-14 | TSK-M29 |
-| API HTTP axum, program `homeostasis-explorer`, opsi, sinyal | MOD-14 | TSK-M30 |
+| API HTTP axum, program `zevrigo-explorer`, opsi, sinyal | MOD-14 | TSK-M30 |
 | Uji ujung ke ujung: node + miner + explorer, reorg, alokasi genesis dibelanjakan | MOD-17 | TSK-F05 |
 | API dan antarmuka hanya data sistem (tanpa alamat, jejak koin, dan alokasi genesis) | MOD-14, MOD-17 | TSK-M39 (DEC-28) |
 | Antarmuka web Next.js + Tailwind + shadcn/ui (spesifikasi terpisah, DEC-26) | MOD-14 | TSK-S07, TSK-M31, TSK-M32, TSK-M38 |

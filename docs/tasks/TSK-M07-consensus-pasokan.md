@@ -1,4 +1,4 @@
-# TSK-M07 · Rumus pasokan HSIS di MOD-04 · 🟡 · Prioritas: Tinggi
+# TSK-M07 · Rumus pasokan ZVRG di MOD-04 · 🟡 · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-04 (crates/consensus) · **Untuk:** FTR-02
 - **Bergantung pada:** TSK-M01 · **Memblokir:** TSK-M09
 - **Estimasi:** M
@@ -10,7 +10,7 @@ berarti chain terpecah, jadi hasilnya harus cocok dengan vektor uji di bawah sam
 
 ## Konteks
 - Baca AGENTS.md (tabel parameter: S, G, D, T, M, hadiah dasar, slow start, genesis).
-- Pakai tipe dan konstanta dari homeostasis-primitives (TSK-M01). Jangan menyalin ulang angka.
+- Pakai tipe dan konstanta dari zevrigo-primitives (TSK-M01). Jangan menyalin ulang angka.
 - Crate sudah ada (kerangka R0): crates/consensus. Dependensinya ke primitives, crypto, dan pow sudah terpasang; jangan dihapus.
 - Ini task modul: hanya crates/consensus yang boleh berubah, ditambah status di docs/.
 

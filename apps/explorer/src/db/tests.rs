@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use homeostasis_consensus::regtest_network_id;
-use homeostasis_primitives::{Amount, Hash32};
+use zevrigo_consensus::regtest_network_id;
+use zevrigo_primitives::{Amount, Hash32};
 
 use super::{DB_FILE, amount_from_blob, amount_to_blob};
 use crate::index::{IndexError, Indexer};
@@ -13,8 +13,7 @@ struct TempDir(PathBuf);
 
 impl TempDir {
     fn new(name: &str) -> Self {
-        let path =
-            std::env::temp_dir().join(format!("homeostasis-q82-{name}-{}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("zevrigo-q82-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&path);
         std::fs::create_dir_all(&path).unwrap();
         Self(path)

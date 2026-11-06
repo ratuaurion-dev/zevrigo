@@ -1,5 +1,5 @@
 [package]
-name = "homeostasis-merchant-core"
+name = "zevrigo-merchant-core"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,8 +7,8 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
-homeostasis-primitives.workspace = true
-homeostasis-wallet-core.workspace = true
+zevrigo-primitives.workspace = true
+zevrigo-wallet-core.workspace = true
 
 [lints]
 workspace = true

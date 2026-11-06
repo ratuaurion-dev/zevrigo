@@ -1,8 +1,8 @@
-# MOD-13: Miner (`homeostasis-miner`)
+# MOD-13: Miner (`zevrigo-miner`)
 
 - **ID:** `MOD-13`
 - **Path:** `apps/miner`
-- **Paket:** `homeostasis-miner` (pustaka + bin)
+- **Paket:** `zevrigo-miner` (pustaka + bin)
 - **Status:** 🟢 regtest (TSK-M20, PoW dev DEC-09); 🟡 testnet RandomX (TSK-M06 bagian C3, DEC-01)
 - **Bergantung pada:** `MOD-01`, `MOD-03`, `MOD-08`
 - **Dipakai oleh:** —
@@ -13,7 +13,7 @@ Menyediakan aplikasi penambang CPU mandiri yang mengambil templat blok dari node
 
 ## Tanggung Jawab
 
-- `homeostasis-miner --payout <hex> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]`: ambil template (`get_block_template`, termasuk `full_target`), cari nonce dengan `mine_regtest` (`MOD-03`), kirim (`submit_block`), ulangi.
+- `zevrigo-miner --payout <hex> [--payout-kind 0|1] [--rpc-url <url>] [--blocks <n>]`: ambil template (`get_block_template`, termasuk `full_target`), cari nonce dengan `mine_regtest` (`MOD-03`), kirim (`submit_block`), ulangi.
 - Satu thread pencarian; template diambil ulang setiap 1_000_000 nonce atau setelah blok diterima.
 - Testnet (TSK-M06 bagian C3): `--testnet` (RPC bawaan `http://127.0.0.1:18801`) menambang RandomX dengan kunci `pow_key`
   dari template (`RandomxMiner` MOD-03). Bawaan mode cepat (dataset sekitar 2 GiB, disusun sekitar satu menit setiap kunci

@@ -21,7 +21,7 @@ bisa dibatalkan blok demi blok, karena protokol tidak punya batas reorg maupun c
   bilangan bulat serta indexing/slicing. Pakai metode `checked_*` atau `wrapping_*`, `.get()`, dan iterator.
 
 ## Ruang lingkup
-- Boleh diubah: `crates/storage/**`; `Cargo.lock` (hanya karena dependensi homeostasis-storage bertambah);
+- Boleh diubah: `crates/storage/**`; `Cargo.lock` (hanya karena dependensi zevrigo-storage bertambah);
   serta teks status di bagian "Status yang ditulis saat task selesai".
 - `crates/storage/Cargo.toml`: di `[dependencies]` tambahkan tepat satu baris `thiserror.workspace = true`.
   Tambahkan bagian baru `[dev-dependencies]` berisi `proptest.workspace = true`. Tanpa crate pihak ketiga baru.
@@ -138,7 +138,7 @@ bisa dibatalkan blok demi blok, karena protokol tidak punya batas reorg maupun c
   dan 20 quanta payload 0x02. block_id `h(0xb0)`. Entri E0 dan E1 = output itu, tinggi 0, coinbase true.
 - Blok 1: tinggi 1, prev `h(0xb0)`, block_id `h(0xb1)`.
 
-## Daftar test (nama persis; test homeostasis-storage menjadi tepat 12)
+## Daftar test (nama persis; test zevrigo-storage menjadi tepat 12)
 `src/memory/tests.rs`:
 1. `empty_store_has_no_tip_no_utxo_and_cannot_undo`: `tip()` = `Ok(None)`; `utxo(&OutPoint::new(h(0x01), 0))` =
    `Ok(None)`; `undo_tip()` = `Err(StoreError::EmptyChain)`.
@@ -231,7 +231,7 @@ bisa dibatalkan blok demi blok, karena protokol tidak punya batas reorg maupun c
 - docs/system-map.md dan kartu modul lain TIDAK diubah.
 
 ## Kriteria penerimaan
-- [ ] 12 test homeostasis-storage lolos dengan nama persis seperti daftar di atas
+- [ ] 12 test zevrigo-storage lolos dengan nama persis seperti daftar di atas
 - [ ] Cargo.toml crate storage persis seperti di Ruang lingkup; tidak ada crate pihak ketiga baru di Cargo.lock
 - [ ] Tanpa HashMap/HashSet; tanpa unwrap/expect/panic di kode non-test; lint konsensus tetap aktif
 - [ ] `make check-all` lolos tanpa warning
@@ -248,7 +248,7 @@ Setelah L11, boleh ditambah paling banyak 5 butir asumsi, risiko, atau pertanyaa
 - L5: `git diff HEAD~1 -- Cargo.lock`
 - L6: `cat crates/storage/src/lib.rs crates/storage/src/store/mod.rs crates/storage/src/memory/mod.rs`
 - L7: `cat crates/storage/src/memory/tests.rs crates/storage/src/tests.rs`
-- L8: `cargo test -p homeostasis-storage 2>&1 | grep -E "^test |test result"`
+- L8: `cargo test -p zevrigo-storage 2>&1 | grep -E "^test |test result"`
 - L9: `make check-all > /tmp/m10-check.log 2>&1; echo "exit=$?"; grep -cE "^test .* ok$" /tmp/m10-check.log; grep -E "^(warning|error)|FAILED" /tmp/m10-check.log || echo "(tidak ada warning/error)"`
 - L10: `grep -rnE "unwrap\(|expect\(|panic!|HashMap|HashSet" crates/storage/src/lib.rs crates/storage/src/store/mod.rs crates/storage/src/memory/mod.rs || echo "(tidak ada)"`
 - L11: `git show HEAD -- docs/`

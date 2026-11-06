@@ -1,8 +1,8 @@
-# MOD-05: Storage (`homeostasis-storage`)
+# MOD-05: Storage (`zevrigo-storage`)
 
 - **ID:** `MOD-05`
 - **Path:** `crates/storage`
-- **Paket:** `homeostasis-storage`
+- **Paket:** `zevrigo-storage`
 - **Status:** 🟡 sedang berjalan (TSK-M10, TSK-M11, TSK-M26, dan TSK-M35 selesai; sisa: pruning TSK-M23)
 - **Bergantung pada:** `MOD-01`
 - **Dipakai oleh:** `MOD-11`, `MOD-14`, `MOD-17`

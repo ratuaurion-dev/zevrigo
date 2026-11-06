@@ -3,8 +3,8 @@
 //! Di program explorer (TSK-M30), sumbernya node lewat JSON-RPC v0.1 (`get_chain_info`, `get_block_hash`, `get_block`,
 //! `get_mempool`). Test memakai chain buatan di memori.
 
-use homeostasis_primitives::Hash32;
 use thiserror::Error;
+use zevrigo_primitives::Hash32;
 
 /// Galat membaca sumber data (misalnya node tidak bisa dihubungi). Bukan pelanggaran: indexer mencoba lagi nanti.
 #[derive(Clone, Debug, PartialEq, Eq, Error)]

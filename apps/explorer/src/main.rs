@@ -1,12 +1,12 @@
-//! MOD-14: Program explorer Homeostasis Coin (`homeostasis-explorer`).
+//! MOD-14: Program explorer Zevrigo Coin (`zevrigo-explorer`).
 
 #![forbid(unsafe_code)]
 
 use std::process::ExitCode;
 
-use homeostasis_explorer::{Command, USAGE, init_logging, parse_args, run};
+use zevrigo_explorer::{Command, USAGE, init_logging, parse_args, run};
 
-const BIN_NAME: &str = "homeostasis-explorer";
+const BIN_NAME: &str = "zevrigo-explorer";
 
 fn main() -> ExitCode {
     match parse_args(std::env::args().skip(1)) {

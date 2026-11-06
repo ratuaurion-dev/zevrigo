@@ -1,6 +1,6 @@
 //! Tipe `Target` kesulitan Proof-of-Work 256-bit big-endian.
 
-use homeostasis_primitives::Hash32;
+use zevrigo_primitives::Hash32;
 
 /// Target kesulitan Proof-of-Work sebagai bilangan 256-bit big-endian.
 ///

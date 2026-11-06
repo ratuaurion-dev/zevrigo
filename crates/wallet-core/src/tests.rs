@@ -1,6 +1,6 @@
 // W1 sampai W10: Spesifikasi Wallet v0.1 Bagian 4, diuji ujung ke ujung lewat re-export crate.
 
-use homeostasis_primitives::{Network, OutputKind};
+use zevrigo_primitives::{Network, OutputKind};
 
 use crate::{
     CHANGE_BRANCH, ExtendedPubKey, MODULE_ID, Mnemonic, NEW_WALLET_ENTROPY_LEN, RECEIVE_BRANCH,

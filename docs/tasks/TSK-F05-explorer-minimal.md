@@ -10,7 +10,7 @@ API explorer menampilkan blok, transaksi, alamat, statistik pasokan, dan halaman
 `tests/integration/tests/ftr05_explorer.rs` · `explorer_follows_node_through_reorg_and_genesis_spend`, di
 `make check-all`. Node A dan B (`Node<MemoryStore>`), masing-masing dengan `RpcServer` dan `Miner` sungguhan, di satu
 proses. Explorer memakai indeks SQLite di file sementara (`Indexer::open`) dan membaca node A lewat RPC (`RpcSource`),
-lewat `Shared` yang sama dengan program `homeostasis-explorer`: `sync_once` untuk satu langkah sinkronisasi dan
+lewat `Shared` yang sama dengan program `zevrigo-explorer`: `sync_once` untuk satu langkah sinkronisasi dan
 `respond` untuk API. Jam kedua node sama dan tetap (`genesis + 120 × 1_000` detik), sehingga target tetap `pow_limit`.
 1. **Sebelum sinkron:** `/status` tanpa tinggi indeks, jalur lain `503 not_ready`.
 2. **Alokasi utuh:** A menambang 99 blok, B menerima blok yang sama. Explorer di tinggi 99, ujung dan chainwork sama
@@ -35,7 +35,7 @@ lewat `Shared` yang sama dengan program `homeostasis-explorer`: `sync_once` untu
 - **API lewat `Shared::respond`, tanpa server HTTP.** Handler axum hanya meneruskan metode, jalur, dan query ke fungsi itu;
   lapisan HTTP sudah diuji di TSK-M30 (`http_server_answers_and_syncs_from_node`). Dengan begitu axum tetap hanya
   dipakai MOD-14.
-- Dev-dependency MOD-17: `homeostasis-explorer` lewat `path` (DEC-25 bagian 3) dan `serde_json` (sudah di workspace).
+- Dev-dependency MOD-17: `zevrigo-explorer` lewat `path` (DEC-25 bagian 3) dan `serde_json` (sudah di workspace).
   Cargo.lock bertambah 2 rujukan, tetap 349 paket.
 
 ## Test (workspace 356 → 357, MOD-17 4 → 5)

@@ -1,6 +1,6 @@
 //! Data contoh bersama untuk test MOD-06 (struktur sah menurut MOD-01, bukan blok yang lolos validasi konsensus).
 
-use homeostasis_primitives::{
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Hash32, Header, Input, Output, OutputKind, Transaction, Witness,
 };
 

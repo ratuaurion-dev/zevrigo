@@ -3,9 +3,9 @@
 //! Sesuai `docs/reference/spesifikasi-validasi-v0.1.md` Bagian 3 sampai 6. Semua angka bilangan bulat,
 //! dan pembagian dibulatkan ke bawah.
 
-use homeostasis_pow::Target;
-use homeostasis_primitives::BlockHeight;
-use homeostasis_primitives::params::{
+use zevrigo_pow::Target;
+use zevrigo_primitives::BlockHeight;
+use zevrigo_primitives::params::{
     ASERT_HALF_LIFE_BLOCKS, BLOCK_TIME_SECS, MAX_FUTURE_BLOCK_TIME_SECS, MEDIAN_TIME_SPAN,
 };
 

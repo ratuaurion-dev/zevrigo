@@ -14,12 +14,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use homeostasis_crypto::{
+use zevrigo_crypto::{
     PublicKey, SighashError, Signature, block_merkle_root, condition_hash, sighash_v1, txid, verify,
 };
-use homeostasis_pow::verify_regtest_pow;
-use homeostasis_primitives::params::COINBASE_MATURITY;
-use homeostasis_primitives::{
+use zevrigo_pow::verify_regtest_pow;
+use zevrigo_primitives::params::COINBASE_MATURITY;
+use zevrigo_primitives::{
     Amount, Block, BlockHeight, Decode, DecodeError, Hash32, Header, Network, OutPoint, Output,
     OutputKind, Transaction, TxBody, UtxoEntry, Witness,
 };

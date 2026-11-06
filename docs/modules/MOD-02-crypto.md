@@ -1,15 +1,15 @@
-# MOD-02: Crypto (`homeostasis-crypto`)
+# MOD-02: Crypto (`zevrigo-crypto`)
 
 - **ID:** `MOD-02`
 - **Path:** `crates/crypto`
-- **Paket:** `homeostasis-crypto`
+- **Paket:** `zevrigo-crypto`
 - **Status:** 🟡 sedang berjalan (TSK-M02, TSK-M04, TSK-M21, TSK-M24, bagian MOD-02 dari TSK-M15 selesai; sisa: MuSig2)
 - **Bergantung pada:** `MOD-01`
 - **Dipakai oleh:** `MOD-04`, `MOD-09`, `MOD-17`
 
 ## Tujuan
 
-Menyediakan primitif kriptografi deterministik yang dipakai oleh protokol dan dompet Homeostasis Coin.
+Menyediakan primitif kriptografi deterministik yang dipakai oleh protokol dan dompet Zevrigo Coin.
 
 ## Tanggung Jawab
 

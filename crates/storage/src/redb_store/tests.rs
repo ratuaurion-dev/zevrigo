@@ -1,11 +1,11 @@
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::block::{Block, Header};
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::tx::{Input, Output, OutputKind, Transaction, Witness};
-use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
 use proptest::prelude::*;
 use redb::TableDefinition;
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::block::{Block, Header};
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::tx::{Input, Output, OutputKind, Transaction, Witness};
+use zevrigo_primitives::utxo::{OutPoint, UtxoEntry};
 
 use super::RedbStore;
 use crate::memory::MemoryStore;
@@ -282,7 +282,7 @@ fn utxos_by_payloads_matches_memory_store() {
 
 #[test]
 fn reopen_file_preserves_state() {
-    let path = std::env::temp_dir().join("homeostasis-tsk-m11-reopen.redb");
+    let path = std::env::temp_dir().join("zevrigo-tsk-m11-reopen.redb");
     let _ = std::fs::remove_file(&path);
     let (g, g_id, g_txids, _, _) = make_genesis();
     let (b1, b1_id, b1_txids) = scripted_block_1();
@@ -314,7 +314,7 @@ fn reopen_file_preserves_state() {
 
 #[test]
 fn open_rejects_unknown_schema_version() {
-    let path = std::env::temp_dir().join("homeostasis-tsk-m11-schema.redb");
+    let path = std::env::temp_dir().join("zevrigo-tsk-m11-schema.redb");
     let _ = std::fs::remove_file(&path);
     {
         let _store = RedbStore::create(&path).expect("create");
@@ -384,7 +384,7 @@ fn side_blocks_are_kept_apart_from_active_chain() {
 
 #[test]
 fn side_blocks_persist_until_cleared_and_old_files_open() {
-    let path = std::env::temp_dir().join("homeostasis-tsk-m35-side.redb");
+    let path = std::env::temp_dir().join("zevrigo-tsk-m35-side.redb");
     let _ = std::fs::remove_file(&path);
     let (b1, b1_id, _) = scripted_block_1();
     {

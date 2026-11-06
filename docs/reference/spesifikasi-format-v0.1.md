@@ -1,4 +1,4 @@
-# Spesifikasi Format Homeostasis Coin (HSIS) v0.1: alamat, encoding, transaksi, dan blok terdefinisi; sighash v1 dikunci (DEC-13)
+# Spesifikasi Format Zevrigo Coin (ZVRG) v0.1: alamat, encoding, transaksi, dan blok terdefinisi; sighash v1 dikunci (DEC-13)
 
 > Diperbarui: 30 Oktober 2026 · Pemilik: pencipta · Task: TSK-S01 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-format-v0.1.md`
@@ -53,8 +53,8 @@ Legenda: 🟢 dikunci · 🟡 draf · ❓ perlu keputusan
 | 16 383 | `ff7f` | 2 |
 | 16 384 | `808001` | 3 |
 | 2³² − 1 | `ffffffff0f` | 5 |
-| 10¹⁸ (1 HSIS) | `808090bbbad6adf00d` | 9 |
-| 1,5 × 10¹⁸ (1,5 HSIS) | `8080d8d8d7c1c4e814` | 9 |
+| 10¹⁸ (1 ZVRG) | `808090bbbad6adf00d` | 9 |
+| 1,5 × 10¹⁸ (1,5 ZVRG) | `8080d8d8d7c1c4e814` | 9 |
 | 2⁶⁴ − 1 | `ffffffffffffffffff01` | 10 |
 | 2¹²⁸ − 1 | `ffffffffffffffffffffffffffffffffffff03` | 19 |
 
@@ -105,7 +105,7 @@ Output {
 
 - Output dengan `amount = 0` ditolak.
 - Kunci di `payload` tidak diperiksa saat output dibuat. Kunci yang tidak valid membuat output tidak bisa dibelanjakan (koin hangus).
-- Ukuran output: 34 sampai 52 byte. Jumlah koin yang umum (0,01 sampai 100 HSIS) menghasilkan output 42 byte.
+- Ukuran output: 34 sampai 52 byte. Jumlah koin yang umum (0,01 sampai 100 ZVRG) menghasilkan output 42 byte.
 
 ### 4.1 Kondisi (output jenis 1)
 
@@ -178,7 +178,7 @@ SigEntry {
 
 ### 5.4 Contoh byte: transaksi biasa (1 input, 2 output)
 
-Isi: belanjakan output 0 dari txid `1111…11`, kirim 1,5 HSIS ke kunci contoh BIP340, dan 0,25 HSIS kembalian ke kunci `2222…22`. Tanda tangan diisi `3333…33` sebagai pengganti.
+Isi: belanjakan output 0 dari txid `1111…11`, kirim 1,5 ZVRG ke kunci contoh BIP340, dan 0,25 ZVRG kembalian ke kunci `2222…22`. Tanda tangan diisi `3333…33` sebagai pengganti.
 
 | Offset | Byte | Arti |
 |---|---|---|
@@ -188,10 +188,10 @@ Isi: belanjakan output 0 dari txid `1111…11`, kirim 1,5 HSIS ke kunci contoh B
 | 0x03 | `11` × 32 | prev_txid |
 | 0x23 | `00` | prev_index = 0 |
 | 0x24 | `02` | jumlah output = 2 |
-| 0x25 | `8080d8d8d7c1c4e814` | amount = 1 500 000 000 000 000 000 quanta (1,5 HSIS) |
+| 0x25 | `8080d8d8d7c1c4e814` | amount = 1 500 000 000 000 000 000 quanta (1,5 ZVRG) |
 | 0x2e | `00` | kind = 0 |
 | 0x2f | `f9308a01…bce036f9` | payload (kunci contoh BIP340, 32 byte) |
-| 0x4f | `8080e4ceceb58bbc03` | amount = 250 000 000 000 000 000 quanta (0,25 HSIS) |
+| 0x4f | `8080e4ceceb58bbc03` | amount = 250 000 000 000 000 000 quanta (0,25 ZVRG) |
 | 0x58 | `00` | kind = 0 |
 | 0x59 | `22` × 32 | payload |
 | 0x79 | `00` | witness input 0: kind = 0 |
@@ -267,7 +267,7 @@ Block {
 - Coinbase genesis:
   - `height = 0`
   - `extra` = **tepat 32 byte hash blok Bitcoin jangkar (L2)**, dengan urutan byte sama seperti hex yang ditampilkan block explorer Bitcoin
-  - satu output: `amount` = 4 380 000 HSIS (`808080cccfadc9ccc680fe1c`, 12 byte), `kind = 0`, `payload` = kunci alokasi pencipta (TODO(param))
+  - satu output: `amount` = 4 380 000 ZVRG (`808080cccfadc9ccc680fe1c`, 12 byte), `kind = 0`, `payload` = kunci alokasi pencipta (TODO(param))
 - Output genesis **masuk ke set UTXO dan bisa dibelanjakan** setelah kematangan coinbase (100 blok). Ini berbeda dengan Bitcoin.
 - **ID jaringan** = `block_id` genesis. Testnet yang di-reset otomatis mendapat ID baru.
 

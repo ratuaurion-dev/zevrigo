@@ -1,7 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
 
-use homeostasis_primitives::Network;
+use zevrigo_primitives::Network;
 
 use super::{
     ArgError, Command, Config, DEFAULT_API_RATE, USAGE, db_path, default_http_port,

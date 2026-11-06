@@ -1,4 +1,4 @@
-//! MOD-06: P2P Homeostasis Coin di atas rust-libp2p 0.57 (DEC-24), sesuai Spesifikasi P2P v0.1.
+//! MOD-06: P2P Zevrigo Coin di atas rust-libp2p 0.57 (DEC-24), sesuai Spesifikasi P2P v0.1.
 //!
 //! - [`message`]: enam pesan P2P dan encoding kanonisnya (Bagian 3).
 //! - [`frame`]: bingkai `varint<32>(panjang) ‖ isi`, paling banyak 2 MiB (Bagian 3).

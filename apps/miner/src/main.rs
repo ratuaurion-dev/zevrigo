@@ -1,16 +1,16 @@
-//! MOD-13: Penambang CPU Homeostasis Coin (`homeostasis-miner`).
+//! MOD-13: Penambang CPU Zevrigo Coin (`zevrigo-miner`).
 
 #![forbid(unsafe_code)]
 
 use std::process::ExitCode;
 
-use homeostasis_miner::{
+use zevrigo_miner::{
     ATTEMPTS_PER_TEMPLATE, Command, Miner, MinerPow, RANDOMX_ATTEMPTS_PER_TEMPLATE, RandomxMode,
     Round, USAGE, parse_args,
 };
-use homeostasis_primitives::Network;
+use zevrigo_primitives::Network;
 
-const BIN_NAME: &str = "homeostasis-miner";
+const BIN_NAME: &str = "zevrigo-miner";
 
 fn main() -> ExitCode {
     let config = match parse_args(std::env::args().skip(1)) {

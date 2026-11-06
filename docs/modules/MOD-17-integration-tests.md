@@ -1,8 +1,8 @@
-# MOD-17: Integration Tests (`homeostasis-integration-tests`)
+# MOD-17: Integration Tests (`zevrigo-integration-tests`)
 
 - **ID:** `MOD-17`
 - **Path:** `tests/integration`
-- **Paket:** `homeostasis-integration-tests`
+- **Paket:** `zevrigo-integration-tests`
 - **Status:** 🟡 sedang berjalan (FTR-02 sampai FTR-05 diuji ujung ke ujung, TSK-F02 sampai TSK-F05)
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-03`, `MOD-04`, `MOD-05`, `MOD-06`, `MOD-07`, `MOD-08`, `MOD-09`, `MOD-10` (semua crate inti); dev-dependency `MOD-11` node dan `MOD-13` miner (DEC-20) serta `MOD-12` CLI (DEC-23) dan `MOD-14` explorer (DEC-25) untuk uji fitur ujung ke ujung
 - **Dipakai oleh:** —

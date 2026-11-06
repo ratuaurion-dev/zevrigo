@@ -3,13 +3,13 @@ use std::net::{SocketAddr, TcpStream};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use homeostasis_consensus::regtest_network_id;
-use homeostasis_crypto::txid;
-use homeostasis_primitives::Network;
-use homeostasis_rpc::{RpcClient, RpcServer};
 use serde_json::Value;
 use tokio::net::TcpListener;
 use tokio::runtime::Runtime;
+use zevrigo_consensus::regtest_network_id;
+use zevrigo_crypto::txid;
+use zevrigo_primitives::Network;
+use zevrigo_rpc::{RpcClient, RpcServer};
 
 use super::{Shared, router};
 use crate::index::Indexer;
@@ -141,9 +141,8 @@ fn http_server_answers_and_syncs_from_node() {
 #[test]
 fn http_server_serves_web_files_and_api() {
     let rt = Runtime::new().unwrap();
-    let site = Site(
-        std::env::temp_dir().join(format!("homeostasis-q85-web-server-{}", std::process::id())),
-    );
+    let site =
+        Site(std::env::temp_dir().join(format!("zevrigo-q85-web-server-{}", std::process::id())));
     let _ = std::fs::remove_dir_all(&site.0);
     std::fs::create_dir_all(site.0.join("_next/static/chunks")).unwrap();
     std::fs::create_dir_all(site.0.join("blocks")).unwrap();

@@ -1,6 +1,6 @@
-use homeostasis_consensus::regtest_network_id;
-use homeostasis_crypto::txid;
-use homeostasis_primitives::{Amount, Hash32};
+use zevrigo_consensus::regtest_network_id;
+use zevrigo_crypto::txid;
+use zevrigo_primitives::{Amount, Hash32};
 
 use super::{IndexError, Indexer, SyncReport};
 use crate::query::SpentBy;

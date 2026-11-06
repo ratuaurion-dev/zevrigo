@@ -5,9 +5,9 @@ import { AppProviders } from './providers';
 import { ExplorerShell } from '@/components/explorer/header';
 
 export const metadata: Metadata = {
-  title: 'Homeostasis Coin (HSIS) Block Explorer',
+  title: 'Zevrigo Coin (ZVRG) Block Explorer',
   description:
-    'Block explorer Homeostasis Coin (HSIS): blok, transaksi, alamat, pasokan dibanding jadwal, alokasi pencipta, dan mempool.',
+    'Block explorer Zevrigo Coin (ZVRG): blok, transaksi, alamat, pasokan dibanding jadwal, alokasi pencipta, dan mempool.',
   referrer: 'no-referrer',
 };
 

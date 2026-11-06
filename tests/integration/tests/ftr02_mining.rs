@@ -13,20 +13,20 @@ mod ftr02 {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicU64, Ordering};
 
-    use homeostasis_consensus::{
+    use tokio::runtime::Runtime;
+    use zevrigo_consensus::{
         ChainParams, REGTEST_GENESIS_TIMESTAMP, SupplySchedule, regtest_genesis,
     };
-    use homeostasis_crypto::{SecretKey, sighash_v1, sign, txid};
-    use homeostasis_mempool::DEFAULT_MAX_BYTES;
-    use homeostasis_miner::Miner;
-    use homeostasis_node::{Clock, Node};
-    use homeostasis_primitives::params::GENESIS_ALLOCATION;
-    use homeostasis_primitives::{
+    use zevrigo_crypto::{SecretKey, sighash_v1, sign, txid};
+    use zevrigo_mempool::DEFAULT_MAX_BYTES;
+    use zevrigo_miner::Miner;
+    use zevrigo_node::{Clock, Node};
+    use zevrigo_primitives::params::GENESIS_ALLOCATION;
+    use zevrigo_primitives::{
         Amount, Block, Decode, Encode, Input, Output, OutputKind, Transaction, Witness,
     };
-    use homeostasis_rpc::{Hex32, KindNumber, RpcClient, RpcServer};
-    use homeostasis_storage::RedbStore;
-    use tokio::runtime::Runtime;
+    use zevrigo_rpc::{Hex32, KindNumber, RpcClient, RpcServer};
+    use zevrigo_storage::RedbStore;
 
     /// Biaya transaksi yang dimuat blok 100.
     const FEE: u128 = 1_000;

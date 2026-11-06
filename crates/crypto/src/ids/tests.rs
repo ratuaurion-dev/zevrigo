@@ -1,11 +1,11 @@
 use proptest::prelude::*;
 
 use super::{block_id, block_merkle_root, condition_hash, network_id, txid, wtxid};
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::block::{Block, Header};
-use homeostasis_primitives::encoding::Decode;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::tx::{Condition, Input, Output, OutputKind, Transaction, Witness};
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::block::{Block, Header};
+use zevrigo_primitives::encoding::Decode;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::tx::{Condition, Input, Output, OutputKind, Transaction, Witness};
 
 const V1_HEX: &str = concat!(
     "010001111111111111111111111111111111111111111111111111111111111111111100",
@@ -319,7 +319,7 @@ proptest! {
             miner_payload,
         ).expect("cb out");
         let cb = Transaction::coinbase(
-            homeostasis_primitives::height::BlockHeight::new(height),
+            zevrigo_primitives::height::BlockHeight::new(height),
             vec![],
             vec![cb_out],
         ).expect("coinbase");
@@ -337,7 +337,7 @@ proptest! {
         ).expect("reg tx");
 
         let header = Header::new(
-            homeostasis_primitives::height::BlockHeight::new(height),
+            zevrigo_primitives::height::BlockHeight::new(height),
             Hash32::ZERO,
             Hash32::ZERO,
             1_800_000_000,

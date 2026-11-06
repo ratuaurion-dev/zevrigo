@@ -1,6 +1,6 @@
-use homeostasis_pow::Target;
-use homeostasis_primitives::BlockHeight;
 use proptest::prelude::*;
+use zevrigo_pow::Target;
+use zevrigo_primitives::BlockHeight;
 
 use super::{
     ASERT_HALF_LIFE_SECS, DifficultyError, asert_target, block_work, chain_work, decode_compact,

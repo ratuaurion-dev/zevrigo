@@ -1,35 +1,35 @@
 use proptest::prelude::*;
 
-use super::{Amount, AmountParseError, QUANTA_PER_HSIS};
+use super::{Amount, AmountParseError, QUANTA_PER_ZVRG};
 
 #[test]
-fn quanta_per_hsis_is_ten_to_the_eighteenth() {
-    assert_eq!(10_u128.checked_pow(18), Some(QUANTA_PER_HSIS));
+fn quanta_per_zvrg_is_ten_to_the_eighteenth() {
+    assert_eq!(10_u128.checked_pow(18), Some(QUANTA_PER_ZVRG));
     assert_eq!(Amount::ZERO.as_quanta(), 0);
     assert_eq!(Amount::default(), Amount::ZERO);
 }
 
 #[test]
 fn format_known_vectors() {
-    assert_eq!(Amount::ZERO.to_hsis_string(), "0");
-    assert_eq!(Amount::from_quanta(QUANTA_PER_HSIS).to_hsis_string(), "1");
+    assert_eq!(Amount::ZERO.to_zvrg_string(), "0");
+    assert_eq!(Amount::from_quanta(QUANTA_PER_ZVRG).to_zvrg_string(), "1");
     assert_eq!(
-        Amount::from_quanta(1_500_000_000_000_000_000).to_hsis_string(),
+        Amount::from_quanta(1_500_000_000_000_000_000).to_zvrg_string(),
         "1.5"
     );
     assert_eq!(
-        Amount::from_quanta(1).to_hsis_string(),
+        Amount::from_quanta(1).to_zvrg_string(),
         "0.000000000000000001"
     );
     assert_eq!(
-        Amount::from_quanta(12_300_000_000_000_000_000).to_hsis_string(),
+        Amount::from_quanta(12_300_000_000_000_000_000).to_zvrg_string(),
         "12.3"
     );
 
-    assert_eq!(Amount::ZERO.to_string(), "0 HSIS");
+    assert_eq!(Amount::ZERO.to_string(), "0 ZVRG");
     assert_eq!(
         Amount::from_quanta(1_500_000_000_000_000_000).to_string(),
-        "1.5 HSIS"
+        "1.5 ZVRG"
     );
 }
 
@@ -37,7 +37,7 @@ fn format_known_vectors() {
 fn parse_accepted_vectors() {
     let cases: [(&str, u128, &str); 6] = [
         ("0", 0, "0"),
-        ("1", QUANTA_PER_HSIS, "1"),
+        ("1", QUANTA_PER_ZVRG, "1"),
         ("1.5", 1_500_000_000_000_000_000, "1.5"),
         ("0.000000000000000001", 1, "0.000000000000000001"),
         ("12.30", 12_300_000_000_000_000_000, "12.3"),
@@ -45,14 +45,14 @@ fn parse_accepted_vectors() {
     ];
 
     for (input, expected_quanta, canonical_str) in cases {
-        let parsed = Amount::from_hsis_str(input);
+        let parsed = Amount::from_zvrg_str(input);
         assert_eq!(
             parsed,
             Ok(Amount::from_quanta(expected_quanta)),
             "input: {input}"
         );
         if let Ok(amount) = parsed {
-            assert_eq!(amount.to_hsis_string(), canonical_str, "input: {input}");
+            assert_eq!(amount.to_zvrg_string(), canonical_str, "input: {input}");
         }
     }
 }
@@ -66,31 +66,31 @@ fn parse_rejected_vectors() {
 
     for input in invalid_format_cases {
         assert_eq!(
-            Amount::from_hsis_str(input),
+            Amount::from_zvrg_str(input),
             Err(AmountParseError::InvalidFormat),
             "seharusnya ditolak sebagai InvalidFormat: {input:?}"
         );
     }
 
     assert_eq!(
-        Amount::from_hsis_str("1.0000000000000000001"),
+        Amount::from_zvrg_str("1.0000000000000000001"),
         Err(AmountParseError::TooManyDecimals)
     );
     assert_eq!(
-        Amount::from_hsis_str("0.0000000000000000000"),
+        Amount::from_zvrg_str("0.0000000000000000000"),
         Err(AmountParseError::TooManyDecimals)
     );
 
     assert_eq!(
-        Amount::from_hsis_str("340282366920938463463.374607431768211456"),
+        Amount::from_zvrg_str("340282366920938463463.374607431768211456"),
         Err(AmountParseError::Overflow)
     );
     assert_eq!(
-        Amount::from_hsis_str("340282366920938463464"),
+        Amount::from_zvrg_str("340282366920938463464"),
         Err(AmountParseError::Overflow)
     );
     assert_eq!(
-        Amount::from_hsis_str("999999999999999999999999999999999999999999"),
+        Amount::from_zvrg_str("999999999999999999999999999999999999999999"),
         Err(AmountParseError::Overflow)
     );
 }
@@ -98,9 +98,9 @@ fn parse_rejected_vectors() {
 #[test]
 fn u128_max_round_trip() {
     let max_amount = Amount::from_quanta(u128::MAX);
-    let text = max_amount.to_hsis_string();
+    let text = max_amount.to_zvrg_string();
     assert_eq!(text, "340282366920938463463.374607431768211455");
-    assert_eq!(Amount::from_hsis_str(&text), Ok(max_amount));
+    assert_eq!(Amount::from_zvrg_str(&text), Ok(max_amount));
 }
 
 #[test]
@@ -132,10 +132,10 @@ fn checked_and_saturating_operations() {
 
 proptest! {
     #[test]
-    fn prop_hsis_string_round_trip(quanta in any::<u128>()) {
+    fn prop_zvrg_string_round_trip(quanta in any::<u128>()) {
         let amount = Amount::from_quanta(quanta);
-        let text = amount.to_hsis_string();
-        let reparsed = Amount::from_hsis_str(&text);
+        let text = amount.to_zvrg_string();
+        let reparsed = Amount::from_zvrg_str(&text);
         prop_assert_eq!(reparsed, Ok(amount));
     }
 

@@ -43,8 +43,8 @@ sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurut
   perubahan: `RANDOMX_ARGON_SALT` = `"RandomHSIS\x01"` dan `[profile.release]` paket dihapus (vendor/README.md). Dipakai lewat
   `[patch.crates-io]`, `exclude = ["vendor"]`; Cargo.lock hanya kehilangan `source` dan `checksum` randomx-rs. Q101: isi vendor
   dibandingkan `diff -r` dengan sumber asli; RandomX C++ asli dan vendor dibangun cmake terpisah; program uji
-  `vektor_rx.cpp` (flag bawaan dan JIT harus sama) menghasilkan vektor resmi 1a–1f persis dari sumber asli, lalu vektor HSIS
-  dari vendor. Test `hsis_vectors_light_mode` (pengganti `official_vectors_light_mode`) dan vektor header h1.
+  `vektor_rx.cpp` (flag bawaan dan JIT harus sama) menghasilkan vektor resmi 1a–1f persis dari sumber asli, lalu vektor ZVRG
+  dari vendor. Test `zvrg_vectors_light_mode` (pengganti `official_vectors_light_mode`) dan vektor header h1.
 - **C2:** testnet `pow_limit` `0x1f369d03` (sekitar 10 hash/detik), target genesis `0x1e8bcf64` (sekitar 1_000 hash/detik,
   120_000 hash per blok); genesis testnet berbentuk genesis regtest dengan `extra` = ASCII `homeostasis testnet 1` diisi nol
   sampai 32 byte (tanpa jangkar Bitcoin), alokasi `G` ke kunci NUMS BIP341

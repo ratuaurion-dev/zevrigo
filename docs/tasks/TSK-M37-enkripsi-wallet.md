@@ -13,7 +13,7 @@ tanpa mempersulit perintah yang tidak butuh kunci rahasia.
 | MOD-09 `vault` (baru) | `KdfParams { memory_kib, iterations, parallelism }` (`DEFAULT` 64 MiB/3/1, batas 1 GiB/64/16), `Sealed { kdf, salt, nonce, ciphertext }`, `seal`, `unseal` (hasil `Zeroizing`), `VaultError`; Argon2id 0x13 dengan memori kerja yang dihapus sesudah dipakai, XChaCha20-Poly1305 dengan AAD parameter dan salt |
 | MOD-09 | `Drop` yang menghapus `Mnemonic` (entropi dan frasa), `Seed`, dan `ExtendedPrivKey` dari memori |
 | MOD-12 `wallet_file` | Versi 2: `account`, `encrypted` (`EncryptedPhrase`), versi 1 tetap terbaca; `new_encrypted`, `is_encrypted`, `account`, `sealed`, `WalletFileError::Encrypted` |
-| MOD-12 `commands` | `Protection`, `wallet_create`/`wallet_restore` (passphrase + protection), `wallet_encrypt`, `show_phrase`, `check_new_password` (≥ 8 karakter, sama), `PasswordPrompt`, `terminal_password` (`HOMEOSTASIS_WALLET_PASSWORD` atau `rpassword`), `send` + password dan pemeriksaan passphrase; `run(config, random, password)` |
+| MOD-12 `commands` | `Protection`, `wallet_create`/`wallet_restore` (passphrase + protection), `wallet_encrypt`, `show_phrase`, `check_new_password` (≥ 8 karakter, sama), `PasswordPrompt`, `terminal_password` (`ZEVRIGO_WALLET_PASSWORD` atau `rpassword`), `send` + password dan pemeriksaan passphrase; `run(config, random, password)` |
 | MOD-12 `args` | Perintah `wallet-encrypt`, `wallet-show-phrase`; teks bantuan |
 
 ## Keputusan teknis (Quick, tanpa DEC)

@@ -1,15 +1,15 @@
-# MOD-14: Explorer (`homeostasis-explorer`)
+# MOD-14: Explorer (`zevrigo-explorer`)
 
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
-- **Paket:** `homeostasis-explorer` (bin)
+- **Paket:** `zevrigo-explorer` (bin)
 - **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), paket Docker regtest (TSK-M33), dan batas laju API (TSK-M40) selesai; reverse proxy HTTPS untuk explorer publik berikutnya
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08` (DEC-25; `MOD-09` tidak dipakai lagi sejak DEC-28); pustaka `axum`, `rusqlite` (DEC-10 bagian 6), `sha2` (bagian 4)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
 ## Tujuan
 
-Menyediakan indexer chain dan API HTTP JSON baca saja bagi block explorer Homeostasis Coin, sesuai
+Menyediakan indexer chain dan API HTTP JSON baca saja bagi block explorer Zevrigo Coin, sesuai
 [spesifikasi-explorer-v0.1.md](../reference/spesifikasi-explorer-v0.1.md), sehingga siapa pun bisa memeriksa blok,
 transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 
@@ -37,7 +37,7 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 ## Task terkait
 - [TSK-S06](../reference/spesifikasi-explorer-v0.1.md) — 🟢 spesifikasi v0.1
 - [TSK-M29](../tasks/TSK-M29-explorer-indexer.md) — 🟢 selesai (indexer, pemeriksaan I1–I4, query)
-- [TSK-M30](../tasks/TSK-M30-explorer-api.md) — 🟢 selesai (API axum, adaptor RPC, program `homeostasis-explorer`)
+- [TSK-M30](../tasks/TSK-M30-explorer-api.md) — 🟢 selesai (API axum, adaptor RPC, program `zevrigo-explorer`)
 - [TSK-F05](../tasks/TSK-F05-explorer-minimal.md) — 🟢 selesai (FTR-05, uji ujung ke ujung di MOD-17)
 - [TSK-S07](../reference/spesifikasi-explorer-web-v0.2.md) — 🟢 spesifikasi antarmuka web v0.2 (v0.1 diganti)
 - [TSK-M31](../tasks/TSK-M31-explorer-web-dir.md) — 🟢 selesai (opsi `--web-dir`, penyajian file aman, kepala keamanan)

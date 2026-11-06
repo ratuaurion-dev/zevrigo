@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-/// Tinggi blok di dalam rantai Homeostasis, dimulai dari [`BlockHeight::GENESIS`] (`0`).
+/// Tinggi blok di dalam rantai Zevrigo, dimulai dari [`BlockHeight::GENESIS`] (`0`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct BlockHeight(u64);
 

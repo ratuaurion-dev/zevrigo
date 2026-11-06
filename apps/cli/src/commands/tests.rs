@@ -6,15 +6,15 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use homeostasis_primitives::{Amount, Network, OutputKind};
-use homeostasis_rpc::{
+use tokio::runtime::Runtime;
+use zeroize::Zeroizing;
+use zevrigo_primitives::{Amount, Network, OutputKind};
+use zevrigo_rpc::{
     BlockInfo, BlockTemplate, ChainInfo, CompactHex, GetBlockTemplateParams, Hex32, KindNumber,
     MempoolInfo, MempoolOutput, MempoolScan, MempoolSpend, NetworkName, Quanta, RpcBackend,
     RpcError, RpcServer, SendRawTransactionResult, SubmitBlockResult, UtxoInfo,
 };
-use homeostasis_wallet_core::{AddressError, KdfParams, Mnemonic, SendError, decode_address};
-use tokio::runtime::Runtime;
-use zeroize::Zeroizing;
+use zevrigo_wallet_core::{AddressError, KdfParams, Mnemonic, SendError, decode_address};
 
 use super::{
     Balance, Cli, CliError, PasswordPrompt, Protection, Sent, check_new_password, format_balance,
@@ -24,7 +24,7 @@ use super::{
 use crate::args::{Action, Config};
 use crate::wallet_file::{NextIndex, WalletFile, WalletFileError, create_new, load, wallet_path};
 
-const HSIS: u128 = 1_000_000_000_000_000_000;
+const ZVRG: u128 = 1_000_000_000_000_000_000;
 const W1: &str = concat!(
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon ",
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
@@ -71,18 +71,18 @@ fn lock(fill: u8) -> Protection<'static> {
     }
 }
 
-/// Kembalian T1: 8 HSIS − 6 HSIS − biaya 284.
-const T1_CHANGE: u128 = 2 * HSIS - 284;
-const FIFTEEN_HSIS: u128 = 15 * HSIS;
-const EIGHT_HSIS: u128 = 8 * HSIS;
-const SEVEN_HSIS: u128 = 7 * HSIS;
-const SIX_HSIS: u128 = 6 * HSIS;
-const FIVE_HSIS: u128 = 5 * HSIS;
-const EIGHTEEN_HSIS: u128 = 18 * HSIS;
-const FOUR_HSIS: u128 = 4 * HSIS;
-const THREE_HSIS: u128 = 3 * HSIS;
-const TWO_HSIS: u128 = 2 * HSIS;
-const HUNDRED_HSIS: u128 = 100 * HSIS;
+/// Kembalian T1: 8 ZVRG − 6 ZVRG − biaya 284.
+const T1_CHANGE: u128 = 2 * ZVRG - 284;
+const FIFTEEN_ZVRG: u128 = 15 * ZVRG;
+const EIGHT_ZVRG: u128 = 8 * ZVRG;
+const SEVEN_ZVRG: u128 = 7 * ZVRG;
+const SIX_ZVRG: u128 = 6 * ZVRG;
+const FIVE_ZVRG: u128 = 5 * ZVRG;
+const EIGHTEEN_ZVRG: u128 = 18 * ZVRG;
+const FOUR_ZVRG: u128 = 4 * ZVRG;
+const THREE_ZVRG: u128 = 3 * ZVRG;
+const TWO_ZVRG: u128 = 2 * ZVRG;
+const HUNDRED_ZVRG: u128 = 100 * ZVRG;
 
 fn decode_hex(hex: &str) -> Vec<u8> {
     let (pairs, rem) = hex.as_bytes().as_chunks::<2>();
@@ -106,8 +106,7 @@ struct TempDir(PathBuf);
 
 impl TempDir {
     fn new(name: &str) -> Self {
-        let path =
-            std::env::temp_dir().join(format!("homeostasis-q74-{name}-{}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("zevrigo-q74-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&path);
         Self(path)
     }
@@ -140,12 +139,12 @@ fn coin(
     }
 }
 
-/// Koin T1: 5 HSIS di 0/0 (coinbase matang), 3 HSIS di 0/1, 7 HSIS di 1/0 (coinbase belum matang).
+/// Koin T1: 5 ZVRG di 0/0 (coinbase matang), 3 ZVRG di 0/1, 7 ZVRG di 1/0 (coinbase belum matang).
 fn t1_utxos() -> Vec<UtxoInfo> {
     vec![
-        coin(0xa1, 0, FIVE_HSIS, W5_XONLY, true, 101),
-        coin(0xb2, 1, THREE_HSIS, W6_XONLY, false, 50),
-        coin(0xc3, 0, SEVEN_HSIS, W7_XONLY, true, 200),
+        coin(0xa1, 0, FIVE_ZVRG, W5_XONLY, true, 101),
+        coin(0xb2, 1, THREE_ZVRG, W6_XONLY, false, 50),
+        coin(0xc3, 0, SEVEN_ZVRG, W7_XONLY, true, 200),
     ]
 }
 
@@ -168,8 +167,8 @@ impl RpcBackend for MockNode {
             chainwork: Hex32::new([0; 32]),
             next_target: CompactHex::new(0x207f_ffff),
             median_time_past: 1_800_000_000,
-            mined_total: Quanta::new(Amount::from_quanta(FIVE_HSIS)),
-            total_supply: Quanta::new(Amount::from_quanta(SIX_HSIS)),
+            mined_total: Quanta::new(Amount::from_quanta(FIVE_ZVRG)),
+            total_supply: Quanta::new(Amount::from_quanta(SIX_ZVRG)),
             mempool_count: 0,
         })
     }
@@ -387,20 +386,20 @@ fn balance_and_send_match_vector_t1() {
         balance,
         Balance {
             tip_height: 150,
-            total: Amount::from_quanta(FIFTEEN_HSIS),
-            spendable: Amount::from_quanta(EIGHT_HSIS),
-            immature: Amount::from_quanta(SEVEN_HSIS),
+            total: Amount::from_quanta(FIFTEEN_ZVRG),
+            spendable: Amount::from_quanta(EIGHT_ZVRG),
+            immature: Amount::from_quanta(SEVEN_ZVRG),
             pending_spent: Amount::ZERO,
             pending_received: Amount::ZERO,
-            after_pending: Amount::from_quanta(FIFTEEN_HSIS),
+            after_pending: Amount::from_quanta(FIFTEEN_ZVRG),
             utxos: 3,
         }
     );
     assert_eq!(
         format_balance(&balance),
         concat!(
-            "tinggi ujung: 150\nsaldo: 15 HSIS\nbisa dipakai: 8 HSIS\nbelum matang: 7 HSIS\n",
-            "keluar tertunda: 0 HSIS\nmasuk tertunda: 0 HSIS\nsaldo setelah tertunda masuk blok: 15 HSIS\n",
+            "tinggi ujung: 150\nsaldo: 15 ZVRG\nbisa dipakai: 8 ZVRG\nbelum matang: 7 ZVRG\n",
+            "keluar tertunda: 0 ZVRG\nmasuk tertunda: 0 ZVRG\nsaldo setelah tertunda masuk blok: 15 ZVRG\n",
             "utxo: 3\n"
         )
     );
@@ -420,7 +419,7 @@ fn balance_and_send_match_vector_t1() {
             "",
             PASSWORD,
             RECIPIENT,
-            Amount::from_quanta(SIX_HSIS),
+            Amount::from_quanta(SIX_ZVRG),
             1,
             &[0_u8; 32],
         )
@@ -429,7 +428,7 @@ fn balance_and_send_match_vector_t1() {
         sent,
         Sent {
             txid: Hex32::new([0xee; 32]),
-            amount: Amount::from_quanta(SIX_HSIS),
+            amount: Amount::from_quanta(SIX_ZVRG),
             fee: Amount::from_quanta(284),
             change: Some(Amount::from_quanta(T1_CHANGE)),
             inputs: 2,
@@ -443,7 +442,7 @@ fn balance_and_send_match_vector_t1() {
     assert_eq!(
         format_sent(&sent),
         format!(
-            "txid: {}\ndikirim: 6 HSIS\nbiaya: 0.000000000000000284 HSIS\nkembalian: 1.999999999999999716 HSIS\ninput: 2\nukuran: 284 byte\n",
+            "txid: {}\ndikirim: 6 ZVRG\nbiaya: 0.000000000000000284 ZVRG\nkembalian: 1.999999999999999716 ZVRG\ninput: 2\nukuran: 284 byte\n",
             "ee".repeat(32)
         )
     );
@@ -459,7 +458,7 @@ fn balance_and_send_match_vector_t1() {
     assert_eq!(
         format_info(&info),
         format!(
-            "jaringan: regtest\ntinggi: 150\nujung: {}\nhasil tambang: 5 HSIS\ntotal pasokan: 6 HSIS\nmempool: 0 transaksi\n",
+            "jaringan: regtest\ntinggi: 150\nujung: {}\nhasil tambang: 5 ZVRG\ntotal pasokan: 6 ZVRG\nmempool: 0 transaksi\n",
             "0b".repeat(32)
         )
     );
@@ -483,11 +482,11 @@ fn send_errors_leave_wallet_unchanged() {
         )
     };
     assert!(matches!(
-        send(TESTNET_RECIPIENT, SIX_HSIS),
+        send(TESTNET_RECIPIENT, SIX_ZVRG),
         Err(CliError::Address(AddressError::WrongNetwork))
     ));
     assert!(matches!(
-        send(RECIPIENT, HUNDRED_HSIS),
+        send(RECIPIENT, HUNDRED_ZVRG),
         Err(CliError::Send(SendError::InsufficientFunds { .. }))
     ));
     assert!(harness.node.sent.lock().unwrap().is_empty());
@@ -510,7 +509,7 @@ fn send_errors_leave_wallet_unchanged() {
             "",
             PASSWORD,
             RECIPIENT,
-            Amount::from_quanta(SIX_HSIS),
+            Amount::from_quanta(SIX_ZVRG),
             1,
             &[0_u8; 32],
         )
@@ -712,7 +711,7 @@ fn encrypted_wallet_rules() {
             passphrase,
             password,
             RECIPIENT,
-            Amount::from_quanta(SIX_HSIS),
+            Amount::from_quanta(SIX_ZVRG),
             1,
             &[0_u8; 32],
         )
@@ -750,7 +749,7 @@ fn pending_output(
 fn balance_and_send_follow_pending_mempool() {
     let dir = TempDir::new("pending");
     wallet_create(Network::Regtest, &dir.0, &[0_u8; 32], "", &lock(1)).unwrap();
-    // Transaksi dd membelanjakan 0/1 (3 HSIS) dengan kembalian 2 HSIS ke 1/0; transaksi cc mengirim 4 HSIS ke 0/0.
+    // Transaksi dd membelanjakan 0/1 (3 ZVRG) dengan kembalian 2 ZVRG ke 1/0; transaksi cc mengirim 4 ZVRG ke 0/0.
     // Output jenis 1 dengan payload wallet dan output ke payload lain tidak dihitung.
     let pending = MempoolScan {
         spent: vec![MempoolSpend {
@@ -759,10 +758,10 @@ fn balance_and_send_follow_pending_mempool() {
             spent_by: Hex32::new([0xdd; 32]),
         }],
         outputs: vec![
-            pending_output(0xcc, 0, FOUR_HSIS, OutputKind::SingleKey, W5_XONLY),
-            pending_output(0xcc, 1, HUNDRED_HSIS, OutputKind::ConditionHash, W5_XONLY),
-            pending_output(0xdd, 0, HSIS, OutputKind::SingleKey, &"ee".repeat(32)),
-            pending_output(0xdd, 1, TWO_HSIS, OutputKind::SingleKey, W7_XONLY),
+            pending_output(0xcc, 0, FOUR_ZVRG, OutputKind::SingleKey, W5_XONLY),
+            pending_output(0xcc, 1, HUNDRED_ZVRG, OutputKind::ConditionHash, W5_XONLY),
+            pending_output(0xdd, 0, ZVRG, OutputKind::SingleKey, &"ee".repeat(32)),
+            pending_output(0xdd, 1, TWO_ZVRG, OutputKind::SingleKey, W7_XONLY),
         ],
     };
     let harness = Harness::launch(Network::Regtest, t1_utxos(), pending, None);
@@ -773,25 +772,25 @@ fn balance_and_send_follow_pending_mempool() {
         balance,
         Balance {
             tip_height: 150,
-            total: Amount::from_quanta(FIFTEEN_HSIS),
-            spendable: Amount::from_quanta(FIVE_HSIS),
-            immature: Amount::from_quanta(SEVEN_HSIS),
-            pending_spent: Amount::from_quanta(THREE_HSIS),
-            pending_received: Amount::from_quanta(SIX_HSIS),
-            after_pending: Amount::from_quanta(EIGHTEEN_HSIS),
+            total: Amount::from_quanta(FIFTEEN_ZVRG),
+            spendable: Amount::from_quanta(FIVE_ZVRG),
+            immature: Amount::from_quanta(SEVEN_ZVRG),
+            pending_spent: Amount::from_quanta(THREE_ZVRG),
+            pending_received: Amount::from_quanta(SIX_ZVRG),
+            after_pending: Amount::from_quanta(EIGHTEEN_ZVRG),
             utxos: 3,
         }
     );
     assert_eq!(
         format_balance(&balance),
         concat!(
-            "tinggi ujung: 150\nsaldo: 15 HSIS\nbisa dipakai: 5 HSIS\nbelum matang: 7 HSIS\n",
-            "keluar tertunda: 3 HSIS\nmasuk tertunda: 6 HSIS\nsaldo setelah tertunda masuk blok: 18 HSIS\n",
+            "tinggi ujung: 150\nsaldo: 15 ZVRG\nbisa dipakai: 5 ZVRG\nbelum matang: 7 ZVRG\n",
+            "keluar tertunda: 3 ZVRG\nmasuk tertunda: 6 ZVRG\nsaldo setelah tertunda masuk blok: 18 ZVRG\n",
             "utxo: 3\n"
         )
     );
 
-    // 0/1 sedang dibelanjakan, jadi hanya 0/0 (5 HSIS) yang boleh dipilih: 6 HSIS tidak cukup, 4 HSIS memakai 0/0.
+    // 0/1 sedang dibelanjakan, jadi hanya 0/0 (5 ZVRG) yang boleh dipilih: 6 ZVRG tidak cukup, 4 ZVRG memakai 0/0.
     let send = |quanta: u128| {
         cli.send(
             &dir.0,
@@ -804,13 +803,13 @@ fn balance_and_send_follow_pending_mempool() {
         )
     };
     assert!(matches!(
-        send(SIX_HSIS),
+        send(SIX_ZVRG),
         Err(CliError::Send(SendError::InsufficientFunds { .. }))
     ));
     assert!(harness.node.sent.lock().unwrap().is_empty());
-    let sent = send(FOUR_HSIS).unwrap();
+    let sent = send(FOUR_ZVRG).unwrap();
     assert_eq!(sent.inputs, 1);
-    assert_eq!(sent.amount, Amount::from_quanta(FOUR_HSIS));
+    assert_eq!(sent.amount, Amount::from_quanta(FOUR_ZVRG));
     assert!(sent.change.is_some());
     let txs = harness.node.sent.lock().unwrap();
     assert_eq!(txs.len(), 1);
@@ -849,15 +848,15 @@ fn testnet_wallet_uses_own_folder_addresses_and_node() {
     let harness = Harness::start(Network::Testnet, t1_utxos(), None);
     let cli = Cli::connect(&harness.url, Network::Testnet).unwrap();
     let balance = cli.balance(&dir.0, "").unwrap();
-    assert_eq!(balance.total, Amount::from_quanta(FIFTEEN_HSIS));
-    assert_eq!(balance.spendable, Amount::from_quanta(EIGHT_HSIS));
+    assert_eq!(balance.total, Amount::from_quanta(FIFTEEN_ZVRG));
+    assert_eq!(balance.spendable, Amount::from_quanta(EIGHT_ZVRG));
     let send = |to: &str| {
         cli.send(
             &dir.0,
             "",
             PASSWORD,
             to,
-            Amount::from_quanta(SIX_HSIS),
+            Amount::from_quanta(SIX_ZVRG),
             1,
             &[0_u8; 32],
         )

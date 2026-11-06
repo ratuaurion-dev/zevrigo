@@ -1,11 +1,11 @@
-# Spesifikasi Paket Docker Homeostasis Coin (HSIS) v0.1: node, explorer, dan antarmuka web untuk regtest
+# Spesifikasi Paket Docker Zevrigo Coin (ZVRG) v0.1: node, explorer, dan antarmuka web untuk regtest
 
 > Diperbarui: 3 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-M33 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-docker-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Dikunci | Satu image `homeostasis:regtest` (node, explorer, miner, CLI, antarmuka web) dari image dasar resmi yang dikunci digest, pengguna biasa uid 10001, data di volume `/data`. `compose.yaml` menjalankan node + explorer; explorer hanya terbuka di `127.0.0.1:28802` komputer host |
+| 🟢 Dikunci | Satu image `zevrigo:regtest` (node, explorer, miner, CLI, antarmuka web) dari image dasar resmi yang dikunci digest, pengguna biasa uid 10001, data di volume `/data`. `compose.yaml` menjalankan node + explorer; explorer hanya terbuka di `127.0.0.1:28802` komputer host |
 | ⏳ Ditunda | Testnet dan mainnet (DEC-01), reverse proxy HTTPS untuk explorer publik, image untuk arsitektur lain (arm64), build yang bisa diulang bit demi bit (TSK-F10) |
 | ➡️ Langkah berikutnya | Paket testnet sesudah DEC-01. Batas laju API explorer selesai (TSK-M40, bawaan `--api-rate 10`) |
 
@@ -31,22 +31,22 @@ Paket Docker hanya membungkus program yang sudah ada. Tidak ada aturan chain, ku
 
 | Bagian | Isi |
 |---|---|
-| Program | `/usr/local/bin/homeostasis-node`, `homeostasis-explorer`, `homeostasis-miner`, `homeostasis-cli` (`cargo build --release --locked`) |
-| Antarmuka web | `/usr/share/homeostasis/web` (hasil `npm ci --ignore-scripts` dan `next build`, static export) |
+| Program | `/usr/local/bin/zevrigo-node`, `zevrigo-explorer`, `zevrigo-miner`, `zevrigo-cli` (`cargo build --release --locked`) |
+| Antarmuka web | `/usr/share/zevrigo/web` (hasil `npm ci --ignore-scripts` dan `next build`, static export) |
 | Pengguna | `hsis` (uid dan gid 10001), bukan root |
 | Data | Volume `/data`: chain `regtest/chain.redb`, indeks `regtest/explorer.sqlite`, wallet `regtest/wallet.json` |
-| Perintah bawaan | `homeostasis-node --regtest --datadir /data` |
+| Perintah bawaan | `zevrigo-node --regtest --datadir /data` |
 
 Konteks build hanya `Cargo.toml`, `Cargo.lock`, `crates/`, `apps/` (tanpa `node_modules`, `.next`, `out`), `tests/`, dan
-`vendor/` (salinan RandomX dengan salt HSIS, DEC-01) (`.dockerignore`). `rust-toolchain.toml` dan `.cargo/` tidak disalin.
+`vendor/` (salinan RandomX dengan salt ZVRG, DEC-01) (`.dockerignore`). `rust-toolchain.toml` dan `.cargo/` tidak disalin.
 
 ## 3. Compose (`compose.yaml`)
 
 | Layanan | Isi |
 |---|---|
 | `node` | Node regtest; satu-satunya layanan dengan port di host: `127.0.0.1:28802` (milik explorer) |
-| `explorer` | `homeostasis-explorer --http-bind 0.0.0.0 --web-dir /usr/share/homeostasis/web`, berbagi namespace jaringan dengan `node` |
-| `miner` | Profil `miner`, payload dari variabel `HSIS_PAYOUT`, berbagi namespace jaringan dengan `node` |
+| `explorer` | `zevrigo-explorer --http-bind 0.0.0.0 --web-dir /usr/share/zevrigo/web`, berbagi namespace jaringan dengan `node` |
+| `miner` | Profil `miner`, payload dari variabel `ZVRG_PAYOUT`, berbagi namespace jaringan dengan `node` |
 
 - Karena berbagi namespace, explorer, miner, dan CLI menjangkau RPC node di `127.0.0.1:28801` di dalam container. RPC
   dan P2P node tidak pernah diterbitkan ke host.
@@ -54,16 +54,16 @@ Konteks build hanya `Cargo.toml`, `Cargo.lock`, `crates/`, `apps/` (tanpa `node_
   Docker hanya meneruskannya ke `127.0.0.1:28802` komputer host. Membuka explorer ke internet tetap wajib lewat reverse
   proxy HTTPS (belum dikerjakan). Explorer memakai batas laju bawaan (`--api-rate 10`, TSK-M40); karena semua koneksi
   dari host masuk lewat penerus port Docker, batas itu berlaku bersama untuk semua tab browser di komputer host.
-- Data tetap di volume `homeostasis_hsis-data` sesudah `docker compose down`; `docker compose down -v` menghapusnya.
+- Data tetap di volume `zevrigo_zvrg-data` sesudah `docker compose down`; `docker compose down -v` menghapusnya.
 
 ## 4. Perintah
 
 ```bash
 docker compose build                                          # atau: make docker-build
 docker compose up -d                                          # node + explorer, buka http://127.0.0.1:28802/
-docker compose exec node homeostasis-cli --datadir /data wallet-create
-docker compose exec node homeostasis-cli --datadir /data address
-HSIS_PAYOUT=<payload hex 64> docker compose --profile miner up -d miner
+docker compose exec node zevrigo-cli --datadir /data wallet-create
+docker compose exec node zevrigo-cli --datadir /data address
+ZVRG_PAYOUT=<payload hex 64> docker compose --profile miner up -d miner
 docker compose logs -f explorer
 docker compose down
 ```

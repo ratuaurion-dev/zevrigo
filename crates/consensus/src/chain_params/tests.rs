@@ -1,8 +1,8 @@
 use core::fmt::Write as _;
 
-use homeostasis_crypto::{PublicKey, SecretKey, block_id, txid, wtxid};
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{BlockHeight, Encode, Hash32, Network, OutputKind};
+use zevrigo_crypto::{PublicKey, SecretKey, block_id, txid, wtxid};
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{BlockHeight, Encode, Hash32, Network, OutputKind};
 
 use super::{
     ChainParams, ParamsError, REGTEST_GENESIS_KEY, REGTEST_GENESIS_TARGET_COMPACT,

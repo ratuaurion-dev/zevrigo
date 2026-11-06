@@ -1,9 +1,9 @@
-use homeostasis_primitives::amount::Amount;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::tx::{Output, OutputKind};
-use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
 use proptest::prelude::*;
+use zevrigo_primitives::amount::Amount;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::tx::{Output, OutputKind};
+use zevrigo_primitives::utxo::{OutPoint, UtxoEntry};
 
 use super::{
     decode_block_undo, decode_outpoint_key, decode_utxo_entry, encode_block_undo,

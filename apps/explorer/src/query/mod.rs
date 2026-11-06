@@ -7,10 +7,10 @@
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
 
-use homeostasis_consensus::{SupplySchedule, block_subsidy, total_supply_after};
-use homeostasis_primitives::params::GENESIS_ALLOCATION;
-use homeostasis_primitives::{Amount, BlockHeight, Hash32};
 use rusqlite::{Connection, OptionalExtension, Params, Row, params};
+use zevrigo_consensus::{SupplySchedule, block_subsidy, total_supply_after};
+use zevrigo_primitives::params::GENESIS_ALLOCATION;
+use zevrigo_primitives::{Amount, BlockHeight, Hash32};
 
 use crate::db::amount_from_blob;
 use crate::index::{IndexError, Indexer, indexed_block_id, indexed_tip, read_mined_total};
@@ -175,7 +175,7 @@ pub struct SupplyInfo {
     pub scheduled_mined_total: Amount,
     /// `mined_total == scheduled_mined_total`.
     pub matches_schedule: bool,
-    /// Alokasi genesis (4.380.000 HSIS).
+    /// Alokasi genesis (4.380.000 ZVRG).
     pub genesis_allocation: Amount,
     /// Alokasi genesis ditambah `mined_total`.
     pub total_supply: Amount,

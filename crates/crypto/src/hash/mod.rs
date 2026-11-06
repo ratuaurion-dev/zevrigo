@@ -1,12 +1,12 @@
 //! Fungsi hash BLAKE3 dengan pemisah domain wajib (mode `derive_key`).
 //!
 //! Sesuai `docs/reference/spesifikasi-format-v0.1.md` Bagian 3, setiap perhitungan hash
-//! di protokol Homeostasis Coin wajib menyertakan [`Domain`] eksplisit sehingga keluaran
+//! di protokol Zevrigo Coin wajib menyertakan [`Domain`] eksplisit sehingga keluaran
 //! hash untuk kegunaan yang berbeda tidak pernah bisa saling menggantikan.
 
-use homeostasis_primitives::Hash32;
+use zevrigo_primitives::Hash32;
 
-/// Pemisah domain untuk setiap penggunaan hash BLAKE3 di dalam protokol Homeostasis Coin.
+/// Pemisah domain untuk setiap penggunaan hash BLAKE3 di dalam protokol Zevrigo Coin.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Domain {
     /// Identitas badan transaksi tanpa witness (`txid`).

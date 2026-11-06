@@ -8,7 +8,7 @@ Antrean transaksi belum terkonfirmasi untuk RPC `send_raw_transaction`, `get_mem
 (Spesifikasi RPC 3.4, 3.6, 3.7). Aturan konsensus tidak ditulis ulang: setiap transaksi diperiksa dengan
 `check_transaction` (MOD-04, T1 sampai T6) dengan tinggi = ujung chain + 1.
 
-## API (`homeostasis_mempool`)
+## API (`zevrigo_mempool`)
 | Item | Isi |
 |---|---|
 | `Mempool::new(max_bytes)`, `Default` | Batas bawaan `DEFAULT_MAX_BYTES` = 10_000_000 byte |

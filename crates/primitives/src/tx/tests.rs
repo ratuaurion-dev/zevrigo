@@ -6,7 +6,7 @@ use super::{
     CoinbaseTxBody, Condition, Input, MAX_COINBASE_EXTRA_LEN, Output, OutputKind, PUBKEY_XONLY_LEN,
     RegularTxBody, SIGNATURE_LEN, SigEntry, Transaction, TxBody, Witness,
 };
-use crate::amount::{Amount, QUANTA_PER_HSIS};
+use crate::amount::{Amount, QUANTA_PER_ZVRG};
 use crate::encoding::{Decode, DecodeError, Encode, MIN_KEY_SIZE, MIN_TX_SIZE};
 use crate::hash::Hash32;
 use crate::height::BlockHeight;
@@ -180,7 +180,7 @@ fn vector_v2_coinbase_height_1() {
 #[test]
 fn vector_v3_genesis_coinbase() {
     let genesis_amount = 4_380_000_u128
-        .checked_mul(QUANTA_PER_HSIS)
+        .checked_mul(QUANTA_PER_ZVRG)
         .expect("tidak overflow");
     let out = Output::new(
         Amount::from_quanta(genesis_amount),
@@ -227,7 +227,7 @@ fn vector_v5_v6_v7_condition_witness_and_transaction() {
     // V7: Transaksi biasa yang membelanjakan output jenis 1 memakai witness V6
     let input = Input::new(Hash32::from_bytes([0x99; 32]), 5);
     let output = Output::new(
-        Amount::from_quanta(QUANTA_PER_HSIS),
+        Amount::from_quanta(QUANTA_PER_ZVRG),
         OutputKind::ConditionHash,
         [0x77; 32],
     )

@@ -1,12 +1,12 @@
-//! MOD-11: Daemon node Homeostasis Coin (`homeostasis-node`).
+//! MOD-11: Daemon node Zevrigo Coin (`zevrigo-node`).
 
 #![forbid(unsafe_code)]
 
 use std::process::ExitCode;
 
-use homeostasis_node::daemon::{self, Command, USAGE};
+use zevrigo_node::daemon::{self, Command, USAGE};
 
-const BIN_NAME: &str = "homeostasis-node";
+const BIN_NAME: &str = "zevrigo-node";
 
 fn main() -> ExitCode {
     match daemon::parse_args(std::env::args().skip(1)) {

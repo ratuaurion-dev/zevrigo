@@ -9,11 +9,11 @@
 
 ## Tujuan
 
-Menyediakan aplikasi dompet lintas platform (desktop dan mobile) bagi pengguna akhir untuk menyimpan kunci secara lokal, memantau saldo, dan menandatangani transaksi HSIS.
+Menyediakan aplikasi dompet lintas platform (desktop dan mobile) bagi pengguna akhir untuk menyimpan kunci secara lokal, memantau saldo, dan menandatangani transaksi ZVRG.
 
 ## Tanggung Jawab
 
-- Antarmuka pengguna grafis yang aman (tanpa menyimpan jumlah koin di tipe `number` JavaScript/TypeScript), menghubungkan `MOD-09` (`homeostasis-wallet-core`) dengan node melalui `MOD-08` (`homeostasis-rpc`) (*diisi lebih rinci di R2*).
+- Antarmuka pengguna grafis yang aman (tanpa menyimpan jumlah koin di tipe `number` JavaScript/TypeScript), menghubungkan `MOD-09` (`zevrigo-wallet-core`) dengan node melalui `MOD-08` (`zevrigo-rpc`) (*diisi lebih rinci di R2*).
 
 ## Bukan Tanggung Jawab
 

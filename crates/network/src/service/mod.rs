@@ -16,7 +16,6 @@ use std::collections::{BTreeMap, VecDeque};
 use std::net::IpAddr;
 use std::time::{Duration, Instant};
 
-use homeostasis_primitives::{Block, Hash32, Transaction};
 use libp2p::connection_limits::{self, ConnectionLimits};
 use libp2p::core::ConnectedPoint;
 use libp2p::core::upgrade;
@@ -32,6 +31,7 @@ use libp2p::{
 };
 use thiserror::Error;
 use tokio::time::{Interval, MissedTickBehavior};
+use zevrigo_primitives::{Block, Hash32, Transaction};
 
 use crate::ban::BanList;
 use crate::codec::{Received, WireCodec};

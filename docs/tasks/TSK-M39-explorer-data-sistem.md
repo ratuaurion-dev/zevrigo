@@ -13,7 +13,7 @@ tambang tetap terbuka; alamat, saldo, jumlah per penerima, jejak koin, dan aloka
 |---|---|
 | API (`api`) | `/address/…` dan `/allocation` dihapus (`404`); `/tx` hanya `input_count` dan `output_count` (tanpa alamat, payload, jumlah per output, rujukan input, pembelanja); `/supply` tanpa `genesis_allocation` dan `total_supply`; `/mempool` hanya `count`; `/search` tanpa alamat (`400`) |
 | Pustaka (`server`) | `Shared::read_index` untuk membaca indeks langsung (operator dan uji), tidak lewat HTTP |
-| Dependensi | MOD-09 (`homeostasis-wallet-core`) tidak dipakai lagi oleh explorer (Cargo.lock: satu rujukan dihapus) |
+| Dependensi | MOD-09 (`zevrigo-wallet-core`) tidak dipakai lagi oleh explorer (Cargo.lock: satu rujukan dihapus) |
 | Web | Halaman `/address/` dan `/allocation/` serta kode QR dihapus; menu "Alokasi pencipta" dihapus; halaman transaksi hanya ringkasan; Pasokan dan beranda tanpa alokasi genesis dan total beredar (kartu beranda diganti total biaya); mempool hanya jumlah; pencarian tanpa alamat; banner galat node dengan pesan umum; teks dua bahasa disesuaikan |
 | npm | `qrcode` dan `@types/qrcode` dihapus beserta 28 paket di bawahnya (30 paket); versi paket lain tidak berubah |
 | Indeks | Tidak berubah: alamat dan alokasi genesis tetap dicatat untuk pemeriksaan I1–I4 |

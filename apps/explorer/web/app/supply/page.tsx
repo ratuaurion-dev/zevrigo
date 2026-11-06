@@ -8,7 +8,7 @@ import { fetchStatus, fetchSupply, type ApiResult, type Status, type SupplyInfo 
 import {
   computeBasisPoints,
   formatBasisPointsPercent,
-  formatHsis,
+  formatZvrg,
   formatInt,
   MINING_SUPPLY_QUANTA,
 } from '@/lib/amount';
@@ -21,7 +21,7 @@ import {
   CardTitle,
   Progress,
 } from '@/components/ui/primitives';
-import { ApiStateView, HsisAmount, TableSkeleton } from '@/components/explorer/shared';
+import { ApiStateView, ZvrgAmount, TableSkeleton } from '@/components/explorer/shared';
 
 interface SupplyPageBundle {
   supply: SupplyInfo;
@@ -108,10 +108,10 @@ export default function SupplyPage() {
               {t('supplyActualMined')}
             </div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              <HsisAmount quanta={supply.mined_total} />
+              <ZvrgAmount quanta={supply.mined_total} />
             </div>
             <div className="text-[11px] font-mono text-slate-500">
-              {minedPct} / 43,800,000 HSIS
+              {minedPct} / 43,800,000 ZVRG
             </div>
           </CardContent>
         </Card>
@@ -122,7 +122,7 @@ export default function SupplyPage() {
               {t('supplyScheduledMined')}
             </div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              <HsisAmount quanta={supply.scheduled_mined_total} />
+              <ZvrgAmount quanta={supply.scheduled_mined_total} />
             </div>
             <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
               {supply.matches_schedule ? '✓ Exact match' : '✕ Schedule mismatch'}
@@ -136,7 +136,7 @@ export default function SupplyPage() {
               {t('supplyCumulativeFees')}
             </div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              <HsisAmount quanta={supply.fees_total} />
+              <ZvrgAmount quanta={supply.fees_total} />
             </div>
             <div className="text-[11px] text-slate-500">
               100% paid to miners (0 burned)
@@ -150,7 +150,7 @@ export default function SupplyPage() {
               {t('statNextSubsidy')}
             </div>
             <div className="text-base font-bold text-slate-900 dark:text-slate-100">
-              <HsisAmount quanta={supply.next_subsidy} />
+              <ZvrgAmount quanta={supply.next_subsidy} />
             </div>
             <div className="text-[11px] font-mono text-slate-500">
               Target 0x{supply.tip_target} · Avg{' '}
@@ -176,9 +176,9 @@ export default function SupplyPage() {
           />
           <div className="flex flex-wrap justify-between text-xs text-slate-500 font-mono tabular-nums">
             <span>
-              M = <HsisAmount quanta={supply.mined_total} />
+              M = <ZvrgAmount quanta={supply.mined_total} />
             </span>
-            <span>S = {formatHsis(MINING_SUPPLY_QUANTA, lang)}</span>
+            <span>S = {formatZvrg(MINING_SUPPLY_QUANTA, lang)}</span>
           </div>
         </CardContent>
       </Card>

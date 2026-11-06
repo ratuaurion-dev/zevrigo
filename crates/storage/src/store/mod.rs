@@ -1,11 +1,11 @@
 //! Antarmuka penyimpanan chain (`ChainStore`), tipe undo data (`BlockUndo`),
 //! dan tipe error (`StoreError`). `ChainStore` juga menyimpan badan blok cabang (TSK-M35).
 
-use homeostasis_primitives::block::Block;
-use homeostasis_primitives::hash::Hash32;
-use homeostasis_primitives::height::BlockHeight;
-use homeostasis_primitives::utxo::{OutPoint, UtxoEntry};
 use thiserror::Error;
+use zevrigo_primitives::block::Block;
+use zevrigo_primitives::hash::Hash32;
+use zevrigo_primitives::height::BlockHeight;
+use zevrigo_primitives::utxo::{OutPoint, UtxoEntry};
 
 /// Data pembatalan (undo) untuk satu blok di chain aktif.
 ///
