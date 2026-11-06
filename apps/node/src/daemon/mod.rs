@@ -34,13 +34,15 @@ pub const USAGE: &str = concat!(
     "Pemakaian:\n",
     "  homeostasis-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>]\n",
     "                   [--connect <multiaddr>]...\n",
+    "  homeostasis-node --testnet --datadir <folder> [opsi yang sama]\n",
     "  homeostasis-node --help | --version\n",
     "\n",
     "Opsi:\n",
-    "  --regtest           jaringan regtest (testnet dan mainnet menunggu DEC-01)\n",
-    "  --datadir <folder>  folder data; chain disimpan di <folder>/regtest/chain.redb\n",
-    "  --rpc-port <port>   port JSON-RPC di 127.0.0.1 (bawaan regtest 28801; 0 = port bebas)\n",
-    "  --p2p-port <port>   port P2P di 127.0.0.1 (bawaan regtest 28800; 0 = port bebas)\n",
+    "  --regtest           jaringan regtest (PoW dev, untuk pengembangan)\n",
+    "  --testnet           jaringan testnet (PoW RandomX; mainnet diluncurkan sesudah testnet)\n",
+    "  --datadir <folder>  folder data; chain disimpan di <folder>/<jaringan>/chain.redb\n",
+    "  --rpc-port <port>   port JSON-RPC di 127.0.0.1 (bawaan regtest 28801, testnet 18801; 0 = port bebas)\n",
+    "  --p2p-port <port>   port P2P di 127.0.0.1 (bawaan regtest 28800, testnet 18800; 0 = port bebas)\n",
     "  --connect <addr>    rekan P2P, misalnya /ip4/127.0.0.1/tcp/28800/p2p/<PeerId>; boleh berulang\n",
     "\n",
     "Setelah siap, alamat RPC dicetak ke stdout sebagai `rpc: http://<alamat>`, lalu alamat P2P sebagai\n",
@@ -65,7 +67,7 @@ pub enum Command {
 /// Konfigurasi daemon.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Config {
-    /// Jaringan. Saat ini hanya regtest.
+    /// Jaringan: regtest atau testnet.
     pub network: Network,
     /// Folder data.
     pub datadir: PathBuf,
@@ -99,11 +101,14 @@ pub enum ArgError {
     #[error("alamat rekan tidak sah: {0}")]
     InvalidAddress(String),
     /// Jaringan belum tersedia.
-    #[error("jaringan {0} belum tersedia (menunggu DEC-01)")]
+    #[error("jaringan {0} belum tersedia (mainnet diluncurkan sesudah testnet)")]
     NetworkUnavailable(&'static str),
     /// Jaringan tidak dipilih.
-    #[error("jaringan wajib dipilih: --regtest")]
+    #[error("jaringan wajib dipilih: --regtest atau --testnet")]
     MissingNetwork,
+    /// Lebih dari satu jaringan dipilih.
+    #[error("hanya satu jaringan boleh dipilih: --regtest atau --testnet")]
+    NetworkConflict,
     /// Folder data tidak diisi.
     #[error("folder data wajib diisi: --datadir <folder>")]
     MissingDatadir,
@@ -162,6 +167,22 @@ fn value_of(
     }
 }
 
+/// Mencatat pilihan jaringan dari `flag`. Opsi yang sama dua kali atau dua jaringan berbeda ditolak.
+fn choose_network(
+    slot: &mut Option<Network>,
+    chosen: Network,
+    flag: &'static str,
+) -> Result<(), ArgError> {
+    match *slot {
+        Some(previous) if previous == chosen => Err(ArgError::Duplicate(flag)),
+        Some(_) => Err(ArgError::NetworkConflict),
+        None => {
+            *slot = Some(chosen);
+            Ok(())
+        }
+    }
+}
+
 /// Membaca argumen (tanpa nama program). Tanpa argumen sama dengan `--help`.
 ///
 /// # Errors
@@ -175,7 +196,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         [only] if only.as_str() == "--version" => return Ok(Command::Version),
         _ => {}
     }
-    let mut regtest = false;
+    let mut network: Option<Network> = None;
     let mut datadir: Option<PathBuf> = None;
     let mut rpc_port: Option<u16> = None;
     let mut p2p_port: Option<u16> = None;
@@ -183,13 +204,8 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
-            "--regtest" => {
-                if regtest {
-                    return Err(ArgError::Duplicate("--regtest"));
-                }
-                regtest = true;
-            }
-            "--testnet" => return Err(ArgError::NetworkUnavailable("testnet")),
+            "--regtest" => choose_network(&mut network, Network::Regtest, "--regtest")?,
+            "--testnet" => choose_network(&mut network, Network::Testnet, "--testnet")?,
             "--mainnet" => return Err(ArgError::NetworkUnavailable("mainnet")),
             "--datadir" => {
                 if datadir.is_some() {
@@ -228,15 +244,13 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
             _ => return Err(ArgError::Unknown(arg)),
         }
     }
-    if !regtest {
-        return Err(ArgError::MissingNetwork);
-    }
+    let network = network.ok_or(ArgError::MissingNetwork)?;
     let datadir = datadir.ok_or(ArgError::MissingDatadir)?;
     Ok(Command::Run(Config {
-        network: Network::Regtest,
+        network,
         datadir,
-        rpc_port: rpc_port.unwrap_or(default_port(Network::Regtest)),
-        p2p_port: p2p_port.unwrap_or(default_p2p_port(Network::Regtest)),
+        rpc_port: rpc_port.unwrap_or(default_port(network)),
+        p2p_port: p2p_port.unwrap_or(default_p2p_port(network)),
         connect,
     }))
 }
@@ -366,7 +380,7 @@ pub fn run(config: &Config) -> Result<(), DaemonError> {
         std::fs::create_dir_all(dir)?;
     }
     let store = RedbStore::create(&path)?;
-    let params = ChainParams::regtest()?;
+    let params = ChainParams::for_network(config.network)?;
     let node = Arc::new(Node::open(
         store,
         params,
@@ -377,7 +391,8 @@ pub fn run(config: &Config) -> Result<(), DaemonError> {
     tracing::info!(
         height = info.height,
         path = %path.display(),
-        "chain regtest dibuka"
+        network = network_dir(config.network),
+        "chain dibuka"
     );
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()

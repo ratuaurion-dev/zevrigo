@@ -17,8 +17,10 @@ pub mod validation;
 
 pub use chain_params::{
     ChainParams, ParamsError, REGTEST_GENESIS_KEY, REGTEST_GENESIS_TARGET_COMPACT,
-    REGTEST_GENESIS_TIMESTAMP, REGTEST_POW_LIMIT_COMPACT, pow_limit, pow_limit_compact,
-    regtest_genesis, regtest_network_id,
+    REGTEST_GENESIS_TIMESTAMP, REGTEST_POW_LIMIT_COMPACT, TESTNET_GENESIS_EXTRA,
+    TESTNET_GENESIS_KEY, TESTNET_GENESIS_TARGET_COMPACT, TESTNET_GENESIS_TIMESTAMP,
+    TESTNET_POW_LIMIT_COMPACT, known_genesis, pow_limit, pow_limit_compact, regtest_genesis,
+    regtest_network_id, testnet_genesis, testnet_network_id,
 };
 pub use difficulty::{
     ASERT_HALF_LIFE_SECS, DifficultyError, asert_target, block_work, chain_work, decode_compact,

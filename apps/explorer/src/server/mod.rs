@@ -18,7 +18,7 @@ use axum::Router;
 use axum::extract::{ConnectInfo, State};
 use axum::http::{Extensions, HeaderValue, Method, StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
-use homeostasis_consensus::regtest_network_id;
+use homeostasis_consensus::ChainParams;
 use homeostasis_primitives::Network;
 use homeostasis_rpc::RpcClient;
 use thiserror::Error;
@@ -372,8 +372,9 @@ pub fn run(config: &Config) -> Result<(), ExplorerError> {
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;
     }
-    let network_id =
-        regtest_network_id().map_err(|error| ExplorerError::Genesis(error.to_string()))?;
+    let network_id = ChainParams::for_network(config.network)
+        .map_err(|error| ExplorerError::Genesis(error.to_string()))?
+        .network_id();
     let indexer = Indexer::open(&path, network_id)?;
     tracing::info!(path = %path.display(), "indeks explorer dibuka");
     let runtime = tokio::runtime::Builder::new_multi_thread()

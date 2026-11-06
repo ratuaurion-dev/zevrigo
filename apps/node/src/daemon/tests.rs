@@ -47,8 +47,8 @@ fn rejects_bad_arguments() {
         (&["--datadir", "x"], ArgError::MissingNetwork),
         (&["--regtest"], ArgError::MissingDatadir),
         (
-            &["--testnet", "--datadir", "x"],
-            ArgError::NetworkUnavailable("testnet"),
+            &["--testnet", "--regtest", "--datadir", "x"],
+            ArgError::NetworkConflict,
         ),
         (&["--mainnet"], ArgError::NetworkUnavailable("mainnet")),
         (
@@ -183,4 +183,42 @@ fn parses_p2p_options() {
     for (list, expected) in cases {
         assert_eq!(parse_args(args(list)), Err(expected), "{list:?}");
     }
+}
+
+#[test]
+fn parses_testnet() {
+    let Ok(Command::Run(config)) = parse_args(args(&["--testnet", "--datadir", "d"])) else {
+        unreachable!("argumen sah");
+    };
+    assert_eq!(
+        config,
+        Config {
+            network: Network::Testnet,
+            datadir: PathBuf::from("d"),
+            rpc_port: 18_801,
+            p2p_port: 18_800,
+            connect: Vec::new(),
+        }
+    );
+    assert_eq!(
+        chain_path(&config),
+        PathBuf::from("d").join("testnet").join("chain.redb")
+    );
+    assert_eq!(
+        p2p_key_path(&config),
+        PathBuf::from("d").join("testnet").join("p2p_key")
+    );
+    assert_eq!(
+        parse_args(args(&["--testnet", "--testnet", "--datadir", "d"])),
+        Err(ArgError::Duplicate("--testnet"))
+    );
+    assert_eq!(
+        parse_args(args(&["--regtest", "--testnet", "--datadir", "d"])),
+        Err(ArgError::NetworkConflict)
+    );
+    assert!(USAGE.contains("--testnet"));
+    assert_eq!(
+        ArgError::MissingNetwork.to_string(),
+        "jaringan wajib dipilih: --regtest atau --testnet"
+    );
 }

@@ -39,7 +39,7 @@ Batas yang dicatat: header diperiksa RandomX sambil state node terkunci (mode ri
 sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurutan di satu utas.
 
 ## Bagian C: salt sendiri, parameter testnet, penambang (paket parameter disetujui pencipta 5 November 2026)
-- **C1 (Q101 hitung, Q102 commit):** `vendor/randomx-rs` = `randomx-rs` 1.6.0 dari crates.io tanpa `Cargo.lock` paket, dua
+- **C1 (🟢 `6f18f4f`, Q101 hitung, Q102 commit):** `vendor/randomx-rs` = `randomx-rs` 1.6.0 dari crates.io tanpa `Cargo.lock` paket, dua
   perubahan: `RANDOMX_ARGON_SALT` = `"RandomHSIS\x01"` dan `[profile.release]` paket dihapus (vendor/README.md). Dipakai lewat
   `[patch.crates-io]`, `exclude = ["vendor"]`; Cargo.lock hanya kehilangan `source` dan `checksum` randomx-rs. Q101: isi vendor
   dibandingkan `diff -r` dengan sumber asli; RandomX C++ asli dan vendor dibangun cmake terpisah; program uji
@@ -48,9 +48,12 @@ sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurut
 - **C2:** testnet `pow_limit` `0x1f369d03` (sekitar 10 hash/detik), target genesis `0x1e8bcf64` (sekitar 1_000 hash/detik,
   120_000 hash per blok); genesis testnet berbentuk genesis regtest dengan `extra` = ASCII `homeostasis testnet 1` diisi nol
   sampai 32 byte (tanpa jangkar Bitcoin), alokasi `G` ke kunci NUMS BIP341
-  `50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0` (tidak bisa dibelanjakan), cap waktu = saat peluncuran;
-  `--testnet` di node, explorer, miner, CLI.
-- **C3:** MOD-13 mode cepat (dataset sekitar 2 GB) dan multi-utas.
+  `50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0` (tidak bisa dibelanjakan), cap waktu = saat peluncuran
+  (`TODO(param)` `TESTNET_GENESIS_TIMESTAMP`, sementara `0`, ditetapkan di TSK-F06; mengubahnya mengubah `network_id`).
+  Q103: MOD-04 `ChainParams::testnet`/`for_network`, `testnet_genesis`, `testnet_network_id`, `known_genesis`,
+  `ParamsError::Unavailable`; MOD-11 genesis dipilih dari `network_id`, daemon `--testnet`; MOD-14 `--testnet`. Test 402 → 407.
+- **C3:** MOD-13 mode cepat (dataset sekitar 2 GB), multi-utas, dan `--testnet` (template RPC membawa kunci RandomX); CLI
+  wallet `--testnet` (alamat `thsis`, jalur turunan testnet).
 
 ## Batas yang ditulis jujur
 - Varian hanya penghalang kecil: CPU dan server sewaan tetap bisa berpindah (Konsep P13).

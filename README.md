@@ -38,6 +38,9 @@ cargo run -p homeostasis-node -- --regtest --datadir ~/.homeostasis-2 --rpc-port
 
 Blok dan transaksi baru disiarkan antar node. Aturan lengkap di [docs/reference/spesifikasi-p2p-v0.1.md](docs/reference/spesifikasi-p2p-v0.1.md).
 
+Opsi `--testnet` (PoW RandomX, port bawaan RPC 18801 dan P2P 18800) sudah ada, tetapi testnet publik belum diluncurkan:
+cap waktu genesis testnet ditetapkan saat peluncuran (TSK-F06), dan penambang testnet menyusul (TSK-M06 bagian C3).
+
 ## Menambang di regtest
 
 Dengan node berjalan, di terminal lain:

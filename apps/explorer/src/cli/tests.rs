@@ -120,8 +120,8 @@ fn rejects_bad_arguments() {
         (&["--datadir", "x"], ArgError::MissingNetwork),
         (&["--regtest"], ArgError::MissingDatadir),
         (
-            &["--testnet", "--datadir", "x"],
-            ArgError::NetworkUnavailable("testnet"),
+            &["--testnet", "--regtest", "--datadir", "x"],
+            ArgError::NetworkConflict,
         ),
         (&["--mainnet"], ArgError::NetworkUnavailable("mainnet")),
         (
@@ -221,4 +221,33 @@ fn rejects_bad_arguments() {
     for (list, expected) in cases {
         assert_eq!(parse_args(args(list)), Err(expected), "{list:?}");
     }
+}
+
+#[test]
+fn parses_testnet() {
+    let Ok(Command::Run(config)) = parse_args(args(&["--testnet", "--datadir", "d"])) else {
+        unreachable!("argumen sah");
+    };
+    assert_eq!(
+        config,
+        Config {
+            network: Network::Testnet,
+            datadir: PathBuf::from("d"),
+            rpc_url: "http://127.0.0.1:18801".to_owned(),
+            http_bind: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            http_port: 18_802,
+            api_rate: DEFAULT_API_RATE,
+            web_dir: None,
+        }
+    );
+    assert_eq!(default_rpc_url(Network::Testnet), "http://127.0.0.1:18801");
+    assert_eq!(
+        db_path(&config),
+        PathBuf::from("d").join("testnet").join("explorer.sqlite")
+    );
+    assert_eq!(
+        parse_args(args(&["--testnet", "--testnet", "--datadir", "d"])),
+        Err(ArgError::Duplicate("--testnet"))
+    );
+    assert!(USAGE.contains("--testnet"));
 }

@@ -24,7 +24,7 @@ sendiri dengan rumus MOD-04 (Bagian 4), sehingga pasokan dan alokasi genesis bis
 | Penyimpanan indeks | SQLite lewat `rusqlite` 0.41.1 (fitur `bundled`, SQLite 3.54.1 ikut dikompilasi; fitur `fallible_uint` untuk konversi `u64` yang diperiksa), satu file `<datadir>/<jaringan>/explorer.sqlite` |
 | HTTP | `axum` 0.8.9 (fitur `http1` dan `tokio` saja; JSON disusun dengan `serde_json`, query string dibaca sendiri), hanya `GET`, JSON UTF-8 |
 | Dependensi modul | MOD-01 (tipe), MOD-02 (txid, block_id), MOD-04 (subsidy dan jadwal pasokan), MOD-08 (klien RPC dan encoding nilai), MOD-09 (alamat bech32m). Tanpa MOD-05 |
-| Jaringan | regtest saja di v0.1; testnet dan mainnet bersama TSK-F06 |
+| Jaringan | regtest dan testnet (`--testnet`, TSK-M06 C2); mainnet sesudah testnet |
 
 ---
 
@@ -116,11 +116,11 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 
 ## 6. Program dan privasi
 
-`homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>]`
+`homeostasis-explorer --regtest|--testnet --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>]`
 
 - `--web-dir`: folder hasil build antarmuka web; aturan penyajian di Spesifikasi Explorer Web v0.1 Bagian 7 (TSK-M31).
 
-- RPC bawaan `http://127.0.0.1:28801`. Port HTTP bawaan regtest 28_802 (testnet 18_802, mainnet 8_802), `0` = port bebas.
+- RPC bawaan `http://127.0.0.1:28801` (testnet `http://127.0.0.1:18801`). Port HTTP bawaan regtest 28_802 (testnet 18_802, mainnet 8_802), `0` = port bebas.
 - Mendengar di `127.0.0.1` (bawaan). `--http-bind <ip>` (IPv4 atau IPv6) memilih alamat lain, hanya untuk container
   (paket Docker, TSK-M33, Spesifikasi Docker v0.1) atau di belakang reverse proxy dengan batas laju. Setelah siap, stdout
   mencetak `http: http://<alamat>:<port>`; log ke stderr.

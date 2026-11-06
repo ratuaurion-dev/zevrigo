@@ -17,15 +17,17 @@ pub const USAGE: &str = concat!(
     "Pemakaian:\n",
     "  homeostasis-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-bind <ip>] [--http-port <port>]\n",
     "                       [--api-rate <n>] [--web-dir <folder>]\n",
+    "  homeostasis-explorer --testnet --datadir <folder> [opsi yang sama]\n",
     "  homeostasis-explorer --help | --version\n",
     "\n",
     "Opsi:\n",
-    "  --regtest           jaringan regtest (testnet dan mainnet menunggu DEC-01)\n",
-    "  --datadir <folder>  folder data; indeks disimpan di <folder>/regtest/explorer.sqlite\n",
-    "  --rpc-url <url>     node JSON-RPC (bawaan regtest http://127.0.0.1:28801)\n",
+    "  --regtest           jaringan regtest\n",
+    "  --testnet           jaringan testnet (mainnet diluncurkan sesudah testnet)\n",
+    "  --datadir <folder>  folder data; indeks disimpan di <folder>/<jaringan>/explorer.sqlite\n",
+    "  --rpc-url <url>     node JSON-RPC (bawaan regtest http://127.0.0.1:28801, testnet http://127.0.0.1:18801)\n",
     "  --http-bind <ip>    alamat dengar API HTTP (bawaan 127.0.0.1); alamat lain hanya di dalam container atau di\n",
     "                      belakang reverse proxy dengan batas laju (TSK-M33)\n",
-    "  --http-port <port>  port API HTTP (bawaan regtest 28802; 0 = port bebas)\n",
+    "  --http-port <port>  port API HTTP (bawaan regtest 28802, testnet 18802; 0 = port bebas)\n",
     "  --api-rate <n>      batas laju API: n permintaan per detik per klien, kapasitas 4n; semua klien 20n per detik\n",
     "                      (bawaan 10; 0 = tanpa batas). Jawaban di atas batas: 429 rate_limited\n",
     "  --web-dir <folder>  antarmuka web hasil build apps/explorer/web (folder out); tanpa opsi ini hanya API\n",
@@ -51,7 +53,7 @@ pub enum Command {
 /// Konfigurasi explorer.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Config {
-    /// Jaringan. Saat ini hanya regtest.
+    /// Jaringan: regtest atau testnet.
     pub network: Network,
     /// Folder data.
     pub datadir: PathBuf,
@@ -89,11 +91,14 @@ pub enum ArgError {
     #[error("batas laju API tidak sah: {0}")]
     InvalidRate(String),
     /// Jaringan belum tersedia.
-    #[error("jaringan {0} belum tersedia (menunggu DEC-01)")]
+    #[error("jaringan {0} belum tersedia (mainnet diluncurkan sesudah testnet)")]
     NetworkUnavailable(&'static str),
     /// Jaringan tidak dipilih.
-    #[error("jaringan wajib dipilih: --regtest")]
+    #[error("jaringan wajib dipilih: --regtest atau --testnet")]
     MissingNetwork,
+    /// Lebih dari satu jaringan dipilih.
+    #[error("hanya satu jaringan boleh dipilih: --regtest atau --testnet")]
+    NetworkConflict,
     /// Folder data tidak diisi.
     #[error("folder data wajib diisi: --datadir <folder>")]
     MissingDatadir,
@@ -148,6 +153,22 @@ fn value_of(
     }
 }
 
+/// Mencatat pilihan jaringan dari `flag`. Opsi yang sama dua kali atau dua jaringan berbeda ditolak.
+fn choose_network(
+    slot: &mut Option<Network>,
+    chosen: Network,
+    flag: &'static str,
+) -> Result<(), ArgError> {
+    match *slot {
+        Some(previous) if previous == chosen => Err(ArgError::Duplicate(flag)),
+        Some(_) => Err(ArgError::NetworkConflict),
+        None => {
+            *slot = Some(chosen);
+            Ok(())
+        }
+    }
+}
+
 /// Membaca argumen (tanpa nama program). Tanpa argumen sama dengan `--help`.
 ///
 /// # Errors
@@ -161,7 +182,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         [only] if only.as_str() == "--version" => return Ok(Command::Version),
         _ => {}
     }
-    let mut regtest = false;
+    let mut network: Option<Network> = None;
     let mut datadir: Option<PathBuf> = None;
     let mut rpc_url: Option<String> = None;
     let mut http_bind: Option<IpAddr> = None;
@@ -171,13 +192,8 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
-            "--regtest" => {
-                if regtest {
-                    return Err(ArgError::Duplicate("--regtest"));
-                }
-                regtest = true;
-            }
-            "--testnet" => return Err(ArgError::NetworkUnavailable("testnet")),
+            "--regtest" => choose_network(&mut network, Network::Regtest, "--regtest")?,
+            "--testnet" => choose_network(&mut network, Network::Testnet, "--testnet")?,
             "--mainnet" => return Err(ArgError::NetworkUnavailable("mainnet")),
             "--datadir" => {
                 if datadir.is_some() {
@@ -231,16 +247,14 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
             _ => return Err(ArgError::Unknown(arg)),
         }
     }
-    if !regtest {
-        return Err(ArgError::MissingNetwork);
-    }
+    let network = network.ok_or(ArgError::MissingNetwork)?;
     let datadir = datadir.ok_or(ArgError::MissingDatadir)?;
     Ok(Command::Run(Config {
-        network: Network::Regtest,
+        network,
         datadir,
-        rpc_url: rpc_url.unwrap_or_else(|| default_rpc_url(Network::Regtest)),
+        rpc_url: rpc_url.unwrap_or_else(|| default_rpc_url(network)),
         http_bind: http_bind.unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST)),
-        http_port: http_port.unwrap_or(default_http_port(Network::Regtest)),
+        http_port: http_port.unwrap_or(default_http_port(network)),
         api_rate: api_rate.unwrap_or(DEFAULT_API_RATE),
         web_dir,
     }))

@@ -7,7 +7,7 @@
 |---|---|
 | 🟢 Dikunci | Format target compact (Bagian 3), ASERT bilangan bulat (4), chainwork (5), cap waktu (6), aturan transaksi (7), coinbase (8), urutan validasi blok (9), genesis regtest (10) |
 | 🟢 Diputuskan | DEC-17: coinbase wajib mengklaim **tepat** subsidy + total biaya (tanpa pembakaran) |
-| ⏳ Menunggu | Genesis, `pow_limit`, dan target awal testnet (TSK-M06 bagian C2, nilai disetujui pencipta 5 November 2026) dan mainnet (`TODO(param)`) |
+| ⏳ Menunggu | Cap waktu genesis testnet (saat peluncuran, TSK-F06). Genesis, `pow_limit`, dan target awal mainnet (`TODO(param)`) |
 | ➡️ Langkah berikutnya | TSK-M25 (`Network` di MOD-01), TSK-M08 (Bagian 3–6 dan 10), lalu TSK-M09 (Bagian 7–9) |
 
 Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter testnet
@@ -30,9 +30,9 @@ Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter test
 |---|---|---|---|
 | Fungsi PoW | `regtest_pow_hash` (DEC-09) | RandomX dengan kunci (DEC-01, V3) | RandomX dengan kunci (DEC-01, V3) |
 | Salt Argon2 RandomX | — | `RandomHSIS\x01` (11 byte) | `RandomHSIS\x01` (11 byte) |
-| `pow_limit` (compact) | `0x207fffff` | `TODO(param)` | `TODO(param)` |
-| Target genesis (compact) | `0x207fffff` | `TODO(param)` (kesulitan awal) | `TODO(param)` |
-| Genesis | Bagian 10 (tetap) | `TODO(param)` | `TODO(param)` |
+| `pow_limit` (compact) | `0x207fffff` | `0x1f369d03` (kerja 1_200, sekitar 10 hash/detik) | `TODO(param)` |
+| Target genesis (compact) | `0x207fffff` | `0x1e8bcf64` (kerja 120_000, sekitar 1_000 hash/detik) | `TODO(param)` |
+| Genesis | Bagian 10 (tetap) | Bagian 10b (cap waktu saat peluncuran) | `TODO(param)` |
 | `network_id` | `b933d7c5…6a04c5` (Bagian 10) | block_id genesis | block_id genesis |
 
 - `pow_limit` adalah target terbesar (kesulitan terendah) yang boleh dipakai di jaringan itu. Target genesis wajib ≤ `pow_limit`.
@@ -237,6 +237,31 @@ Kunci rahasia `1` sengaja publik: koin regtest tidak bernilai, dan test bisa mem
 | Header (96 byte) | `01000000` `0000000000000000` `00`×32 `66255b2a…c5c088d6` `003be16a00000000` `ffff7f20` `0000000000000000` |
 | block_id = `network_id` regtest | `b933d7c548dc78459ac7376499682cdb9b21ef93f732842ccc89c5d9a16a04c5` |
 | Ukuran blok | 186 byte |
+
+---
+
+## 10b. Genesis testnet (disetujui pencipta 5 November 2026)
+
+Bentuk sama dengan genesis regtest (Bagian 10). Testnet tidak memakai jangkar blok Bitcoin (khusus mainnet, Konsep L2):
+koin testnet tidak bernilai dan testnet di-reset sebelum mainnet (Konsep L6).
+
+| Field | Nilai |
+|---|---|
+| Header | version 1, height 0, `prev_block_id` nol, `timestamp` = saat peluncuran testnet publik (`TODO(param)`, sementara `0`), `target = 0x1e8bcf64`, `nonce = 0` |
+| Coinbase | height 0, `extra` = ASCII `homeostasis testnet 1` (21 byte) diisi nol sampai 32 byte, satu output `amount = G`, `kind = 0`, `payload` = titik NUMS `H` BIP341 `50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0` (kunci rahasianya tidak diketahui siapa pun: alokasi testnet tidak bisa dibelanjakan) |
+
+Dengan cap waktu sementara `0`, ASERT memberi `pow_limit` untuk blok sesudah genesis bercap waktu sekarang. Mengubah cap
+waktu tidak mengubah txid dan `merkle_root`, tetapi `block_id` dan `network_id` testnet berubah.
+
+| Hasil (cap waktu `0`) | Nilai |
+|---|---|
+| txid | `0d93648849e31f2ab8ae61804be580cd0feac5a5e2772a52789ccaec649cbfa1` |
+| wtxid | `0b3046d7091720edd3932035215833057ad5355cf56c4e5ac17a46d2850d67b3` |
+| merkle_root | `541b5bde4435fb223bf451d5ab73911f7cf521ba25f71e4afe3971769df6c6fd` |
+| block_id = `network_id` testnet | `11280b26cf1c372a39b5f387d30556def7dd7e633abfe84902f8295d653fe34b` |
+| Ukuran blok | 186 byte |
+
+Node memilih genesis dari `network_id` parameternya (`known_genesis`, MOD-04): regtest atau testnet.
 
 ---
 

@@ -9,13 +9,14 @@ use homeostasis_consensus::{
 };
 use homeostasis_crypto::{Domain, SecretKey, block_id, block_merkle_root, hash};
 use homeostasis_mempool::DEFAULT_MAX_BYTES;
+use homeostasis_primitives::params::GENESIS_ALLOCATION;
 use homeostasis_primitives::{
-    Block, BlockHeight, Encode, Hash32, Header, Network, Output, OutputKind, Transaction,
+    Amount, Block, BlockHeight, Encode, Hash32, Header, Network, Output, OutputKind, Transaction,
 };
 use homeostasis_rpc::{Hex32, RpcBackend, SubmitBlockResult, SubmitStatus};
 use homeostasis_storage::MemoryStore;
 
-use super::{Clock, HeadersOutcome, Node, NodeLimits, Presync, PresyncOutcome, Randomx};
+use super::{Clock, HeadersOutcome, Node, NodeError, NodeLimits, Presync, PresyncOutcome, Randomx};
 
 /// Cap waktu genesis regtest (genesis yang sama dipakai parameter uji testnet).
 const T0: u64 = 1_793_145_600;
@@ -274,4 +275,43 @@ fn testnet_node_checks_real_randomx() {
     )
     .unwrap();
     accepted(&own, &blocks[..1]);
+}
+
+#[test]
+fn opens_testnet_genesis_and_rejects_unknown_genesis() {
+    let params = ChainParams::testnet().unwrap();
+    let node = Node::open(
+        MemoryStore::default(),
+        params,
+        DEFAULT_MAX_BYTES,
+        Box::new(|| NOW),
+    )
+    .unwrap();
+    let info = node.chain_info().unwrap();
+    assert_eq!(info.network.network(), Network::Testnet);
+    assert_eq!(info.height, 0);
+    assert_eq!(info.best_block_id, Hex32::from(params.network_id()));
+    // Blok 1 di atas genesis bercap waktu 0 memakai target genesis (ASERT tepat jadwal).
+    assert_eq!(info.next_target.get(), 0x1e8b_cf64);
+    assert_eq!(info.median_time_past, 0);
+    assert_eq!(info.mined_total.amount(), Amount::ZERO);
+    assert_eq!(info.total_supply.amount(), GENESIS_ALLOCATION);
+
+    let unknown = ChainParams::new(
+        Network::Testnet,
+        params.pow_limit(),
+        params.genesis_target(),
+        params.genesis_timestamp(),
+        Hash32::from_bytes([0x55; 32]),
+    );
+    let clock: Clock = Box::new(|| NOW);
+    let result = Node::open_with_pow(
+        MemoryStore::default(),
+        unknown,
+        DEFAULT_MAX_BYTES,
+        clock,
+        NodeLimits::DEFAULT,
+        None,
+    );
+    assert!(matches!(result.err(), Some(NodeError::Genesis { .. })));
 }

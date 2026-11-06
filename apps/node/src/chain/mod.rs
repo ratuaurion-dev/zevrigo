@@ -34,7 +34,7 @@ use homeostasis_consensus::{
     BlockError, ChainParams, ParentContext, RandomxHasher, U256, asert_target, block_subsidy,
     block_work, check_block_context_free, check_block_pow, check_block_transactions,
     check_future_timestamp, check_header_context, decode_block, decode_compact, encode_compact,
-    median_time_past, randomx_hasher, randomx_key_height, regtest_genesis, total_supply_after,
+    known_genesis, median_time_past, randomx_hasher, randomx_key_height, total_supply_after,
 };
 use homeostasis_crypto::{block_id, block_merkle_root, txid};
 use homeostasis_mempool::{Mempool, MempoolEntry, MempoolError, rule_name};
@@ -788,7 +788,7 @@ impl<S: ChainStore> Node<S> {
     ///
     /// # Errors
     ///
-    /// [`NodeError::Genesis`] jika genesis jaringan belum tersedia (saat ini hanya regtest),
+    /// [`NodeError::Genesis`] jika `network_id` parameter bukan genesis yang dikenal (regtest atau testnet),
     /// [`NodeError::WrongGenesis`], [`NodeError::Store`], atau [`NodeError::Corrupt`].
     pub fn open(
         store: S,
@@ -837,15 +837,15 @@ impl<S: ChainStore> Node<S> {
         limits: NodeLimits,
         randomx: Option<Randomx>,
     ) -> Result<Self, NodeError> {
-        let genesis = regtest_genesis().map_err(|e| NodeError::Genesis {
-            message: e.to_string(),
-        })?;
-        let genesis_id = block_id(genesis.header());
-        if genesis_id != params.network_id() {
-            return Err(NodeError::Genesis {
-                message: "hanya genesis regtest yang tersedia".to_owned(),
-            });
-        }
+        // Genesis dipilih dari network_id parameter (regtest atau testnet, MOD-04).
+        let genesis_id = params.network_id();
+        let genesis = known_genesis(&genesis_id)
+            .map_err(|e| NodeError::Genesis {
+                message: e.to_string(),
+            })?
+            .ok_or_else(|| NodeError::Genesis {
+                message: "genesis jaringan ini tidak dikenal".to_owned(),
+            })?;
         if store.tip()?.is_none() {
             let txids: Vec<Hash32> = genesis.txs().iter().map(txid).collect();
             store.apply_block(&genesis, genesis_id, &txids)?;

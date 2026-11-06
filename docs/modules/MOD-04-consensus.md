@@ -17,6 +17,7 @@ Menjadi satu-satunya tempat penulisan seluruh aturan konsensus protokol Homeosta
 - Penyesuaian kesulitan ASERT per blok dan validasi cap waktu blok.
 - Validasi transaksi (transfer, multi-tanda tangan, kunci waktu, kematangan coinbase), validasi blok, dan perhitungan kerja kumulatif rantai. Aturan lengkap: [spesifikasi-validasi-v0.1.md](../reference/spesifikasi-validasi-v0.1.md).
 - PoW per jaringan (V3): `check_header_pow` dan `check_block_pow` dengan kunci RandomX (`randomx_key_height`) dan penghitung `RandomxHasher`; `randomx_hasher` memulai layanan RandomX MOD-03. `check_header_context_free` dan `check_block_context_free` memeriksa tanpa keduanya (regtest).
+- Parameter dan genesis testnet (TSK-M06 C2): `ChainParams::testnet`, `ChainParams::for_network`, `testnet_genesis`, `testnet_network_id`, `known_genesis` (genesis dari `network_id`); `ParamsError::Unavailable` untuk mainnet.
 
 ## Bukan Tanggung Jawab
 

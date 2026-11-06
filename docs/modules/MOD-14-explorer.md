@@ -15,6 +15,7 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 
 ## Tanggung Jawab
 
+- Jaringan regtest atau testnet (`--testnet`, TSK-M06 C2; port HTTP bawaan testnet 18802, RPC node 18801).
 - Indexer SQLite (`<datadir>/<jaringan>/explorer.sqlite`) yang membaca node lewat RPC v0.1, mundur sedalam apa pun saat
   reorg, dan memeriksa sendiri txid, block_id, serta jumlah koin setiap blok (I1–I4).
 - API `GET /api/v1/…` hanya data sistem (DEC-28): status, blok, ringkasan transaksi, pasokan hasil tambang dibanding
