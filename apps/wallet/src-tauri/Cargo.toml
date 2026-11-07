@@ -1,0 +1,33 @@
+[package]
+name = "zevrigo-wallet"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Wallet desktop Zevrigo Coin (MOD-15): Tauri 2 di atas pustaka zevrigo-cli"
+
+[[bin]]
+name = "zevrigo-wallet"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+zevrigo-primitives.workspace = true
+# DEC-31: file wallet, alamat, saldo, riwayat, dan kirim lewat pustaka MOD-12, sehingga wallet desktop dan CLI memakai
+# file wallet yang sama. Frasa baru dan alamat penerimaan terakhir langsung dari MOD-09.
+zevrigo-cli.workspace = true
+zevrigo-wallet-core.workspace = true
+# DEC-10 bagian 11 (DEC-31): jendela WebView dan IPC antarmuka.
+tauri.workspace = true
+serde.workspace = true
+zeroize = { workspace = true, features = ["alloc"] }
+
+[dev-dependencies]
+zevrigo-rpc.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

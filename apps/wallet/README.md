@@ -1,17 +1,31 @@
-# MOD-15: Aplikasi Wallet (`apps/wallet`)
+# MOD-15: Wallet desktop (`apps/wallet`)
 
-- **ID Modul:** `MOD-15`
-- **Fungsi:** Aplikasi dompet pengguna untuk mengelola kunci, melihat saldo UTXO, serta menyusun dan mengirim transaksi ZVRG (transfer, multi-tanda tangan MuSig2, dan kunci waktu).
-- **Platform Target:** Desktop (Linux, Windows, macOS), Android, dan iOS.
-- **Dependensi Rencana:** `MOD-08` (`zevrigo-rpc`), `MOD-09` (`zevrigo-wallet-core`).
+Wallet desktop Zevrigo Coin untuk testnet dan regtest: Tauri 2 dengan antarmuka React (DEC-31, TSK-M42).
 
-## Status Kerangka (R0)
+- `src/`: antarmuka (React 19, Vite, Tailwind CSS, zustand). Enam layar: wallet baru / pulihkan, Ringkasan, Terima
+  (alamat + QR), Kirim, Riwayat, Pengaturan. Dua bahasa (Indonesia, Inggris). Tanpa simulasi dan tanpa sumber dari
+  internet (font sistem, ikon dibundel).
+- `src-tauri/`: crate Rust `zevrigo-wallet` (anggota workspace). Perintah IPC di `src/commands` memakai pustaka MOD-12
+  `zevrigo-cli`, sehingga file wallet sama dengan CLI: `<folder data>/<jaringan>/wallet.json` (terenkripsi Argon2id +
+  XChaCha20-Poly1305, DEC-27) dan tembolok riwayat `history.json`.
 
-Proyek Tauri pada folder ini **belum diinisialisasi** di tahap R0 (belum ada `Cargo.toml` maupun `package.json`). Inisialisasi proyek Tauri akan dikerjakan melalui task tersendiri setelah prasyarat Node.js/Tauri disiapkan.
+Folder data bawaan: `%APPDATA%\Zevrigo` (Windows) atau `~/.zevrigo` (sistem lain); ganti dengan variabel
+`ZEVRIGO_WALLET_DATADIR`. Untuk memakai wallet yang sama dari CLI: `zevrigo-cli --testnet --datadir <folder data> ...`.
 
-Catatan wajib untuk kode TypeScript nanti: jumlah koin **dilarang** disimpan pada tipe `number` (floating point IEEE 754); wajib memakai `string` atau `bigint`.
+Aturan jumlah koin: tidak pernah memakai `number` (floating point). Lewat IPC jumlah berupa teks angka quanta, di
+antarmuka berupa `bigint` (`src/lib/quanta.ts`).
 
-## Keputusan Terkait
+## Perintah
 
-- **DEC-04:** Pemilihan pendekatan UI mobile (Tauri 2 di semua platform atau UI native).
-- **DEC-05:** Jalur distribusi aplikasi mobile.
+```bash
+cd apps/wallet
+npm ci --ignore-scripts --no-audit --no-fund   # paket dari package-lock.json
+npm run check                                   # typecheck, test (vitest), build ke dist/
+npm run tauri build                             # aplikasi rilis dan installer (Windows: NSIS)
+```
+
+Dari akar repo: `make wallet-check`. Crate Rust ikut `make check-all`; di Linux butuh paket WebKitGTK
+(`libwebkit2gtk-4.1-dev`, `librsvg2-dev`, `libxdo-dev`, `libayatana-appindicator3-dev`).
+
+Wallet butuh node yang berjalan di jaringan yang sama, misalnya `zevrigo-node --testnet` (RPC bawaan
+`http://127.0.0.1:18801`); alamat node bisa diubah di Pengaturan.

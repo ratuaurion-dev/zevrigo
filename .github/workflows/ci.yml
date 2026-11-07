@@ -26,8 +26,21 @@ jobs:
       - name: Cache Cargo registry and build artifacts
         uses: Swatinem/rust-cache@v2
 
+      - name: Install system libraries (RandomX build, Tauri WebKitGTK for MOD-15)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake make g++ pkg-config libwebkit2gtk-4.1-dev librsvg2-dev libxdo-dev libayatana-appindicator3-dev
+
       - name: Verify locked workspace build
         run: cargo build --workspace --locked
 
       - name: Run full verification suite
         run: make check-all
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Wallet UI check (MOD-15)
+        run: make wallet-check

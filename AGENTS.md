@@ -94,14 +94,14 @@ homeostasis_lab/
 | MOD-12 | apps/cli | zevrigo-cli (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) |
 | MOD-13 | apps/miner | zevrigo-miner (bin) | Penambang CPU | MOD-01, 03, 08 |
 | MOD-14 | apps/explorer | zevrigo-explorer (bin) | Indexer, API, dan antarmuka web Next.js + Tailwind + shadcn/ui di `web/` (DEC-26), hanya data sistem (DEC-28) | MOD-01, 02, 04, 08 (DEC-25, DEC-28) |
-| MOD-15 | apps/wallet | (belum dibuat) | Wallet Tauri desktop dan mobile | MOD-08, 09 |
+| MOD-15 | apps/wallet | zevrigo-wallet (bin, apps/wallet/src-tauri) | Wallet desktop Tauri 2, antarmuka React di apps/wallet/src | MOD-01, 09, 12 (DEC-31) |
 | MOD-16 | apps/merchant | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 |
 | MOD-17 | tests/integration | zevrigo-integration-tests | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, MOD-13 (DEC-20), MOD-12 (DEC-23), MOD-14 (DEC-25) |
 
 Aturan arah dependensi:
 - Crate di `crates/` tidak boleh bergantung pada apa pun di `apps/` atau `tests/`.
 - Dependensi antar modul hanya boleh mengikuti kolom "Bergantung pada". Dependensi baru antar modul wajib minta izin dan dicatat sebagai DEC.
-- MOD-15 dan MOD-16 baru diinisialisasi sebagai proyek Tauri lewat task tersendiri (butuh Node.js dan dependensi Tauri).
+- MOD-15 (TSK-M42): crate Rust di apps/wallet/src-tauri (anggota workspace), antarmuka di apps/wallet (npm, package-lock.json, `make wallet-check`). Di Linux, kompilasi MOD-15 butuh WebKitGTK 4.1 (libwebkit2gtk-4.1-dev, librsvg2-dev, libxdo-dev, libayatana-appindicator3-dev). MOD-16 diinisialisasi lewat task tersendiri.
 
 ## Perintah
 ```bash

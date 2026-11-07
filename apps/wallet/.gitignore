@@ -1,0 +1,5 @@
+# Paket npm, hasil build antarmuka, dan berkas buatan tauri-build (package-lock.json tetap di-commit).
+node_modules/
+dist/
+*.tsbuildinfo
+src-tauri/gen/

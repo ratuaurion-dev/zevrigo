@@ -13,7 +13,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 | FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | 🟢 |
 | FTR-05 | Explorer minimal (hanya data sistem sejak DEC-28) | MOD-01, 02, 04, 08, 14 (DEC-25, DEC-28) | TSK-F05, TSK-M39 | 🟢 |
 | FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 TSK-M06 |
-| FTR-07 | Wallet desktop (P0) | MOD-08, 09, 15 | TSK-F07 | ⚪ |
+| FTR-07 | Wallet desktop (P0) | MOD-09, 12, 15 | TSK-F07 | 🟡 aplikasi selesai (TSK-M42), berikutnya installer Windows |
 | FTR-08 | Wallet mobile | MOD-09, 15 | TSK-F08 | ⚪ |
 | FTR-09 | Aplikasi pelaku usaha | MOD-08, 09, 10, 16 | TSK-F09 | ⚪ |
 | FTR-10 | Reproducible build dan rilis | semua aplikasi | TSK-F10 | ⚪ |

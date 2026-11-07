@@ -15,6 +15,7 @@ members = [
     "apps/cli",
     "apps/miner",
     "apps/explorer",
+    "apps/wallet/src-tauri",
     "tests/integration",
 ]
 # DEC-01: salinan randomx-rs + RandomX dengan salt ZVRG (vendor/README.md), dipakai lewat [patch.crates-io], bukan anggota.
@@ -38,6 +39,8 @@ zevrigo-mempool = { path = "crates/mempool" }
 zevrigo-rpc = { path = "crates/rpc" }
 zevrigo-wallet-core = { path = "crates/wallet-core" }
 zevrigo-merchant-core = { path = "crates/merchant-core" }
+# DEC-31: pustaka MOD-12 untuk MOD-15 (wallet desktop memakai file wallet dan perintah wallet yang sama dengan CLI).
+zevrigo-cli = { path = "apps/cli" }
 thiserror = "2.0.21"
 proptest = "1.12.0"
 blake3 = "1.8.7"
@@ -79,6 +82,11 @@ rusqlite = { version = "0.41.1", default-features = false }
 # DEC-01 (DEC-10 bagian 10): hanya MOD-03 pow. randomx-rs membangun kode C++ resmi RandomX lewat cmake (butuh program
 # cmake dan compiler C++). Salt Argon2 masih nilai resmi sampai TSK-M06 bagian C.
 randomx-rs = { version = "1.6.0", default-features = false }
+# DEC-10 bagian 11 (DEC-31): hanya MOD-15 wallet desktop. Fitur bawaan Tauri dipakai (WebView lewat wry, IPC, ikon
+# jendela); di Linux butuh WebKitGTK 4.1 (libwebkit2gtk-4.1-dev, librsvg2-dev, libxdo-dev, libayatana-appindicator3-dev).
+# Versi dikunci persis (=) sesuai yang disetujui; tanpa itu Cargo memilih rilis patch terbaru.
+tauri = { version = "=2.12.3" }
+tauri-build = { version = "=2.7.2" }
 
 # DEC-01 (Konsep Bagian 5.10 dan L5): randomx-rs dibangun dari salinan di repo, satu-satunya perubahan algoritma adalah
 # salt Argon2 RandomX ("RandomZVRG\x01"). Lihat vendor/README.md.

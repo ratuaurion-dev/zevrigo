@@ -1,4 +1,4 @@
-# TSK-M41 · Riwayat transaksi wallet dan sumber acak lintas platform · 🟡 · Prioritas: Tinggi
+# TSK-M41 · Riwayat transaksi wallet dan sumber acak lintas platform · 🟢 · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-12 (apps/cli), MOD-17 (uji FTR-03) · **Untuk:** TSK-F07 (wallet desktop, DEC-31)
 - **Bergantung pada:** TSK-M36, DEC-10 bagian 11 · **Memblokir:** TSK-F07
 - **Estimasi:** M
@@ -26,6 +26,6 @@ sumber acak tidak boleh lagi membaca `/dev/urandom`.
   biaya sama dengan CLI), panggilan kedua dari tembolok sama, wallet yang dipulihkan dari frasa sama.
 
 ## Kriteria penerimaan
-- [ ] `make check-all` lolos (jumlah test bertambah sesuai skrip langkah)
-- [ ] Node regtest + CLI `history` sungguhan menampilkan coinbase yang ditambang
-- [ ] Tanpa `unwrap`/`expect`/`panic` di kode non-test, tanpa float, tanpa `unsafe`
+- [x] `make check-all` lolos (jumlah test bertambah sesuai skrip langkah)
+- [x] Node regtest + CLI `history` sungguhan menampilkan coinbase yang ditambang
+- [x] Tanpa `unwrap`/`expect`/`panic` di kode non-test, tanpa float, tanpa `unsafe`

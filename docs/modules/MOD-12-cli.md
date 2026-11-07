@@ -5,7 +5,7 @@
 - **Paket:** `zevrigo-cli` (bin)
 - **Status:** 🟢 TSK-M19 selesai: `info`, `wallet-create`, `wallet-restore`, `address`, `balance`, `send`; regtest dan testnet (`--testnet`, TSK-M06 bagian C3b); `history` (TSK-M41)
 - **Bergantung pada:** `MOD-01`, `MOD-08`, `MOD-09` (DEC-21)
-- **Dipakai oleh:** —
+- **Dipakai oleh:** `MOD-15` (DEC-31)
 
 ## Tujuan
 
@@ -27,4 +27,4 @@ Menyediakan alat baris perintah ringan bagi operator untuk memeriksa status dan 
 - [TSK-M19](../tasks/TSK-M19-cli-wallet.md) — 🟢 selesai (pustaka `zevrigo_cli`: `args`, `wallet_file`, `scan`, `commands`)
 - [TSK-M36](../tasks/TSK-M36-saldo-tertunda.md) — 🟢 selesai (saldo dan pemilihan koin dengan transaksi tertunda)
 - [TSK-M37](../tasks/TSK-M37-enkripsi-wallet.md) — 🟢 selesai (file wallet versi 2 dikunci password, `wallet-encrypt`, `wallet-show-phrase`, DEC-27)
-- [TSK-M41](../tasks/TSK-M41-riwayat-wallet.md) — 🟡 riwayat transaksi dari blok, `getrandom` untuk Windows
+- [TSK-M41](../tasks/TSK-M41-riwayat-wallet.md) — 🟢 riwayat transaksi dari blok, `getrandom` untuk Windows
