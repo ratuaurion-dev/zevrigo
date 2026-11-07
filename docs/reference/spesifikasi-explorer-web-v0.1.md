@@ -70,8 +70,8 @@ Jalur memakai hash (`#/…`), sehingga server cukup menyajikan file yang ada tan
 ## 4. Angka, jumlah koin, dan waktu
 
 - **Jumlah koin** (string desimal quanta dari API) diubah ke `bigint` dan ditampilkan sebagai ZVRG dengan 18 desimal,
-  nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `4.380.000 ZVRG`, `0,005 ZVRG`; English
-  `4,380,000 ZVRG`, `0.005 ZVRG`. Nilai quanta lengkap tersedia di atribut `title`.
+  nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `10.000.000 ZVRG`, `0,005 ZVRG`; English
+  `10,000,000 ZVRG`, `0.005 ZVRG`. Nilai quanta lengkap tersedia di atribut `title`.
 - **Dilarang** untuk jumlah koin: tipe `number`, `parseFloat`, `Number(`, `toFixed`, `Math.*`, `Intl.NumberFormat`
   (AGENTS.md, larangan floating point). Diperiksa skrip gerbang dengan pencarian pola di `src/` (kecuali file test).
 - Tinggi, konfirmasi, ukuran, dan posisi tetap `number` (bilangan bulat dari API, jauh di bawah 2^53).

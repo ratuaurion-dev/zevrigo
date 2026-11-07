@@ -53,7 +53,7 @@ pub fn network_prefix(network_id: &Hash32) -> String {
     hex.get(..NETWORK_PREFIX_LEN).unwrap_or(&hex).to_owned()
 }
 
-/// Nama lengkap protokol, misalnya `/zvrg/b858e5ce2bf393d7/status/1` untuk regtest.
+/// Nama lengkap protokol, misalnya `/zvrg/8b9eb3187250bbdf/status/1` untuk regtest.
 #[must_use]
 pub fn protocol_name(network_id: &Hash32, kind: ProtocolKind) -> String {
     format!("/zvrg/{}/{}/1", network_prefix(network_id), kind.name())

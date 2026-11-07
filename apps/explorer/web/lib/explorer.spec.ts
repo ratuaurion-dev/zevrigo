@@ -25,8 +25,8 @@ describe('amount parse and format (BigInt only)', () => {
   it('parses valid quanta strings up to u128 max and rejects invalid inputs', () => {
     expect(parseQuanta('0')).toBe(0n);
     expect(parseQuanta('1')).toBe(1n);
-    expect(parseQuanta('4380000000000000000000000')).toBe(
-      4_380_000_000_000_000_000_000_000n
+    expect(parseQuanta('10000000000000000000000000')).toBe(
+      10_000_000_000_000_000_000_000_000n
     );
     expect(parseQuanta(U128_MAX.toString(10))).toBe(U128_MAX);
 
@@ -54,12 +54,12 @@ describe('amount parse and format (BigInt only)', () => {
     expect(formatZvrg('5000000000000000', 'id')).toBe('0,005 ZVRG');
     expect(formatZvrg('5000000000000000', 'en')).toBe('0.005 ZVRG');
 
-    // 4,380,000 ZVRG (genesis allocation)
-    expect(formatZvrg('4380000000000000000000000', 'id')).toBe(
-      '4.380.000 ZVRG'
+    // 10,000,000 ZVRG (genesis allocation)
+    expect(formatZvrg('10000000000000000000000000', 'id')).toBe(
+      '10.000.000 ZVRG'
     );
-    expect(formatZvrg('4380000000000000000000000', 'en')).toBe(
-      '4,380,000 ZVRG'
+    expect(formatZvrg('10000000000000000000000000', 'en')).toBe(
+      '10,000,000 ZVRG'
     );
 
     // u128 max (340282366920938463463374607431768211455 quanta)
@@ -74,21 +74,21 @@ describe('amount parse and format (BigInt only)', () => {
   it('computes basis points and fee rates with integer math', () => {
     expect(
       computeBasisPoints(
-        '2190000000000000000000000',
-        '4380000000000000000000000'
+        '5000000000000000000000000',
+        '10000000000000000000000000'
       )
     ).toBe(5000n);
     expect(
       formatBasisPointsPercent(
-        '2190000000000000000000000',
-        '4380000000000000000000000',
+        '5000000000000000000000000',
+        '10000000000000000000000000',
         'id'
       )
     ).toBe('50,00%');
     expect(
       formatBasisPointsPercent(
-        '2190000000000000000000000',
-        '4380000000000000000000000',
+        '5000000000000000000000000',
+        '10000000000000000000000000',
         'en'
       )
     ).toBe('50.00%');

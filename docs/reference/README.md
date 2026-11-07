@@ -18,5 +18,6 @@ Kedua dokumen tersebut merupakan sumber kebenaran desain tertinggi. Ringkasan pa
 | [spesifikasi-p2p-v0.1.md](spesifikasi-p2p-v0.1.md) | Transport libp2p (DEC-24), 5 protokol, sinkronisasi header lalu blok, siaran, sanksi rekan | TSK-S05 |
 | [spesifikasi-explorer-v0.1.md](spesifikasi-explorer-v0.1.md) | Explorer: indeks SQLite tahan reorg (DEC-25), pemeriksaan jumlah koin, API HTTP baca saja, halaman alokasi genesis | TSK-S06 |
 | [spesifikasi-explorer-web-v0.2.md](spesifikasi-explorer-web-v0.2.md) | Antarmuka web explorer Next.js + Tailwind + shadcn/ui (DEC-26): halaman, dua bahasa, jumlah `bigint`, CSP dengan hash, penyajian `--web-dir`, dependensi npm | TSK-S07, TSK-M38 |
+| [tokenomik-v0.1.md](tokenomik-v0.1.md) | Tokenomik (DEC-30): pasokan tambang 100 jt, alokasi genesis 10 jt, ekor 2 ZVRG, jadwal pasokan, program investor awal dari `G` dengan kunci waktu di chain | DEC-30 |
 | [spesifikasi-docker-v0.1.md](spesifikasi-docker-v0.1.md) | Paket Docker regtest: image dasar dikunci digest, isi image, compose node + explorer, opsi `--http-bind` | TSK-M33 |
 | [spesifikasi-explorer-web-v0.1.md](spesifikasi-explorer-web-v0.1.md) | ⚪ Diganti v0.2: versi Vite + React tanpa Tailwind | TSK-S07 |

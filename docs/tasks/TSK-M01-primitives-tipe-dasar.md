@@ -58,9 +58,8 @@ yang diperiksa saat kompilasi.
   `ASERT_HALF_LIFE_BLOCKS: u64`, `MEDIAN_TIME_SPAN: usize`, `MAX_FUTURE_BLOCK_TIME_SECS: u64`.
 - Setiap konstanta punya doc comment yang menjelaskan maknanya.
 - Pemeriksaan saat kompilasi (`const _: () = assert!(...)`):
-  - `TAIL_REWARD == MAIN_SUPPLY × 6 / 1000 / BLOCKS_PER_YEAR` (hadiah ekor tepat 0,6% S per tahun)
   - `GENESIS_ALLOCATION == MAIN_SUPPLY / 10`
-  - `TAIL_REWARD == 1 ZVRG`
+  - `TAIL_REWARD == 2 ZVRG` (DEC-30; sebelumnya `T == S × 6 / 1000 / BLOCKS_PER_YEAR` = 1 ZVRG dengan S lama)
   - Jika lint konsensus menandai aritmetika di dalam const assert, laporkan dan usulkan solusinya. Jangan menonaktifkan lint.
 - Parameter testnet (lihat AGENTS.md) BELUM dibuat di task ini.
 

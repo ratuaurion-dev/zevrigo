@@ -74,8 +74,8 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 ## 4. Angka, jumlah koin, dan waktu
 
 - **Jumlah koin** (string desimal quanta dari API, sampai `u128::MAX`) diubah ke `bigint` dan ditampilkan sebagai ZVRG
-  dengan 18 desimal, nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `4.380.000 ZVRG`, `0,005 ZVRG`;
-  English `4,380,000 ZVRG`, `0.005 ZVRG`. Nilai quanta lengkap di tooltip. Persentase (alokasi, jadwal) dihitung dalam
+  dengan 18 desimal, nol di belakang dibuang, pemisah ribuan sesuai bahasa: Indonesia `10.000.000 ZVRG`, `0,005 ZVRG`;
+  English `10,000,000 ZVRG`, `0.005 ZVRG`. Nilai quanta lengkap di tooltip. Persentase (alokasi, jadwal) dihitung dalam
   basis poin `bigint`.
 - **Dilarang** di kode aplikasi: `parseFloat`, `toFixed`, `Intl.*`, `dangerouslySetInnerHTML`, `innerHTML`, `eval`,
   `new Function`, dan URL luar (kecuali namespace SVG). Diperiksa skrip gerbang. `number` hanya untuk tinggi,

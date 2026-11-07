@@ -13,17 +13,17 @@ fn protocol_parameters_match_source_of_truth() {
     assert_eq!(BLOCKS_PER_YEAR, 262_800);
     assert_eq!(
         MAIN_SUPPLY,
-        Amount::from_quanta(43_800_000_000_000_000_000_000_000)
+        Amount::from_quanta(100_000_000_000_000_000_000_000_000)
     );
-    assert_eq!(MAIN_SUPPLY.to_zvrg_string(), "43800000");
+    assert_eq!(MAIN_SUPPLY.to_zvrg_string(), "100000000");
     assert_eq!(
         GENESIS_ALLOCATION,
-        Amount::from_quanta(4_380_000_000_000_000_000_000_000)
+        Amount::from_quanta(10_000_000_000_000_000_000_000_000)
     );
-    assert_eq!(GENESIS_ALLOCATION.to_zvrg_string(), "4380000");
+    assert_eq!(GENESIS_ALLOCATION.to_zvrg_string(), "10000000");
     assert_eq!(HALF_LIFE_DIVISOR, 2_274_842);
-    assert_eq!(TAIL_REWARD, Amount::from_quanta(QUANTA_PER_ZVRG));
-    assert_eq!(TAIL_REWARD.to_zvrg_string(), "1");
+    assert_eq!(TAIL_REWARD, Amount::from_quanta(2 * QUANTA_PER_ZVRG));
+    assert_eq!(TAIL_REWARD.to_zvrg_string(), "2");
     assert_eq!(SLOW_START_BLOCKS, 10_080);
     assert_eq!(COINBASE_MATURITY, 100);
     assert_eq!(MAX_BLOCK_SIZE, 100_000);
@@ -36,18 +36,14 @@ fn protocol_parameters_match_source_of_truth() {
 
 #[test]
 fn supply_and_tail_reward_invariants_hold() {
-    let annual_tail = MAIN_SUPPLY
-        .as_quanta()
-        .checked_mul(6)
-        .and_then(|v| v.checked_div(1_000));
-    let per_block_tail = annual_tail.and_then(|v| v.checked_div(u128::from(BLOCKS_PER_YEAR)));
-
-    assert_eq!(per_block_tail, Some(TAIL_REWARD.as_quanta()));
     assert_eq!(
         MAIN_SUPPLY.as_quanta().checked_div(10),
         Some(GENESIS_ALLOCATION.as_quanta())
     );
-    assert_eq!(TAIL_REWARD.as_quanta(), QUANTA_PER_ZVRG);
+    assert_eq!(
+        QUANTA_PER_ZVRG.checked_mul(2),
+        Some(TAIL_REWARD.as_quanta())
+    );
 }
 
 #[test]

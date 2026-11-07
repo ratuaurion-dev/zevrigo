@@ -207,7 +207,7 @@ Isi: belanjakan output 0 dari txid `1111…11`, kirim 1,5 ZVRG ke kunci contoh B
 0100000000000000            height = 1 (u64le)
 00                          extra kosong
 01                          jumlah output = 1
-d58bf09583a8b203            amount = 1 910 127 426 536 917 quanta (subsidy tinggi 1, TSK-M07)
+d58bf09583a8b203            amount = 1 910 127 426 536 917 quanta (vektor V2; subsidy tinggi 1 sebelum DEC-30)
 00                          kind = 0
 44 × 32                     payload
 ```
@@ -267,7 +267,7 @@ Block {
 - Coinbase genesis:
   - `height = 0`
   - `extra` = **tepat 32 byte hash blok Bitcoin jangkar (L2)**, dengan urutan byte sama seperti hex yang ditampilkan block explorer Bitcoin
-  - satu output: `amount` = 4 380 000 ZVRG (`808080cccfadc9ccc680fe1c`, 12 byte), `kind = 0`, `payload` = kunci alokasi pencipta (TODO(param))
+  - satu output: `amount` = 10 000 000 ZVRG (`808080d084a9808a96aa9642`, 12 byte, DEC-30), `kind = 0`, `payload` = kunci alokasi pencipta (TODO(param))
 - Output genesis **masuk ke set UTXO dan bisa dibelanjakan** setelah kematangan coinbase (100 blok). Ini berbeda dengan Bitcoin.
 - **ID jaringan** = `block_id` genesis. Testnet yang di-reset otomatis mendapat ID baru.
 

@@ -33,7 +33,7 @@ Legenda: 🟢 dikunci · 🟡 draf · ⏳ menunggu keputusan atau parameter test
 | `pow_limit` (compact) | `0x207fffff` | `0x1f369d03` (kerja 1_200, sekitar 10 hash/detik) | `TODO(param)` |
 | Target genesis (compact) | `0x207fffff` | `0x1e8bcf64` (kerja 120_000, sekitar 1_000 hash/detik) | `TODO(param)` |
 | Genesis | Bagian 10 (tetap) | Bagian 10b (cap waktu saat peluncuran) | `TODO(param)` |
-| `network_id` | `b858e5ce…6a04c5` (Bagian 10) | block_id genesis | block_id genesis |
+| `network_id` | `8b9eb318…364dab` (Bagian 10) | block_id genesis | block_id genesis |
 
 - `pow_limit` adalah target terbesar (kesulitan terendah) yang boleh dipakai di jaringan itu. Target genesis wajib ≤ `pow_limit`.
 - Regtest memakai aturan yang sama persis dengan mainnet, termasuk ASERT. Yang berbeda hanya fungsi PoW dan parameter di tabel ini.
@@ -224,18 +224,18 @@ Blok yang induknya belum dikenal bukan tidak sah; penanganannya (orphan) urusan 
 | Field | Nilai |
 |---|---|
 | Header | version 1, height 0, `prev_block_id` nol, `timestamp = 1_793_145_600` (28 Oktober 2026 00.00 UTC), `target = 0x207fffff`, `nonce = 0` |
-| Coinbase | height 0, `extra` = 32 byte nol, satu output `amount = G` (4_380_000 ZVRG), `kind = 0`, `payload` = kunci x-only dari kunci rahasia `1`: `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` |
+| Coinbase | height 0, `extra` = 32 byte nol, satu output `amount = G` (10_000_000 ZVRG), `kind = 0`, `payload` = kunci x-only dari kunci rahasia `1`: `79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798` |
 
 Kunci rahasia `1` sengaja publik: koin regtest tidak bernilai, dan test bisa membelanjakan alokasi genesis. `network_id` regtest berbeda dari jaringan lain, sehingga tanda tangannya tidak berlaku di tempat lain (DEC-13). Genesis tidak diperiksa PoW-nya.
 
 | Hasil | Nilai |
 |---|---|
-| Coinbase (89 byte) | `0101000000000000000020` + `00`×32 + `01808080cccfadc9ccc680fe1c00` + payload |
-| txid | `e48a0c67c87ee39224a5ed3b09f4c301d8fe9a9f623161bf5252f6dd7fdd2310` |
-| wtxid | `80917b98cd9844da532df6b15c6258b600aac9cfd6e20bc142a288a03ea96749` |
-| merkle_root | `ef801283525bb565114f5e2d0d10deddc9465d206abe2675ef524ccc61def782` |
-| Header (96 byte) | `01000000` `0000000000000000` `00`×32 `ef801283…c5c088d6` `003be16a00000000` `ffff7f20` `0000000000000000` |
-| block_id = `network_id` regtest | `b858e5ce2bf393d7f4c0be814152d66fecfaacda4b0add19e79c3c161f441b8f` |
+| Coinbase (89 byte) | `0101000000000000000020` + `00`×32 + `01808080d084a9808a96aa964200` + payload |
+| txid | `50eae4b92788be240e57ea71f8552cd1e2816c095baf593c391f13945e1c1d4e` |
+| wtxid | `e2363ae4035977610005afe0288ec1ee0b00460c40f8ada5856306ea45dea21f` |
+| merkle_root | `0d66aa3b8336e2dd1d77a3ff0b30dd4b73d0c06ff93aa9221789a2f7e1429ab7` |
+| Header (96 byte) | `01000000` `0000000000000000` `00`×32 `0d66aa3b…e1429ab7` `003be16a00000000` `ffff7f20` `0000000000000000` |
+| block_id = `network_id` regtest | `8b9eb3187250bbdfe1577ebcb668c30003213a9ee6a4424427b08e38da364dab` |
 | Ukuran blok | 186 byte |
 
 ---
@@ -255,10 +255,10 @@ waktu tidak mengubah txid dan `merkle_root`, tetapi `block_id` dan `network_id` 
 
 | Hasil (cap waktu `0`) | Nilai |
 |---|---|
-| txid | `ad23ee415df1905c83a7c4b0de263e494b2edec9091e6a70c9be238068333ff1` |
-| wtxid | `581b0bc6cc5c6e5c628baee17797f082cfd04b5def263c3a712712b8558e8a94` |
-| merkle_root | `d7df2a78012153e2ce5e14042c35c67de35c72d9f8062ebfb7b68dcaefe45fb0` |
-| block_id = `network_id` testnet | `ec9d66dfe49d755e7759c90defcaa4d86a45b431ea83368c448651affa4a2ff5` |
+| txid | `8d4ac6d11fa59e49ef46bff7207989ab65878a877c091bd145c5e650728a0892` |
+| wtxid | `851da958564661c9af81346c2b58048b9b10d1fc25085b554e33d5d89c0decc0` |
+| merkle_root | `c136cd4718d5663de09d28138ed3e85945b823f7cf37b8a0f9375af5c0f39b36` |
+| block_id = `network_id` testnet | `e4b9f2fb41c16ea54aa7ab3f76f92d4cb69fa501c5c95e1317f9fcd49cace50c` |
 | Ukuran blok | 186 byte |
 
 Node memilih genesis dari `network_id` parameternya (`known_genesis`, MOD-04): regtest atau testnet.

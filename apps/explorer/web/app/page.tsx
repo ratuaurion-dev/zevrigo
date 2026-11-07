@@ -287,7 +287,7 @@ export default function DashboardPage() {
               </div>
             )}
             <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono tabular-nums">
-              {minedPercentLabel} / 43.8M ZVRG
+              {minedPercentLabel} / 100M ZVRG
             </div>
           </CardContent>
         </Card>

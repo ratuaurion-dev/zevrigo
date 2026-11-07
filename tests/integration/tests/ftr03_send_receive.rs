@@ -32,8 +32,9 @@ mod ftr03 {
     use zevrigo_storage::RedbStore;
     use zevrigo_wallet_core::{KdfParams, SendError, decode_address};
 
-    /// Dikirim wallet A ke wallet B: 0,005 ZVRG (butuh dua coinbase matang A, sehingga ada dua input dan kembalian).
-    const A_TO_B: u128 = 5_000_000_000_000_000;
+    /// Dikirim wallet A ke wallet B: 0,01 ZVRG (lebih besar dari tiap coinbase matang A, tinggi 1 dan 2, sehingga ada dua
+    /// input dan kembalian; DEC-30).
+    const A_TO_B: u128 = 10_000_000_000_000_000;
     /// Dikirim balik wallet B ke wallet A: 0,001 ZVRG (satu input bukan coinbase, dengan kembalian).
     const B_TO_A: u128 = 1_000_000_000_000_000;
     /// Tarif biaya bawaan CLI: 1 quanta per byte.

@@ -66,7 +66,7 @@ export const id = {
   supplyVerificationValid: 'Pasokan sesuai dengan rumus jadwal ✓',
   supplyVerificationInvalid: 'Peringatan: Pasokan tertambang menyimpang dari jadwal protokol!',
   supplyProgressTitle: 'Progres Emisi Penambangan',
-  supplyProgressSubtitle: 'Tertambang terhadap batas pasokan penambangan 43.800.000 ZVRG',
+  supplyProgressSubtitle: 'Tertambang terhadap batas pasokan penambangan 100.000.000 ZVRG',
   chartIntervalTitle: 'Interval Antar-Blok (20 Blok Terakhir)',
   chartIntervalSubtitle: 'Selisih waktu dalam detik antar blok berurutan vs target 120 dtk',
   chartSizeTitle: 'Ukuran Blok (Byte)',
@@ -153,10 +153,10 @@ export const id = {
   emissionRuleUnitTitle: 'Satuan Dasar & Presisi',
   emissionRuleUnitBody: '1 ZVRG = 10^18 quanta (bilangan bulat u128 murni tanpa pecahan ambang mengambang).',
   emissionRuleCapTitle: 'Pasokan Penambangan (S)',
-  emissionRuleCapBody: 'Pasokan penambangan S = 43.800.000 ZVRG, keluar lewat hadiah blok sesuai rumus. Setelah itu hadiah ekor tetap 1 ZVRG per blok.',
+  emissionRuleCapBody: 'Pasokan penambangan S = 100.000.000 ZVRG, keluar lewat hadiah blok sesuai rumus. Setelah itu hadiah ekor tetap 2 ZVRG per blok.',
   emissionRuleFormulaTitle: 'Rumus Imbalan Blok & Emisi Ekor (Tail Emission)',
   emissionRuleFormulaBody:
-    'Imbalan blok dasar = max((S − M) / 2.274.842, 1 ZVRG) di mana M adalah jumlah yang telah ditambang sejauh ini. Imbalan ekor tetap tepat 1 ZVRG per blok selamanya.',
+    'Imbalan blok dasar = max((S − M) / 2.274.842, 2 ZVRG) di mana M adalah jumlah yang telah ditambang sejauh ini. Imbalan ekor tetap tepat 2 ZVRG per blok selamanya.',
   emissionRuleSlowStartTitle: 'Mulai Lambat (Slow Start) & Kematangan Coinbase',
   emissionRuleSlowStartBody:
     'Mulai lambat selama 10.080 blok pertama (imbalan × tinggi / 10.080). Kematangan coinbase 100 blok. Seluruh biaya transaksi diberikan ke penambang, tidak ada koin yang dibakar.',

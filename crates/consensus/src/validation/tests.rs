@@ -45,9 +45,9 @@ const SPEND_TWICE: u128 = SPEND - FEE;
 const G_PLUS_ONE: u128 = G_Q + 1;
 
 /// Subsidy tinggi 1 dengan `M = 0` (Spesifikasi Format Bagian 5.5, TSK-M07).
-const SUBSIDY_1: u128 = 1_910_127_426_536_917;
+const SUBSIDY_1: u128 = 4_361_021_521_773_785;
 /// Subsidy tinggi 100 dengan `M = 0`, dihitung Quick dengan referensi Python.
-const SUBSIDY_100: u128 = 191_012_742_653_691_783;
+const SUBSIDY_100: u128 = 436_102_152_177_378_500;
 const SUBSIDY_100_PLUS_FEE: u128 = SUBSIDY_100 + FEE;
 const SUBSIDY_100_PLUS_TWO_FEES: u128 = SUBSIDY_100_PLUS_FEE + FEE;
 const SUBSIDY_100_PLUS_FEE_PLUS_ONE: u128 = SUBSIDY_100_PLUS_FEE + 1;
@@ -62,9 +62,9 @@ const COND_FEE: u128 = COND_AMOUNT - COND_SPEND;
 
 /// Vektor blok 1 regtest (dihitung Quick dengan `blake3_ref.py`).
 const BLOCK1_COINBASE_TXID: &str =
-    "4ac1bf0fc835bc714948307790cc8321583b7a00aa63248135d695fed8f74599";
-const BLOCK1_MERKLE_ROOT: &str = "d781146a3e65a5b86e69cdb39d53c66ea48793469821a8de5debd973610c2722";
-const BLOCK1_ID: &str = "32a2ce86de078ea37a2716e294e67eca2e74a9d34dd8207f70dbafc921d9a951";
+    "cb49e918fb022e9845ca43fad8ee738cb66934d00138ceb31f947e4859fb86b6";
+const BLOCK1_MERKLE_ROOT: &str = "4d755d02a67f9b24b8c5976b536519678389491721cc02ae75dfd14790eb367d";
+const BLOCK1_ID: &str = "6baf7b66864361e35e8d4a852053f82efa926cf0a9c8ae91368d6c3124c4c572";
 
 fn params() -> ChainParams {
     ChainParams::regtest().unwrap()
@@ -202,7 +202,7 @@ fn block1_passes_all_stages() {
     let params = params();
     let block = block1();
     let header = block.header();
-    assert_eq!(header.nonce(), 0);
+    assert_eq!(header.nonce(), 3);
     assert_eq!(header.merkle_root().to_string(), BLOCK1_MERKLE_ROOT);
     assert_eq!(
         txid(block.txs().first().unwrap()).to_string(),

@@ -32,10 +32,10 @@ JANGAN mengubah angka di tabel ini. Kalau menurut Anda ada yang salah, berhenti 
 | Satuan | 1 ZVRG = 10^18 quanta. Semua jumlah disimpan sebagai `u128` dalam quanta |
 | Waktu blok target | 120 detik |
 | Blok per tahun (konstanta) | 262_800 |
-| Pasokan utama `S` (hasil tambang) | 43_800_000 ZVRG = 43_800_000 × 10^18 quanta |
-| Alokasi genesis pencipta `G` | 4_380_000 ZVRG, hanya di blok genesis, DI LUAR `S`, tanpa kunci waktu |
+| Pasokan utama `S` (hasil tambang) | 100_000_000 ZVRG = 100_000_000 × 10^18 quanta (DEC-30) |
+| Alokasi genesis pencipta `G` | 10_000_000 ZVRG (`S / 10`), hanya di blok genesis, DI LUAR `S`, tanpa kunci waktu (DEC-30) |
 | Konstanta paruh `D` | 2_274_842 |
-| Hadiah ekor `T` | tepat 1 ZVRG = 10^18 quanta per blok |
+| Hadiah ekor `T` | tepat 2 ZVRG = 2 × 10^18 quanta per blok (DEC-30) |
 | `M` | total quanta hasil tambang yang sudah keluar SEBELUM blok yang sedang dihitung (`G` tidak dihitung) |
 | Hadiah dasar | `base(M) = max((S − M) / D, T)`, pembagian bilangan bulat dibulatkan ke bawah. Jika `M ≥ S`, `(S − M)` dianggap 0 |
 | Slow start | untuk tinggi `h` dengan `1 ≤ h < 10_080`: `subsidy = base(M) × h / 10_080` (bilangan bulat). Untuk `h ≥ 10_080`: `subsidy = base(M)` |

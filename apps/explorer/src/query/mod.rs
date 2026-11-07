@@ -175,7 +175,7 @@ pub struct SupplyInfo {
     pub scheduled_mined_total: Amount,
     /// `mined_total == scheduled_mined_total`.
     pub matches_schedule: bool,
-    /// Alokasi genesis (4.380.000 ZVRG).
+    /// Alokasi genesis (10.000.000 ZVRG).
     pub genesis_allocation: Amount,
     /// Alokasi genesis ditambah `mined_total`.
     pub total_supply: Amount,

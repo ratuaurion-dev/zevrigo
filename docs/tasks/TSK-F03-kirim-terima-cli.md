@@ -13,10 +13,10 @@ terkonfirmasi.
   `next_address`) di satu proses, lewat RPC HTTP sungguhan. Jam node maju 120 detik per blok (target tetap `pow_limit`).
 - Wallet A dan B dibuat dengan `wallet_create`. 99 blok ke alamat A: saldo 99 coinbase, semuanya belum matang, dan
   `send` ditolak `InsufficientFunds`.
-- Dua blok lagi (tinggi 101): coinbase tinggi 1 dan 2 matang. A mengirim 0,005 ZVRG ke alamat B: dua input,
+- Dua blok lagi (tinggi 101): coinbase tinggi 1 dan 2 matang. A mengirim 0,01 ZVRG ke alamat B: dua input,
   kembalian ke cabang 1, `Σ input = jumlah + biaya + kembalian`, biaya ≥ 1 quanta × ukuran; transaksi masuk mempool.
 - Blok 102 (ke kunci lain) memuat transaksi itu; coinbase = subsidy + biaya yang dihitung CLI (DEC-17). Saldo B
-  0,005 ZVRG, bisa dipakai.
+  0,01 ZVRG, bisa dipakai.
 - B mengirim 0,001 ZVRG ke alamat A yang baru (satu input bukan coinbase, kembalian), ditambang di blok 103.
 - Saldo akhir A dan B tepat (total, bisa dipakai, belum matang, jumlah UTXO). Wallet yang dipulihkan dari frasa A
   dengan `wallet_restore` melihat saldo yang sama persis, termasuk kembalian di cabang 1.

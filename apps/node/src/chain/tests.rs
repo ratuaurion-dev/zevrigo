@@ -29,7 +29,7 @@ const T0: u64 = 1_793_145_600;
 /// Alokasi genesis dalam quanta.
 const G: u128 = GENESIS_ALLOCATION.as_quanta();
 /// Subsidy tinggi 1 (Spesifikasi Format Bagian 5.5).
-const SUBSIDY_1: u128 = 1_910_127_426_536_917;
+const SUBSIDY_1: u128 = 4_361_021_521_773_785;
 /// Target genesis regtest dan `pow_limit`.
 const LIMIT: u32 = 0x207f_ffff;
 

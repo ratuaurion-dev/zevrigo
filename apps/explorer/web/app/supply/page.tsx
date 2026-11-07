@@ -111,7 +111,7 @@ export default function SupplyPage() {
               <ZvrgAmount quanta={supply.mined_total} />
             </div>
             <div className="text-[11px] font-mono text-slate-500">
-              {minedPct} / 43,800,000 ZVRG
+              {minedPct} / 100,000,000 ZVRG
             </div>
           </CardContent>
         </Card>

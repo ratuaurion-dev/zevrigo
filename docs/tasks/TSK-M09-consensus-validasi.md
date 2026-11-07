@@ -20,9 +20,9 @@ Termasuk penolakan PoW regtest di testnet dan mainnet beserta test-nya (DEC-09).
 - `check_transaction` juga untuk mempool (MOD-07, TSK-M13).
 
 ## Vektor blok 1 regtest (dihitung Quick dengan `blake3_ref.py`)
-Coinbase tinggi 1, `extra` kosong, satu output 1_910_127_426_536_917 quanta ke kunci genesis regtest; cap waktu genesis + 120; target `0x207fffff`.
-txid coinbase `4ac1bf0f…6525e6d2`, merkle root `d781146a…d1eaba64`, nonce hasil tambang 0, block_id `32a2ce86…b3732de9`.
-Header yang sama dengan merkle root nol: nonce hasil tambang 3.
+Coinbase tinggi 1, `extra` kosong, satu output 4_361_021_521_773_785 quanta ke kunci genesis regtest; cap waktu genesis + 120; target `0x207fffff`.
+txid coinbase `cb49e918…59fb86b6`, merkle root `4d755d02…90eb367d`, nonce hasil tambang 3, block_id `6baf7b66…24c4c572`.
+Header yang sama dengan merkle root nol: nonce hasil tambang 0.
 
 ## Test (consensus 35 → 56 + 1 ignored, workspace 175 → 196)
 - `src/validation/tests.rs` (19): `block1_passes_all_stages`, `regtest_pow_rejected_on_testnet_and_mainnet`, `context_free_rejections_v2_to_v4`,

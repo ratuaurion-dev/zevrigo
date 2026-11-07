@@ -68,7 +68,7 @@ export const en: Dictionary = {
   supplyVerificationValid: 'Supply matches the schedule formula ✓',
   supplyVerificationInvalid: 'Warning: Mined supply deviates from the protocol schedule formula!',
   supplyProgressTitle: 'Mining Emission Progress',
-  supplyProgressSubtitle: 'Mined against the 43,800,000 ZVRG mining supply cap',
+  supplyProgressSubtitle: 'Mined against the 100,000,000 ZVRG mining supply cap',
   chartIntervalTitle: 'Block Interval (Last 20 Blocks)',
   chartIntervalSubtitle: 'Seconds elapsed between consecutive blocks vs 120s target',
   chartSizeTitle: 'Block Size (Bytes)',
@@ -155,10 +155,10 @@ export const en: Dictionary = {
   emissionRuleUnitTitle: 'Base Unit & Precision',
   emissionRuleUnitBody: '1 ZVRG = 10^18 quanta (exact u128 integer arithmetic with zero floating-point ambiguity).',
   emissionRuleCapTitle: 'Mining Supply (S)',
-  emissionRuleCapBody: 'Mining supply S = 43,800,000 ZVRG, issued through block rewards by formula. After that, a tail reward of 1 ZVRG per block.',
+  emissionRuleCapBody: 'Mining supply S = 100,000,000 ZVRG, issued through block rewards by formula. After that, a tail reward of 2 ZVRG per block.',
   emissionRuleFormulaTitle: 'Block Reward Formula & Tail Emission',
   emissionRuleFormulaBody:
-    'Block reward = max((S − M) / 2,274,842, 1 ZVRG) where M = mined so far. Tail reward is exactly 1 ZVRG per block forever.',
+    'Block reward = max((S − M) / 2,274,842, 2 ZVRG) where M = mined so far. Tail reward is exactly 2 ZVRG per block forever.',
   emissionRuleSlowStartTitle: 'Slow Start & Coinbase Maturity',
   emissionRuleSlowStartBody:
     'Slow start over the first 10,080 blocks (reward × height / 10,080). Coinbase maturity is 100 blocks. All fees go to the miner, nothing is burned.',

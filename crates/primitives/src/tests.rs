@@ -11,7 +11,10 @@ fn module_id_matches() {
 
 #[test]
 fn crate_root_reexports_are_accessible() {
-    assert_eq!(Amount::from_quanta(QUANTA_PER_ZVRG), params::TAIL_REWARD);
+    assert_eq!(
+        Amount::from_quanta(2 * QUANTA_PER_ZVRG),
+        params::TAIL_REWARD
+    );
     assert_eq!(BlockHeight::GENESIS.get(), 0);
     assert_eq!(Hash32::ZERO.as_bytes().len(), 32);
     assert_eq!(HEADER_SIZE, 96);
