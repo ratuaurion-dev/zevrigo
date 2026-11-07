@@ -54,6 +54,9 @@ argon2 = { version = "0.5.3", default-features = false }
 chacha20poly1305 = { version = "0.10.1", default-features = false }
 zeroize = { version = "1.9.1", default-features = false }
 rpassword = { version = "7.5.4", default-features = false }
+# DEC-10 bagian 11 (DEC-31): sumber acak sistem operasi untuk MOD-12 (entropi frasa, salt, nonce, aux_rand), agar CLI
+# dan wallet desktop berjalan di Windows (sebelumnya /dev/urandom). Versi 0.3.4 sudah ada di Cargo.lock.
+getrandom = { version = "0.3.4", default-features = false }
 redb = { version = "4.4.0", default-features = false, features = ["std"] }
 # DEC-10 bagian 2: hanya untuk crate di luar konsensus (network, rpc, aplikasi). Fitur ditambah per crate.
 tokio = { version = "1.54.1", default-features = false }

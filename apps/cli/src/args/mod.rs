@@ -26,6 +26,7 @@ pub const USAGE: &str = concat!(
     "  wallet-show-phrase                  tampilkan frasa pemulihan (butuh password)\n",
     "  address                             alamat penerimaan baru dan payload-nya (tanpa node)\n",
     "  balance                             saldo dari node lewat scan_utxos\n",
+    "  history                             riwayat transaksi dari blok node (tembolok <folder>/<jaringan>/history.json)\n",
     "  send --to <alamat> --amount <ZVRG> [--fee-rate <quanta per byte>]\n",
     "                                      kirim ZVRG (tarif bawaan 1 quanta per byte, butuh password)\n",
     "\n",
@@ -37,7 +38,7 @@ pub const USAGE: &str = concat!(
     "  --passphrase <teks>   passphrase BIP39, ASCII cetak; tidak disimpan di file wallet\n",
     "\n",
     "Password wallet (minimal 8 karakter) diketik tanpa tampil di layar; untuk skrip boleh lewat variabel\n",
-    "lingkungan ZEVRIGO_WALLET_PASSWORD. address dan balance tidak butuh password.",
+    "lingkungan ZEVRIGO_WALLET_PASSWORD. address, balance, dan history tidak butuh password.",
 );
 
 /// Perintah hasil membaca argumen.
@@ -98,6 +99,8 @@ pub enum Action {
     Address,
     /// `balance`: saldo dari node.
     Balance,
+    /// `history`: riwayat transaksi wallet dari blok node.
+    History,
     /// `send`: kirim ZVRG.
     Send {
         /// Alamat penerima.
@@ -121,6 +124,7 @@ impl Action {
             Self::WalletShowPhrase => "wallet-show-phrase",
             Self::Address => "address",
             Self::Balance => "balance",
+            Self::History => "history",
             Self::Send { .. } => "send",
         }
     }
@@ -145,7 +149,8 @@ impl core::fmt::Debug for Action {
             | Self::WalletEncrypt
             | Self::WalletShowPhrase
             | Self::Address
-            | Self::Balance => f.write_str(self.name()),
+            | Self::Balance
+            | Self::History => f.write_str(self.name()),
         }
     }
 }
@@ -167,7 +172,7 @@ pub enum ArgError {
     Exclusive,
     /// Tidak ada perintah.
     #[error(
-        "perintah wajib diisi (info, wallet-create, wallet-restore, wallet-encrypt, wallet-show-phrase, address, balance, send)"
+        "perintah wajib diisi (info, wallet-create, wallet-restore, wallet-encrypt, wallet-show-phrase, address, balance, history, send)"
     )]
     MissingAction,
     /// Lebih dari satu perintah.
@@ -210,6 +215,7 @@ enum Kind {
     WalletShowPhrase,
     Address,
     Balance,
+    History,
     Send,
 }
 
@@ -223,6 +229,7 @@ impl Kind {
             "wallet-show-phrase" => Some(Self::WalletShowPhrase),
             "address" => Some(Self::Address),
             "balance" => Some(Self::Balance),
+            "history" => Some(Self::History),
             "send" => Some(Self::Send),
             _ => None,
         }
@@ -237,6 +244,7 @@ impl Kind {
             Self::WalletShowPhrase => "wallet-show-phrase",
             Self::Address => "address",
             Self::Balance => "balance",
+            Self::History => "history",
             Self::Send => "send",
         }
     }
@@ -423,6 +431,7 @@ fn build(kind: Kind, options: Options) -> Result<Config, ArgError> {
         Kind::WalletShowPhrase => Action::WalletShowPhrase,
         Kind::Address => Action::Address,
         Kind::Balance => Action::Balance,
+        Kind::History => Action::History,
         Kind::Send => Action::Send {
             to: require(options.to, "--to", kind)?,
             amount: require(options.amount, "--amount", kind)?,

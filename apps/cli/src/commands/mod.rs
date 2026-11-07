@@ -12,6 +12,9 @@
 //! kunci akun publik disimpan terbuka. Password hanya diminta saat kunci rahasia dibutuhkan (`wallet-create`,
 //! `wallet-restore`, `wallet-encrypt`, `wallet-show-phrase`, `send`); `address` dan `balance` memakai kunci akun publik. Frasa, kunci, alamat, pemilihan koin, dan tanda tangan
 //! seluruhnya dari MOD-09. Entropi frasa dan `aux_rand` tanda tangan diberikan pemanggil.
+//!
+//! `history` (TSK-M41) menghitung riwayat transaksi wallet dari blok chain aktif lewat RPC `get_block`, dengan tembolok
+//! di `<folder>/<jaringan>/history.json` (modul [`crate::history`]); node tidak mencatat alamat siapa pun (DEC-28).
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -19,7 +22,7 @@ use std::path::{Path, PathBuf};
 use thiserror::Error;
 use tokio::runtime::Runtime;
 use zeroize::Zeroizing;
-use zevrigo_primitives::{Amount, Encode, Network, OutPoint, OutputKind};
+use zevrigo_primitives::{Amount, Block, Decode, Encode, Network, OutPoint, OutputKind};
 use zevrigo_rpc::{
     ChainInfo, Hex32, MAX_SCAN_PAYLOADS, MempoolOutput, MempoolScan, RpcClient, reject_reason,
 };
@@ -31,6 +34,7 @@ use zevrigo_wallet_core::{
 };
 
 use crate::args::{Action, Config};
+use crate::history::{self, History, HistoryError, HistoryState, HistoryTip, WalletKeys};
 use crate::scan::{ScanResult, scan_wallet, wallet_payloads};
 use crate::wallet_file::{self, NextIndex, WalletFile, WalletFileError};
 
@@ -107,6 +111,20 @@ pub enum CliError {
     /// `wallet-encrypt` untuk wallet yang sudah terenkripsi.
     #[error("wallet sudah dikunci password")]
     AlreadyEncrypted,
+    /// Riwayat tidak bisa dihitung dari blok.
+    #[error("riwayat gagal dihitung: {0}")]
+    History(#[from] HistoryError),
+    /// File tembolok riwayat tidak bisa ditulis.
+    #[error("file riwayat {path}: {message}")]
+    HistoryFile {
+        /// Path file tembolok.
+        path: String,
+        /// Galat dari sistem operasi.
+        message: String,
+    },
+    /// Chain aktif node berubah (reorg) selama pemindaian riwayat; ulangi perintahnya.
+    #[error("chain node berubah selama pemindaian riwayat; ulangi perintahnya")]
+    ChainChanged,
 }
 
 impl From<VaultError> for CliError {
@@ -531,10 +549,8 @@ impl Cli {
         Ok(result)
     }
 
-    /// Transaksi tertunda di mempool node yang menyentuh alamat wallet sampai batas pemindaian `scanned`: outpoint
-    /// UTXO wallet yang sedang dibelanjakan, dan output tertunda jenis 0 ke alamat wallet.
-    fn pending(&self, wallet: &OpenWallet, scanned: &ScanResult) -> Result<Pending, CliError> {
-        let payloads = wallet_payloads(&wallet.public, scanned.next_index);
+    /// `scan_mempool` untuk semua `payloads`, paling banyak [`MAX_SCAN_PAYLOADS`] sekali panggil.
+    fn mempool_scan(&self, payloads: &[Hex32]) -> Result<MempoolScan, CliError> {
         let mut scan = MempoolScan::default();
         for chunk in payloads.chunks(MAX_SCAN_PAYLOADS) {
             let part = self
@@ -544,6 +560,21 @@ impl Cli {
             scan.spent.extend(part.spent);
             scan.outputs.extend(part.outputs);
         }
+        Ok(scan)
+    }
+
+    /// ID blok chain aktif di `height`.
+    fn block_hash(&self, height: u64) -> Result<Hex32, CliError> {
+        self.runtime
+            .block_on(self.client.get_block_hash(height))
+            .map_err(rpc_error)
+    }
+
+    /// Transaksi tertunda di mempool node yang menyentuh alamat wallet sampai batas pemindaian `scanned`: outpoint
+    /// UTXO wallet yang sedang dibelanjakan, dan output tertunda jenis 0 ke alamat wallet.
+    fn pending(&self, wallet: &OpenWallet, scanned: &ScanResult) -> Result<Pending, CliError> {
+        let payloads = wallet_payloads(&wallet.public, scanned.next_index);
+        let scan = self.mempool_scan(&payloads)?;
         let mine: BTreeSet<Hex32> = payloads.into_iter().collect();
         let spent = scan
             .spent
@@ -609,6 +640,77 @@ impl Cli {
             .and_then(|rest| rest.checked_add(balance.pending_received))
             .ok_or_else(overflow)?;
         Ok(balance)
+    }
+
+    /// `history`: riwayat transaksi wallet, terbaru dulu (transaksi tertunda di mempool paling atas).
+    ///
+    /// Blok dibaca dari node mulai sesudah blok ujung tembolok `history.json`, atau dari genesis jika tembolok tidak ada,
+    /// tidak sah, milik wallet lain, atau blok ujungnya tidak lagi di chain aktif (reorg). Tembolok disimpan sesudahnya.
+    /// Indeks alamat terpakai yang lebih tinggi yang ditemukan disimpan ke file wallet, seperti `balance`.
+    ///
+    /// # Errors
+    ///
+    /// [`CliError::Rpc`], [`CliError::WrongNetwork`], [`CliError::ChainChanged`], [`CliError::History`],
+    /// [`CliError::HistoryFile`], atau galat file wallet.
+    pub fn history(&self, datadir: &Path, passphrase: &str) -> Result<History, CliError> {
+        let info = self.checked_info()?;
+        let mut wallet = open_wallet(self.network, datadir, passphrase)?;
+        let path = history::history_path(self.network, datadir);
+        let identity = history::identity(&wallet.public);
+        let mut state = history::load(&path, self.network, identity);
+        if let Some(tip) = state.tip {
+            let kept = tip.height <= info.height && self.block_hash(tip.height)? == tip.block_id;
+            if !kept {
+                state = HistoryState::new();
+            }
+        }
+        let mut keys = WalletKeys::new(&wallet.public, wallet.file.next_index);
+        let start = state.tip.map_or(0, |tip| tip.height.saturating_add(1));
+        let mut previous = state.tip.map(|tip| tip.block_id);
+        for height in start..=info.height {
+            let block_id = self.block_hash(height)?;
+            let found = self
+                .runtime
+                .block_on(self.client.get_block(block_id))
+                .map_err(rpc_error)?;
+            if found.height != height || previous.is_some_and(|id| id != found.prev_block_id) {
+                return Err(CliError::ChainChanged);
+            }
+            let block = Block::from_bytes(found.hex.as_slice()).map_err(rpc_error)?;
+            state.apply_block(&mut keys, &block, &found.txids, height)?;
+            state.tip = Some(HistoryTip { height, block_id });
+            previous = Some(block_id);
+        }
+        let scan = self.mempool_scan(&keys.payloads())?;
+        let outputs: Vec<MempoolOutput> = scan
+            .outputs
+            .into_iter()
+            .filter(|output| {
+                output.kind.kind() == OutputKind::SingleKey && keys.contains(output.payload.bytes())
+            })
+            .collect();
+        let pending = state.pending_entries(&scan.spent, &outputs)?;
+        history::save(&path, self.network, identity, &state).map_err(|error| {
+            CliError::HistoryFile {
+                path: path.display().to_string(),
+                message: error.to_string(),
+            }
+        })?;
+        let found = keys.next_index();
+        let next_index = NextIndex {
+            receive: found.receive.max(wallet.file.next_index.receive),
+            change: found.change.max(wallet.file.next_index.change),
+        };
+        if next_index != wallet.file.next_index {
+            wallet.file.next_index = next_index;
+            wallet_file::save(&wallet.path, &wallet.file)?;
+        }
+        let mut entries = pending;
+        entries.extend(state.entries().iter().rev().cloned());
+        Ok(History {
+            tip_height: info.height,
+            entries,
+        })
     }
 
     /// `send`: memilih koin, menandatangani dengan `aux_rand`, lalu mengirim ke mempool node. UTXO yang sedang
@@ -736,6 +838,33 @@ pub fn format_sent(sent: &Sent) -> String {
         sent.inputs,
         sent.size,
     )
+}
+
+/// Teks keluaran `history`: satu baris per transaksi, terbaru dulu.
+#[must_use]
+pub fn format_history(history: &History) -> String {
+    let mut lines = vec![
+        format!("tinggi ujung: {}", history.tip_height),
+        format!("transaksi: {}", history.entries.len()),
+    ];
+    for entry in &history.entries {
+        let place = entry
+            .height
+            .map_or_else(|| "tertunda".to_owned(), |height| format!("blok {height}"));
+        let fee = entry
+            .fee
+            .map_or_else(String::new, |fee| format!(" biaya {fee}"));
+        let kind = if entry.coinbase { " coinbase" } else { "" };
+        lines.push(format!(
+            "{place} {} masuk {} keluar {}{fee}{kind}",
+            String::from(entry.txid),
+            entry.received,
+            entry.spent,
+        ));
+    }
+    let mut text = lines.join("\n");
+    text.push('\n');
+    text
 }
 
 /// Bahan acak untuk mengunci frasa: salt dari satu panggilan `random`, nonce dari panggilan berikutnya.
@@ -874,6 +1003,12 @@ pub fn run(
                 &cli.balance(datadir()?, &config.passphrase)?,
             ))
         }
+        Action::History => {
+            let cli = Cli::connect(&config.rpc_url, network)?;
+            Ok(format_history(
+                &cli.history(datadir()?, &config.passphrase)?,
+            ))
+        }
         Action::Send {
             to,
             amount,
@@ -897,17 +1032,16 @@ pub fn run(
     }
 }
 
-/// Membaca 32 byte dari `/dev/urandom` (Unix).
+/// Membaca 32 byte dari sumber acak sistem operasi lewat `getrandom` (Linux `getrandom(2)`, Windows `ProcessPrng`,
+/// macOS `getentropy`), agar CLI dan wallet desktop berjalan di Unix maupun Windows (DEC-31).
 ///
 /// # Errors
 ///
 /// [`CliError::Random`] jika sumber acak tidak bisa dibaca.
 pub fn os_random() -> Result<[u8; 32], CliError> {
-    use std::io::Read;
     let mut bytes = [0_u8; 32];
-    std::fs::File::open("/dev/urandom")
-        .and_then(|mut file| file.read_exact(&mut bytes))
-        .map_err(CliError::Random)?;
+    getrandom::fill(&mut bytes)
+        .map_err(|error| CliError::Random(std::io::Error::other(error.to_string())))?;
     Ok(bytes)
 }
 

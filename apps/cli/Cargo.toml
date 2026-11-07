@@ -17,6 +17,8 @@ zevrigo-rpc.workspace = true
 zevrigo-wallet-core.workspace = true
 # DEC-27: password wallet dibaca dari terminal tanpa tampil di layar; password dihapus dari memori sesudah dipakai.
 rpassword.workspace = true
+# DEC-10 bagian 11 (DEC-31): sumber acak sistem operasi di Unix dan Windows.
+getrandom.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

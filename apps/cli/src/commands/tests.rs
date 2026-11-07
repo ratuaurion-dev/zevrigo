@@ -18,10 +18,11 @@ use zevrigo_wallet_core::{AddressError, KdfParams, Mnemonic, SendError, decode_a
 
 use super::{
     Balance, Cli, CliError, PasswordPrompt, Protection, Sent, check_new_password, format_balance,
-    format_info, format_sent, next_address, run, show_phrase, wallet_create, wallet_encrypt,
-    wallet_restore,
+    format_history, format_info, format_sent, next_address, os_random, run, show_phrase,
+    wallet_create, wallet_encrypt, wallet_restore,
 };
 use crate::args::{Action, Config};
+use crate::history::{History, HistoryEntry};
 use crate::wallet_file::{NextIndex, WalletFile, WalletFileError, create_new, load, wallet_path};
 
 const ZVRG: u128 = 1_000_000_000_000_000_000;
@@ -913,4 +914,64 @@ fn testnet_wallet_uses_own_folder_addresses_and_node() {
     };
     let output = run(&config, never, no_password).unwrap();
     assert!(output.starts_with("alamat: tzvrg1"), "{output}");
+}
+
+#[test]
+fn format_history_lists_pending_then_blocks() {
+    let history = History {
+        tip_height: 103,
+        entries: vec![
+            HistoryEntry {
+                txid: Hex32::new([0x11; 32]),
+                height: None,
+                timestamp: None,
+                coinbase: false,
+                received: Amount::from_quanta(ZVRG),
+                spent: Amount::ZERO,
+                fee: None,
+            },
+            HistoryEntry {
+                txid: Hex32::new([0x22; 32]),
+                height: Some(102),
+                timestamp: Some(1_800_000_000),
+                coinbase: false,
+                received: Amount::from_quanta(2 * ZVRG),
+                spent: Amount::from_quanta(3 * ZVRG),
+                fee: Some(Amount::from_quanta(284)),
+            },
+            HistoryEntry {
+                txid: Hex32::new([0x33; 32]),
+                height: Some(1),
+                timestamp: Some(1_799_999_000),
+                coinbase: true,
+                received: Amount::from_quanta(5 * ZVRG),
+                spent: Amount::ZERO,
+                fee: None,
+            },
+        ],
+    };
+    let text = format_history(&history);
+    let lines: Vec<&str> = text.lines().collect();
+    assert_eq!(lines.len(), 5, "{text}");
+    assert_eq!(lines[0], "tinggi ujung: 103");
+    assert_eq!(lines[1], "transaksi: 3");
+    assert!(
+        lines[2].starts_with(&format!("tertunda {} masuk ", "11".repeat(32))),
+        "{text}"
+    );
+    assert!(
+        lines[3].starts_with(&format!("blok 102 {} masuk ", "22".repeat(32))),
+        "{text}"
+    );
+    assert!(lines[3].contains(" biaya "), "{text}");
+    assert!(lines[4].ends_with(" coinbase"), "{text}");
+    assert!(text.ends_with('\n'));
+}
+
+#[test]
+fn os_random_differs_between_calls() {
+    let first = os_random().unwrap();
+    let second = os_random().unwrap();
+    assert_ne!(first, second);
+    assert_ne!(first, [0_u8; 32]);
 }

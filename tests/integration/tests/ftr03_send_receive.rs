@@ -244,6 +244,28 @@ mod ftr03 {
             Err(CliError::Send(SendError::InsufficientFunds { .. }))
         ));
 
+        // Riwayat selama transaksi menunggu (TSK-M41): entri tertunda paling atas, lalu 101 coinbase A dari blok.
+        let history_a = cli.history(&dir_a.0, "").unwrap();
+        assert_eq!(history_a.tip_height, 101);
+        assert_eq!(history_a.entries.len(), 102);
+        let first = &history_a.entries[0];
+        assert_eq!(first.txid, sent_ab.txid);
+        assert_eq!(first.height, None);
+        assert_eq!(first.spent, mature);
+        assert_eq!(first.received, change_a);
+        assert_eq!(first.fee, None);
+        let newest_coinbase = &history_a.entries[1];
+        assert_eq!(newest_coinbase.height, Some(101));
+        assert!(newest_coinbase.coinbase);
+        assert_eq!(newest_coinbase.received, schedule[101].subsidy);
+        assert_eq!(newest_coinbase.spent, Amount::ZERO);
+        let history_b = cli.history(&dir_b.0, "").unwrap();
+        assert_eq!(history_b.entries.len(), 1);
+        assert_eq!(history_b.entries[0].txid, sent_ab.txid);
+        assert_eq!(history_b.entries[0].height, None);
+        assert_eq!(history_b.entries[0].received, quanta(A_TO_B));
+        assert_eq!(history_b.entries[0].spent, Amount::ZERO);
+
         // Blok 102 ditambang ke kunci lain, agar saldo kedua wallet hanya berubah karena transaksi.
         let miner_other = miner(&url, key(9));
         assert_eq!(miner_other.run(1, |_| {}).unwrap(), 1);
@@ -340,6 +362,43 @@ mod ftr03 {
         assert_eq!(info.height, 103);
         assert_eq!(info.mined_total.amount(), schedule[103].mined_total_after);
         assert_eq!(info.mempool_count, 0);
+
+        // Riwayat akhir: A menerima balik di blok 103, mengirim di blok 102 (biaya dari CLI), 101 coinbase.
+        let history_a = cli.history(&dir_a.0, "").unwrap();
+        assert_eq!(history_a.tip_height, 103);
+        assert_eq!(history_a.entries.len(), 103);
+        let back = &history_a.entries[0];
+        assert_eq!(back.txid, sent_ba.txid);
+        assert_eq!(back.height, Some(103));
+        assert_eq!(back.received, quanta(B_TO_A));
+        assert_eq!(back.spent, Amount::ZERO);
+        assert_eq!(back.fee, None);
+        let out_a = &history_a.entries[1];
+        assert_eq!(out_a.txid, sent_ab.txid);
+        assert_eq!(out_a.height, Some(102));
+        assert_eq!(out_a.spent, mature);
+        assert_eq!(out_a.received, change_a);
+        assert_eq!(out_a.fee, Some(sent_ab.fee));
+        assert!(!out_a.coinbase);
+        assert!(history_a.entries[2..].iter().all(|entry| entry.coinbase));
+        // Panggilan kedua memakai tembolok history.json dan hasilnya sama.
+        assert_eq!(cli.history(&dir_a.0, "").unwrap(), history_a);
+        // Wallet yang dipulihkan dari frasa A melihat riwayat yang sama.
+        assert_eq!(cli.history(&dir_restored.0, "").unwrap(), history_a);
+        let history_b = cli.history(&dir_b.0, "").unwrap();
+        assert_eq!(history_b.entries.len(), 2);
+        let out_b = &history_b.entries[0];
+        assert_eq!(out_b.txid, sent_ba.txid);
+        assert_eq!(out_b.height, Some(103));
+        assert_eq!(out_b.spent, quanta(A_TO_B));
+        assert_eq!(out_b.received, change_b);
+        assert_eq!(out_b.fee, Some(sent_ba.fee));
+        let in_b = &history_b.entries[1];
+        assert_eq!(in_b.txid, sent_ab.txid);
+        assert_eq!(in_b.height, Some(102));
+        assert_eq!(in_b.received, quanta(A_TO_B));
+        assert_eq!(in_b.spent, Amount::ZERO);
+        assert_eq!(in_b.fee, None);
 
         drop(cli);
         drop(client);

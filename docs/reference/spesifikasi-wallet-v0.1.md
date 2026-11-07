@@ -110,6 +110,20 @@ Kunci rahasia di W5–W7 milik frasa contoh yang publik; jangan dipakai untuk ko
   (kiriman masuk dan kembalian) dihitung `masuk tertunda`. `saldo setelah tertunda masuk blok` = saldo − keluar tertunda
   + masuk tertunda. Output tertunda belum bisa dibelanjakan (mempool v0.1 tanpa rantai transaksi tertunda).
 - Filter blok kompak (gaya BIP158) untuk wallet ringan ditunda ke TSK-F07/F08.
+- **Riwayat transaksi (TSK-M41, DEC-31):** dihitung di sisi wallet, node tidak menyimpan indeks alamat (DEC-28). Wallet
+  membaca blok chain aktif mulai genesis (`get_block_hash`, `get_block`) dan, per transaksi, menjumlahkan output jenis 0 ke
+  alamatnya (`masuk`) dan input yang membelanjakan output wallet yang sudah dilihat (`keluar`). Biaya dilaporkan hanya jika
+  semua input milik wallet (`keluar − jumlah semua output`). Alamat diturunkan seperti di atas (gap limit 20 dari indeks
+  terpakai) dan batasnya diperluas setiap kali output ke indeks lebih tinggi ditemukan; indeks terpakai yang ditemukan
+  disimpan ke file wallet. Transaksi di mempool dilaporkan sebagai entri tertunda dari `scan_mempool` (tanpa tinggi dan
+  biaya). Urutan tampilan: tertunda dulu, lalu blok dari tinggi terbesar.
+- **Tembolok riwayat:** `<datadir>/<jaringan>/history.json` (versi 1, izin `0600` di Unix): `network`, `identity` (payload
+  alamat penerimaan `0/0`), blok terakhir yang dipindai (`tip`: tinggi dan ID), koin wallet yang belum dibelanjakan, dan
+  entri yang sudah masuk blok; jumlah sebagai string desimal quanta. Bukan sumber kebenaran: file yang tidak sah, versi
+  lain, jaringan lain, atau wallet lain dibuang; bila ID blok `tip` tidak lagi ada di chain aktif (reorg), pemindaian diulang
+  dari genesis. Bila chain berubah di tengah pemindaian (`prev_block_id` tidak bersambung), perintah gagal dan cukup diulang.
+  Keterbatasan v0.1: wallet yang sama dipakai di perangkat lain dan menerima di indeks jauh di atas batas lama, sementara
+  tembolok sudah melewati bloknya, tidak terlihat sampai `history.json` dihapus.
 
 ---
 

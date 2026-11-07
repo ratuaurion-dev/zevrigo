@@ -69,6 +69,8 @@ fn parses_wallet_actions_with_options_in_any_order() {
     assert_eq!(address.action, Action::Address);
     assert_eq!(address.passphrase, "TREZOR");
     assert_eq!(run(&["--datadir", "d", "balance"]).action, Action::Balance);
+    assert_eq!(run(&["--datadir", "d", "history"]).action, Action::History);
+    assert!(USAGE.contains("history"));
     assert_eq!(
         run(&["wallet-encrypt", "--datadir", "d"]).action,
         Action::WalletEncrypt
