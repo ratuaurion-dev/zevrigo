@@ -62,7 +62,7 @@ Struktur ini TETAP. Jangan menambah, menghapus, atau mengganti nama crate, aplik
 tingkat atas tanpa izin. Perubahan struktur dicatat sebagai keputusan (DEC) di `docs/decisions/`.
 
 ```
-homeostasis_lab/
+zevrigo/
 ├── AGENTS.md  .agent/        # instruksi agent (jangan diubah agent)
 ├── ai_advisory_hub/          # ruang kerja Quick: status, antrean, langkah (lokal, tidak di-commit, DEC-16)
 ├── Cargo.toml                # workspace: members, dependencies, lints
