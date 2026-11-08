@@ -167,9 +167,12 @@ Berlaku untuk SEMUA kode milik proyek ini: setiap crate di `crates/`, setiap apl
 ## Git
 - Format commit mengikuti Conventional Commits (`feat:`, `fix:`, `test:`, `chore:`, `docs:`).
 - Satu tugas sama dengan satu commit, atau beberapa commit kecil yang saling berkaitan.
-- Jangan `git push`, jangan force, dan jangan mengubah riwayat commit.
+- Push hanya lewat langkah skrip di `ai_advisory_hub/langkah/` (DEC-32): `git push origin main` sesudah commit berhasil.
+  Jangan `git push` manual di luar skrip, jangan force, jangan push ke remote atau branch lain, dan jangan mengubah
+  riwayat commit. Push yang gagal tidak diulang; laporkan dan tunggu.
 - Jangan membuat, menghapus, atau mengubah repo remote maupun pengaturan `git remote`.
 - Jangan memakai GitHub CLI (`gh`), akun plugin, token, atau akun online milik pengguna dalam bentuk apa pun tanpa izin tertulis di prompt tugas.
+  Login push memakai credential helper yang dipasang pengguna (Git Credential Manager); agent tidak membuat, membaca, atau menyimpan token.
 - Jangan mengubah identitas commit atau konfigurasi Git (`git config`, baik lokal maupun global).
   Jika identitas belum diset, BERHENTI dan minta pengguna mengaturnya.
 
