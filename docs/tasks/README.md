@@ -1,14 +1,14 @@
 # Task kerja: FTR-01 sampai FTR-03 selesai, cabang chain dan reorg (TSK-M27) menuju FTR-04
 
-> Diperbarui: 7 November 2026 · Status keseluruhan: 🟡
+> Diperbarui: 8 November 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.2), TSK-M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M32, M33, M34, M35, M36, M37, M38, M39, M40, M41, M42, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.2), TSK-M01, M02, M03, M04, M05, M06, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M32, M33, M34, M35, M36, M37, M38, M39, M40, M41, M42, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal), TSK-F07 (wallet desktop v0.1: aplikasi dan installer Windows) |
 | 🟡 Siap dikerjakan | TSK-M23 (pruning) |
-| 🔴 Terblokir | TSK-F06 oleh TSK-M06 (bagian B dan C) dan parameter testnet |
-| ❓ Keputusan dibutuhkan | — (DEC-01 diputuskan 5 November 2026) |
-| ➡️ Langkah berikutnya | TSK-M06 bagian A selesai (pustaka RandomX di MOD-03, vektor resmi); bagian B (konsensus dan node) dan C (salt sendiri, penambang mode cepat, parameter testnet), lalu TSK-F06 testnet publik. DEC-02 lisensi (MIT OR Apache-2.0), TSK-M35, TSK-M33, dan TSK-M40 selesai |
+| 🔴 Terblokir | TSK-F06 oleh keputusan pencipta: waktu peluncuran (cap waktu genesis testnet) dan lokasi seed node |
+| ❓ Keputusan dibutuhkan | Waktu peluncuran testnet publik dan lokasi seed node (TSK-F06); DEC-07 penerbit rilis (tanda tangan installer) |
+| ➡️ Langkah berikutnya | TSK-F06 testnet publik: seed node dan penemuan rekan, perlindungan eclipse minimal (Spesifikasi P2P Bagian 9), node bisa listen di alamat publik, image Docker testnet, HTTPS untuk explorer, panduan menambang testnet. TSK-M06 (PoW RandomX) dan TSK-F07 (wallet desktop v0.1) selesai |
 
 ## Tiga jenis task
 
@@ -42,7 +42,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M03 | MOD-01 | Struktur transaksi dan blok, encoding kanonis (tanpa hashing) | TSK-M01, TSK-S01 | 🟢 selesai ([kartu](TSK-M03-primitives-encoding.md)) |
 | TSK-M04 | MOD-02 | Schnorr BIP340 (crate k256): kunci, tanda tangan, verifikasi, vektor uji resmi | TSK-M01 | 🟢 selesai ([kartu](TSK-M04-crypto-schnorr.md)) |
 | TSK-M05 | MOD-03 | Antarmuka PoW dan PoW dev untuk regtest | TSK-M02, TSK-M03, DEC-14, DEC-15 | 🟢 selesai ([kartu](TSK-M05-pow-dev.md)) |
-| TSK-M06 | MOD-03 (bagian B dan C juga MOD-04, 11, 13) | PoW RandomX testnet dan mainnet | DEC-01 | 🟡 A, B, C1, C2, C3a selesai; C3b berjalan ([kartu](TSK-M06-pow-randomx.md)) |
+| TSK-M06 | MOD-03 (bagian B dan C juga MOD-04, 11, 13) | PoW RandomX testnet dan mainnet | DEC-01 | 🟢 selesai: A, B, C1, C2, C3a, C3b ([kartu](TSK-M06-pow-randomx.md)) |
 | TSK-M07 | MOD-04 | Rumus pasokan dan vektor uji | TSK-M01 | 🟢 selesai ([kartu](TSK-M07-consensus-pasokan.md)) |
 | TSK-M08 | MOD-04 | Target compact ke `Target` 256-bit (DEC-15), ASERT, median waktu, chainwork, parameter per jaringan, genesis regtest (Spesifikasi Validasi Bagian 2–6, 10) | TSK-M01, TSK-M05, TSK-M25, TSK-S02 | 🟢 selesai ([kartu](TSK-M08-consensus-target-asert.md)) |
 | TSK-M09 | MOD-04 | Validasi transaksi dan blok (Spesifikasi Validasi Bagian 7–9), termasuk penolakan PoW dev di testnet dan mainnet beserta test-nya (DEC-09) | TSK-M03, M04, M05, M07, M08, M21, M24, TSK-S02 | 🟢 selesai ([kartu](TSK-M09-consensus-validasi.md)) |
@@ -89,8 +89,8 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-F03 | FTR-03 Kirim dan terima lewat CLI | TSK-F02, TSK-M13, M16, M19, DEC-23 | 🟢 selesai ([kartu](TSK-F03-kirim-terima-cli.md)) |
 | TSK-F04 | FTR-04 Jaringan multi-node dan uji reorg | TSK-F02, TSK-M14, TSK-M27, TSK-M28 | 🟢 selesai ([kartu](TSK-F04-multi-node.md)) |
 | TSK-F05 | FTR-05 Explorer minimal | TSK-F01, TSK-M29, TSK-M30, DEC-25 | 🟢 selesai ([kartu](TSK-F05-explorer-minimal.md)) |
-| TSK-F06 | FTR-06 Testnet publik | TSK-F03, F04, F05, TSK-M06 | 🔴 TSK-M06 |
-| TSK-F07 | FTR-07 Wallet desktop | TSK-F03, TSK-M41, TSK-M42, DEC-31 | 🟡 aplikasi selesai (TSK-M42); berikutnya installer Windows |
+| TSK-F06 | FTR-06 Testnet publik | TSK-F03, F04, F05, TSK-M06 | 🔴 keputusan pencipta: waktu peluncuran dan lokasi seed node |
+| TSK-F07 | FTR-07 Wallet desktop | TSK-F03, TSK-M41, TSK-M42, DEC-31 | 🟢 v0.1: installer Windows NSIS, uji pencipta dengan node regtest (8 November 2026) |
 | TSK-F08 | FTR-08 Wallet mobile | TSK-F07, DEC-04, DEC-05 | ⚪ dipecah nanti |
 | TSK-F09 | FTR-09 Aplikasi pelaku usaha | TSK-M17, TSK-F07, DEC-06 | ⚪ dipecah nanti |
 | TSK-F10 | FTR-10 Reproducible build dan rilis | TSK-F06, DEC-07 | ⚪ dipecah nanti |
@@ -127,7 +127,7 @@ graph LR
 ## Titik rawan
 - 🟢 **TSK-S01** lengkap, termasuk sighash v1 (DEC-13, TSK-M24).
 - 🟢 **TSK-S02** lengkap (aturan validasi v0.1, DEC-17). Vektor K, A, W, M, dan genesis regtest siap dipakai TSK-M08 dan TSK-M09.
-- 🟢 **DEC-01** diputuskan 5 November 2026: varian RandomX lewat randomx-rs. Testnet publik menunggu TSK-M06 bagian B dan C serta parameter testnet. Regtest tetap memakai PoW dev (DEC-09).
+- 🟢 **DEC-01** diputuskan 5 November 2026: varian RandomX lewat randomx-rs, selesai di TSK-M06. Testnet publik menunggu TSK-F06 (cap waktu genesis testnet, seed node). Regtest tetap memakai PoW dev (DEC-09).
 - 🟡 **MOD-04 consensus** dipakai node, mempool, miner, dan semua fitur. Setiap perubahannya berdampak luas.
 
 ## Aturan pembaruan

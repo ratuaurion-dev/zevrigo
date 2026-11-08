@@ -3,7 +3,7 @@
 - **ID:** `MOD-03`
 - **Path:** `crates/pow`
 - **Paket:** `zevrigo-pow`
-- **Status:** 🟡 sedang berjalan (TSK-M05 selesai; TSK-M06 bagian A selesai, bagian B: layanan RandomX)
+- **Status:** 🟢 PoW dev regtest (TSK-M05) dan RandomX varian ZVRG untuk testnet dan mainnet (TSK-M06)
 - **Bergantung pada:** `MOD-01`, `MOD-02` (`DEC-14`); pustaka luar `randomx-rs` 1.6.0 (`DEC-10` bagian 10)
 - **Dipakai oleh:** `MOD-04`, `MOD-13`, `MOD-17`
 
@@ -25,4 +25,4 @@ Menyediakan perhitungan dan verifikasi Proof of Work bagi konsensus dan penamban
 
 ## Task terkait
 - [TSK-M05](../tasks/TSK-M05-pow-dev.md) — 🟢 selesai (antarmuka PoW dan PoW dev regtest)
-- [TSK-M06](../tasks/TSK-M06-pow-randomx.md) — 🟡 bagian A (pustaka RandomX), lalu B (konsensus dan node) dan C (salt sendiri, penambang)
+- [TSK-M06](../tasks/TSK-M06-pow-randomx.md) — 🟢 selesai (A pustaka RandomX, B konsensus dan node, C salt sendiri, parameter testnet, penambang, CLI)

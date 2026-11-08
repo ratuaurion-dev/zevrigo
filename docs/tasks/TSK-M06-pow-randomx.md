@@ -1,4 +1,4 @@
-# TSK-M06 · PoW RandomX untuk testnet dan mainnet · 🟡 bagian C · Prioritas: Tinggi
+# TSK-M06 · PoW RandomX untuk testnet dan mainnet · 🟢 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-03 (bagian A); MOD-04, MOD-11, MOD-13 (bagian B dan C) · **Untuk:** FTR-06 testnet publik
 - **Bergantung pada:** DEC-01, DEC-10 bagian 10, DEC-14, DEC-15 · **Memblokir:** TSK-F06
 - **Estimasi:** A S, B L, C M · **Ditulis:** Quick, 5 November 2026
@@ -62,6 +62,9 @@ sinkronisasi header testnet lebih lambat daripada regtest; hash dihitung berurut
 - **C3b (Q105):** MOD-12 `--regtest`/`--testnet` (`Config.network`, `ArgError::NetworkConflict`, `default_rpc_url(network)`),
   `wallet_path(network, datadir)`, `network_name`, `WalletFile::network`, `load_network` + `WalletFileError::WrongNetwork`,
   fungsi wallet dan `Cli::connect` menerima jaringan, `CliError::WrongNetwork { expected, actual }`. Test 410 → 413.
+- **C3b:** 🟢 `d136925` (Q105): node testnet sungguhan dan CLI `--testnet` saling tersambung. Sesudah ganti nama (DEC-29) dan
+  tokenomik baru (DEC-30), genesis testnet dan `network_id` dihitung ulang (`e4b9f2fb…`, cap waktu masih `0`). Yang tersisa
+  untuk testnet publik ada di TSK-F06 (cap waktu genesis, seed node); miner multi-utas ditunda.
 
 ## Batas yang ditulis jujur
 - Varian hanya penghalang kecil: CPU dan server sewaan tetap bisa berpindah (Konsep P13).

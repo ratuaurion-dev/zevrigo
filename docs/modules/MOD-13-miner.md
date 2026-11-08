@@ -3,7 +3,7 @@
 - **ID:** `MOD-13`
 - **Path:** `apps/miner`
 - **Paket:** `zevrigo-miner` (pustaka + bin)
-- **Status:** 🟢 regtest (TSK-M20, PoW dev DEC-09); 🟡 testnet RandomX (TSK-M06 bagian C3, DEC-01)
+- **Status:** 🟢 regtest (TSK-M20, PoW dev DEC-09); 🟢 testnet RandomX satu utas (TSK-M06 bagian C3, DEC-01)
 - **Bergantung pada:** `MOD-01`, `MOD-03`, `MOD-08`
 - **Dipakai oleh:** —
 
@@ -29,4 +29,4 @@ Menyediakan aplikasi penambang CPU mandiri yang mengambil templat blok dari node
 
 ## Task terkait
 - [TSK-M20](../tasks/TSK-M20-miner.md) — 🟢 selesai
-- [TSK-M06](../tasks/TSK-M06-pow-randomx.md) — 🟡 bagian C3 (miner testnet RandomX)
+- [TSK-M06](../tasks/TSK-M06-pow-randomx.md) — 🟢 bagian C3 (miner testnet RandomX); multi-utas ditunda

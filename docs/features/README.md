@@ -1,6 +1,6 @@
 # Fitur: 10 fitur, 5 pertama membentuk jalur menuju testnet
 
-> Diperbarui: 2 November 2026 · Status keseluruhan: 🟡 FTR-01 sampai FTR-05 selesai
+> Diperbarui: 8 November 2026 · Status keseluruhan: 🟡 FTR-01 sampai FTR-05 dan FTR-07 (v0.1) selesai
 
 Fitur adalah kemampuan yang terasa bagi pengguna dan selalu melibatkan lebih dari satu modul.
 Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua task modul yang dibutuhkannya selesai.
@@ -12,8 +12,8 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 | FTR-03 | Kirim dan terima ZVRG lewat CLI di regtest | MOD-01, 02, 04, 07, 08, 09, 11, 12 | TSK-F03 | 🟢 |
 | FTR-04 | Jaringan multi-node dan uji reorg dalam | MOD-04, 05, 06, 11, 17 | TSK-F04 | 🟢 |
 | FTR-05 | Explorer minimal (hanya data sistem sejak DEC-28) | MOD-01, 02, 04, 08, 14 (DEC-25, DEC-28) | TSK-F05, TSK-M39 | 🟢 |
-| FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 TSK-M06 |
-| FTR-07 | Wallet desktop (P0) | MOD-09, 12, 15 | TSK-F07 | 🟡 aplikasi selesai (TSK-M42), berikutnya installer Windows |
+| FTR-06 | Testnet publik | semua modul inti, MOD-11..14 | TSK-F06 | 🔴 keputusan pencipta (waktu luncur, seed node) |
+| FTR-07 | Wallet desktop (P0) | MOD-09, 12, 15 | TSK-F07 | 🟢 v0.1 (testnet dan regtest, installer Windows) |
 | FTR-08 | Wallet mobile | MOD-09, 15 | TSK-F08 | ⚪ |
 | FTR-09 | Aplikasi pelaku usaha | MOD-08, 09, 10, 16 | TSK-F09 | ⚪ |
 | FTR-10 | Reproducible build dan rilis | semua aplikasi | TSK-F10 | ⚪ |
@@ -45,8 +45,18 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
   dengan benar (I1–I4); indexer tahan reorg.
 
 ### FTR-06 · Testnet publik · 🔴
-- **Terblokir oleh:** TSK-M06 (PoW RandomX; DEC-01 diputuskan 5 November 2026) dan parameter testnet.
+- **Terblokir oleh:** keputusan pencipta: waktu peluncuran (cap waktu genesis testnet `TESTNET_GENESIS_TIMESTAMP`,
+  mengubah `network_id`) dan lokasi seed node. TSK-M06 (PoW RandomX, DEC-01) dan parameter testnet sudah selesai.
 - **Selesai bila:** cakupan minimum L6 (Dokumen Konsep 5.11) tercapai.
 
-### FTR-07 sampai FTR-10 · ⚪
-Dipecah menjadi task setelah FTR-03 selesai. Rujukan: Dokumen Aplikasi Bagian 5, 8, dan 11.
+### FTR-07 · Wallet desktop · 🟢 v0.1
+- **Nilai:** pengguna memegang, menerima, dan mengirim ZVRG lewat aplikasi, dengan kunci hanya di komputer sendiri.
+- **Selesai bila (v0.1, testnet dan regtest):** installer Windows NSIS dibangun dari commit bersih dengan Cargo.lock dan
+  package-lock.json tetap; wallet terpasang terhubung ke node, menerima hadiah tambang yang matang, mengirim ke wallet lain,
+  dan transaksi terkonfirmasi. Tercapai 8 November 2026: installer dari `1313ce4`, uji pencipta dengan node regtest di WSL
+  (kirim 0,1 ZVRG ke wallet CLI, terkonfirmasi di blok 111).
+- **Belum (menyusul):** tanda tangan installer (DEC-07), build installer reproducible (TSK-F10), keychain sistem operasi,
+  mainnet.
+
+### FTR-08 sampai FTR-10 · ⚪
+Dipecah menjadi task nanti. Rujukan: Dokumen Aplikasi Bagian 5, 8, dan 11.

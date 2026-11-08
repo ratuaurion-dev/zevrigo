@@ -3,7 +3,7 @@
 - **ID:** `MOD-15`
 - **Path:** `apps/wallet` (antarmuka), `apps/wallet/src-tauri` (crate Rust)
 - **Paket:** `zevrigo-wallet` (bin), antarmuka npm `zevrigo-wallet`
-- **Status:** 🟡 TSK-M42 selesai: aplikasi desktop Tauri 2 untuk testnet dan regtest; installer Windows berikutnya
+- **Status:** 🟢 v0.1: aplikasi desktop Tauri 2 untuk testnet dan regtest (TSK-M42), installer Windows NSIS (TSK-F07)
 - **Bergantung pada:** `MOD-01` (`Amount`, `Network`), `MOD-09` (frasa baru, alamat), `MOD-12` (pustaka CLI, DEC-31)
 - **Dipakai oleh:** —
 
@@ -39,5 +39,5 @@ dan mengirim ZVRG, dengan kunci hanya di komputer pengguna.
 
 ## Task terkait
 - [TSK-M42](../tasks/TSK-M42-wallet-desktop.md) — 🟢 aplikasi wallet desktop
-- [TSK-F07](../tasks/README.md) — 🟡 wallet desktop (berikutnya installer Windows)
+- [TSK-F07](../tasks/README.md) — 🟢 wallet desktop v0.1 (installer Windows, uji dengan node regtest 8 November 2026)
 - [TSK-F08](../tasks/README.md)

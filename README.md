@@ -39,7 +39,7 @@ cargo run -p zevrigo-node -- --regtest --datadir ~/.zevrigo-2 --rpc-port 28811 -
 Blok dan transaksi baru disiarkan antar node. Aturan lengkap di [docs/reference/spesifikasi-p2p-v0.1.md](docs/reference/spesifikasi-p2p-v0.1.md).
 
 Opsi `--testnet` (PoW RandomX, port bawaan RPC 18801 dan P2P 18800) sudah ada, tetapi testnet publik belum diluncurkan:
-cap waktu genesis testnet ditetapkan saat peluncuran (TSK-F06), dan penambang testnet menyusul (TSK-M06 bagian C3).
+cap waktu genesis testnet ditetapkan saat peluncuran (TSK-F06). Node, miner, CLI, dan wallet desktop sudah mendukung testnet.
 
 ## Menambang di regtest
 
