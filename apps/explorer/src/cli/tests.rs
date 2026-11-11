@@ -21,6 +21,7 @@ fn run_config(datadir: &str, rpc_url: &str, http_port: u16) -> Command {
         http_port,
         api_rate: 10,
         web_dir: None,
+        trust_proxy: false,
     })
 }
 
@@ -62,6 +63,7 @@ fn parses_help_version_and_run() {
             http_port: 28_802,
             api_rate: DEFAULT_API_RATE,
             web_dir: Some(PathBuf::from("apps/explorer/web/out")),
+            trust_proxy: false,
         }))
     );
     for (text, address) in [
@@ -238,6 +240,7 @@ fn parses_testnet() {
             http_port: 18_802,
             api_rate: DEFAULT_API_RATE,
             web_dir: None,
+            trust_proxy: false,
         }
     );
     assert_eq!(default_rpc_url(Network::Testnet), "http://127.0.0.1:18801");
@@ -250,4 +253,36 @@ fn parses_testnet() {
         Err(ArgError::Duplicate("--testnet"))
     );
     assert!(USAGE.contains("--testnet"));
+}
+
+#[test]
+fn parses_trust_proxy() {
+    let Ok(Command::Run(config)) = parse_args(args(&[
+        "--testnet",
+        "--datadir",
+        "d",
+        "--http-bind",
+        "0.0.0.0",
+        "--trust-proxy",
+    ])) else {
+        unreachable!("argumen sah");
+    };
+    assert!(config.trust_proxy);
+    assert_eq!(config.http_bind, IpAddr::V4(Ipv4Addr::UNSPECIFIED));
+    let Ok(Command::Run(config)) = parse_args(args(&["--testnet", "--datadir", "d"])) else {
+        unreachable!("argumen sah");
+    };
+    assert!(!config.trust_proxy);
+    assert_eq!(
+        parse_args(args(&[
+            "--regtest",
+            "--datadir",
+            "d",
+            "--trust-proxy",
+            "--trust-proxy"
+        ])),
+        Err(ArgError::Duplicate("--trust-proxy"))
+    );
+    assert!(USAGE.contains("--trust-proxy"));
+    assert!(USAGE.contains("CF-Connecting-IP"));
 }

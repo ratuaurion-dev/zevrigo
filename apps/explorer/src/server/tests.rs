@@ -1,8 +1,9 @@
 use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpStream};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, TcpStream};
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use axum::http::{HeaderMap, HeaderValue};
 use serde_json::Value;
 use tokio::net::TcpListener;
 use tokio::runtime::Runtime;
@@ -11,7 +12,7 @@ use zevrigo_crypto::txid;
 use zevrigo_primitives::Network;
 use zevrigo_rpc::{RpcClient, RpcServer};
 
-use super::{Shared, router};
+use super::{CLIENT_IP_HEADER, Shared, client_ip, router, router_with_proxy};
 use crate::index::Indexer;
 use crate::limit::{Limits, Rate};
 use crate::rpc_source::RpcSource;
@@ -36,6 +37,19 @@ fn raw(addr: SocketAddr, method: &str, path: &str) -> (u16, String, String) {
 fn request(addr: SocketAddr, method: &str, path: &str) -> (u16, String, Value) {
     let (status, head, body) = raw(addr, method, path);
     (status, head, serde_json::from_str(&body).unwrap())
+}
+
+/// `GET path` seperti dari `cloudflared` di loopback, dengan kepala `CF-Connecting-IP: visitor`; mengembalikan status.
+fn get_as_visitor(addr: SocketAddr, path: &str, visitor: &str) -> u16 {
+    let mut stream = TcpStream::connect(addr).unwrap();
+    write!(
+        stream,
+        "GET {path} HTTP/1.1\r\nHost: localhost\r\nCF-Connecting-IP: {visitor}\r\nConnection: close\r\n\r\n"
+    )
+    .unwrap();
+    let mut text = String::new();
+    stream.read_to_string(&mut text).unwrap();
+    text.split(' ').nth(1).unwrap().parse().unwrap()
 }
 
 /// Kepala keamanan yang wajib ada di setiap jawaban.
@@ -276,5 +290,73 @@ fn http_server_limits_api_requests_per_client() {
     assert_security_headers(&head);
     let (status, _, _) = request(addr, "POST", "/api/v1/status");
     assert_eq!(status, 429);
+    server.abort();
+}
+
+#[test]
+fn client_ip_uses_proxy_header_only_from_loopback_with_option() {
+    let loopback = Some(IpAddr::V4(Ipv4Addr::LOCALHOST));
+    let loopback_v6 = Some(IpAddr::V6(Ipv6Addr::LOCALHOST));
+    let mapped = Some(IpAddr::V6(Ipv4Addr::LOCALHOST.to_ipv6_mapped()));
+    let remote = Some(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 7)));
+    let visitor = IpAddr::V4(Ipv4Addr::new(198, 51, 100, 9));
+    let mut headers = HeaderMap::new();
+    headers.insert(CLIENT_IP_HEADER, HeaderValue::from_static(" 198.51.100.9 "));
+    for connect in [loopback, loopback_v6, mapped] {
+        assert_eq!(
+            client_ip(connect, &headers, true),
+            Some(visitor),
+            "{connect:?}"
+        );
+    }
+    let mut v6 = HeaderMap::new();
+    v6.insert(CLIENT_IP_HEADER, HeaderValue::from_static("2001:db8::5"));
+    assert_eq!(
+        client_ip(loopback, &v6, true),
+        Some(IpAddr::V6(Ipv6Addr::new(0x2001, 0xdb8, 0, 0, 0, 0, 0, 5)))
+    );
+    // Tanpa opsi, atau koneksi bukan dari loopback: kepala diabaikan (klien langsung tidak bisa memalsukan alamat).
+    assert_eq!(client_ip(loopback, &headers, false), loopback);
+    assert_eq!(client_ip(remote, &headers, true), remote);
+    assert_eq!(client_ip(None, &headers, true), None);
+    // Kepala tidak ada atau bukan satu alamat IP: alamat koneksi tetap dipakai.
+    assert_eq!(client_ip(loopback, &HeaderMap::new(), true), loopback);
+    for text in ["198.51.100.9, 10.0.0.1", "unknown", ""] {
+        let mut bad = HeaderMap::new();
+        bad.insert(CLIENT_IP_HEADER, HeaderValue::from_static(text));
+        assert_eq!(client_ip(loopback, &bad, true), loopback, "{text}");
+    }
+}
+
+#[test]
+fn http_server_limits_each_visitor_behind_trusted_proxy() {
+    let rt = Runtime::new().unwrap();
+    let index = Indexer::open_in_memory(regtest_network_id().unwrap()).unwrap();
+    let shared = Arc::new(Shared::new(index, Network::Regtest));
+    let limits = Limits {
+        client: Rate {
+            per_second: 1,
+            burst: 2,
+        },
+        global: Rate {
+            per_second: 1_000,
+            burst: 1_000,
+        },
+    };
+    let listener = rt
+        .block_on(TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))))
+        .unwrap();
+    let addr = listener.local_addr().unwrap();
+    let app = router_with_proxy(shared, None, Some(limits), true)
+        .into_make_service_with_connect_info::<SocketAddr>();
+    let server = rt.spawn(async move { axum::serve(listener, app).await });
+
+    // Semua permintaan datang dari 127.0.0.1 (seperti cloudflared), tetapi tiap pengunjung punya ember sendiri.
+    assert_eq!(get_as_visitor(addr, "/api/v1/status", "198.51.100.1"), 200);
+    assert_eq!(get_as_visitor(addr, "/api/v1/status", "198.51.100.1"), 200);
+    assert_eq!(get_as_visitor(addr, "/api/v1/status", "198.51.100.1"), 429);
+    assert_eq!(get_as_visitor(addr, "/api/v1/status", "198.51.100.2"), 200);
+    assert_eq!(get_as_visitor(addr, "/api/v1/status", "2001:db8::5"), 200);
+    assert_eq!(get_as_visitor(addr, "/api/v1/status", "198.51.100.1"), 429);
     server.abort();
 }

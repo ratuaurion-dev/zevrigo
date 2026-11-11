@@ -1,6 +1,6 @@
 # Spesifikasi Explorer Zevrigo Coin (ZVRG) v0.1: indexer SQLite tahan reorg, API HTTP baca saja, halaman alokasi genesis
 
-> Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S06 · Status: 🟢 v0.1
+> Diperbarui: 9 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S06 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-explorer-v0.1.md`
 
 | Status | Ringkasan |
@@ -116,7 +116,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 
 ## 6. Program dan privasi
 
-`zevrigo-explorer --regtest|--testnet --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>]`
+`zevrigo-explorer --regtest|--testnet --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>] [--trust-proxy]`
 
 - `--web-dir`: folder hasil build antarmuka web; aturan penyajian di Spesifikasi Explorer Web v0.1 Bagian 7 (TSK-M31).
 
@@ -131,7 +131,14 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
   alamat IP koneksi, tetapi alamat itu tidak disimpan: kunci ember adalah hash 64-bit dengan kunci acak per proses, hanya
   di memori, paling banyak 4.096 ember (klien yang diam dibuang lebih dulu, sesudah itu klien baru berbagi satu ember
   limpahan). Di belakang reverse proxy atau penerus port Docker semua klien tampak dari satu alamat, sehingga batas per
-  klien menjadi batas bersama; batas per klien yang sebenarnya dipasang di reverse proxy.
+  klien menjadi batas bersama, kecuali dengan `--trust-proxy`.
+- **Di belakang Cloudflare Tunnel (TSK-M43):** `--trust-proxy` (bawaan mati). Untuk koneksi dari loopback (`127.0.0.0/8`,
+  `::1`, termasuk bentuk IPv4-mapped), yaitu `cloudflared` di mesin atau container yang sama, klien dikenali dari kepala
+  `CF-Connecting-IP` yang dipasang Cloudflare. Kepala yang tidak ada atau bukan tepat satu alamat IP membuat alamat koneksi
+  tetap dipakai. Koneksi dari alamat lain tidak pernah memakai kepala itu, sehingga klien yang tersambung langsung tidak
+  bisa memalsukan alamatnya. Aturan penyimpanan sama: alamat hanya menjadi kunci hash ember di memori, tidak disimpan dan
+  tidak dicatat. Syarat aman: di mesin atau container itu, hanya `cloudflared` yang tersambung ke explorer lewat loopback
+  (proses lokal lain bisa mengisi kepala itu sendiri).
 - Berhenti bersih dengan SIGINT atau SIGTERM. Akses SQLite lewat satu koneksi yang dijaga mutex di thread blocking.
 - **Privasi pengunjung:** tanpa cookie, tanpa analitik, tanpa log alamat IP, jalur, atau kata pencarian. Log hanya untuk
   start, kemajuan indeks, reorg, dan galat.
@@ -141,8 +148,9 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 ## 7. Batas v0.1 dan risiko yang diketahui
 
 - Batas laju ada di explorer (`--api-rate`, Bagian 6), tetapi explorer bawaannya tetap hanya mendengar di `127.0.0.1` (di
-  Docker hanya diteruskan ke `127.0.0.1` host). Membuka explorer ke publik (testnet) wajib lewat reverse
-  proxy dengan batas laju, atau batas laju di MOD-14, sebelum TSK-F06.
+  Docker hanya diteruskan ke `127.0.0.1` host). Explorer publik dibuka lewat Cloudflare Tunnel dengan `--trust-proxy`
+  (Bagian 6, TSK-M43); HTTPS dan perlindungan DDoS di sisi Cloudflare. Tanpa tunnel, wajib reverse proxy HTTPS yang
+  mengisi `CF-Connecting-IP` atau batas laju sendiri.
 - Pencarian titik cabang linear (satu panggilan RPC per tinggi); cukup untuk regtest, pencarian biner menyusul.
 - SQLite (sekitar 271 ribu baris C) dan `rusqlite` penuh `unsafe` (FFI); kode proyek tetap tanpa `unsafe` (DEC-10 bagian
   6). Reproducible build (TSK-F10) wajib mengunci compiler C dan melarang `LIBSQLITE3_SYS_USE_PKG_CONFIG`.
@@ -161,6 +169,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 | Antarmuka web Next.js + Tailwind + shadcn/ui (spesifikasi terpisah, DEC-26) | MOD-14 | TSK-S07, TSK-M31, TSK-M32, TSK-M38 |
 | Paket Docker regtest, opsi `--http-bind` (Spesifikasi Docker v0.1) | MOD-14 | TSK-M33 🟢 |
 | Batas laju API per klien dan bersama, `429 rate_limited`, tanpa menyimpan alamat IP | MOD-14 | TSK-M40 🟢 |
+| Batas laju per pengunjung di belakang Cloudflare Tunnel (`--trust-proxy`, kepala `CF-Connecting-IP` hanya dari loopback) | MOD-14 | TSK-M43 🟢 |
 
 ---
 

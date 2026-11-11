@@ -1,5 +1,6 @@
 //! Program explorer (Spesifikasi Explorer v0.1 Bagian 6): server HTTP axum (bawaan 127.0.0.1, `--http-bind`), batas laju
-//! API per klien dan bersama ([`crate::limit`], `--api-rate`), sinkronisasi indeks dari node setiap 2 detik, dan berhenti
+//! API per klien dan bersama ([`crate::limit`], `--api-rate`; di belakang Cloudflare Tunnel dengan `--trust-proxy`,
+//! [`client_ip`]), sinkronisasi indeks dari node setiap 2 detik, dan berhenti
 //! bersih dengan SIGINT atau SIGTERM. Dengan `--web-dir`, jalur di luar `/api/` menyajikan
 //! antarmuka web (Spesifikasi Explorer Web v0.2 Bagian 7). Semua jawaban membawa kepala keamanan; halaman HTML
 //! mendapat kebijakan keamanan konten dengan hash skrip inline-nya ([`web::page_policy`]).
@@ -9,14 +10,14 @@
 //! pencarian; log hanya untuk start, kemajuan indeks, reorg, dan galat.
 
 use std::future::Future;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use axum::Router;
 use axum::extract::{ConnectInfo, State};
-use axum::http::{Extensions, HeaderValue, Method, StatusCode, Uri, header};
+use axum::http::{Extensions, HeaderMap, HeaderValue, Method, StatusCode, Uri, header};
 use axum::response::{IntoResponse, Response};
 use thiserror::Error;
 use tokio::net::TcpListener;
@@ -38,6 +39,10 @@ pub const SYNC_INTERVAL: Duration = Duration::from_secs(2);
 
 /// Batas waktu menunggu thread blocking selesai saat explorer berhenti.
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Kepala HTTP berisi alamat IP pengunjung yang dipasang Cloudflare (huruf kecil). Hanya dibaca dengan `--trust-proxy`
+/// untuk koneksi dari loopback ([`client_ip`]).
+pub const CLIENT_IP_HEADER: &str = "cf-connecting-ip";
 
 /// Galat menjalankan explorer. Biner keluar dengan kode 1.
 #[derive(Debug, Error)]
@@ -145,19 +150,41 @@ struct App {
     shared: Arc<Shared>,
     web_dir: Option<Arc<PathBuf>>,
     limiter: Option<Mutex<RateLimiter>>,
+    trust_proxy: bool,
     started: Instant,
+}
+
+/// Alamat klien untuk batas laju. `connect` adalah alamat koneksi TCP. Dengan `trust_proxy` (opsi `--trust-proxy`),
+/// koneksi dari loopback (`127.0.0.0/8`, `::1`, juga bentuk IPv4-mapped) dianggap datang dari `cloudflared` di mesin atau
+/// container yang sama, sehingga alamat pengunjung dibaca dari kepala [`CLIENT_IP_HEADER`]. Kepala yang tidak ada atau
+/// bukan satu alamat IP membuat alamat koneksi tetap dipakai. Koneksi dari alamat lain tidak pernah memakai kepala itu,
+/// sehingga klien yang tersambung langsung tidak bisa memalsukan alamatnya. Alamat tidak disimpan dan tidak dicatat.
+#[must_use]
+pub fn client_ip(
+    connect: Option<IpAddr>,
+    headers: &HeaderMap,
+    trust_proxy: bool,
+) -> Option<IpAddr> {
+    let forwarded = connect
+        .filter(|address| trust_proxy && address.to_canonical().is_loopback())
+        .and_then(|_| headers.get(CLIENT_IP_HEADER))
+        .and_then(|value| value.to_str().ok())
+        .and_then(|text| text.trim().parse::<IpAddr>().ok());
+    forwarded.or(connect)
 }
 
 impl App {
     /// `true` jika permintaan API boleh dilayani. Alamat klien dari [`ConnectInfo`] (jika server dipasang dengan
-    /// `into_make_service_with_connect_info`) hanya diteruskan ke [`RateLimiter`], tidak disimpan atau dicatat.
-    fn allow(&self, extensions: &Extensions) -> bool {
+    /// `into_make_service_with_connect_info`), atau dari kepala Cloudflare lewat [`client_ip`], hanya diteruskan ke
+    /// [`RateLimiter`], tidak disimpan atau dicatat.
+    fn allow(&self, extensions: &Extensions, headers: &HeaderMap) -> bool {
         let Some(limiter) = &self.limiter else {
             return true;
         };
-        let client = extensions
+        let connect = extensions
             .get::<ConnectInfo<SocketAddr>>()
             .map(|info| info.0.ip());
+        let client = client_ip(connect, headers, self.trust_proxy);
         let now_ms = u64::try_from(self.started.elapsed().as_millis()).unwrap_or(u64::MAX);
         limiter
             .lock()
@@ -171,10 +198,22 @@ impl App {
 /// API jika `web_dir` tidak ada. Batas per klien butuh `into_make_service_with_connect_info::<SocketAddr>()`; tanpa itu
 /// semua klien berbagi satu ember.
 pub fn router(shared: Arc<Shared>, web_dir: Option<PathBuf>, limits: Option<Limits>) -> Router {
+    router_with_proxy(shared, web_dir, limits, false)
+}
+
+/// Seperti [`router`], dengan `trust_proxy` (opsi `--trust-proxy`): untuk koneksi dari loopback, batas laju memakai
+/// alamat pengunjung dari kepala Cloudflare ([`client_ip`]).
+pub fn router_with_proxy(
+    shared: Arc<Shared>,
+    web_dir: Option<PathBuf>,
+    limits: Option<Limits>,
+    trust_proxy: bool,
+) -> Router {
     let app = App {
         shared,
         web_dir: web_dir.map(Arc::new),
         limiter: limits.map(|limits| Mutex::new(RateLimiter::new(limits))),
+        trust_proxy,
         started: Instant::now(),
     };
     Router::new().fallback(handle).with_state(Arc::new(app))
@@ -228,6 +267,7 @@ async fn handle(
     State(app): State<Arc<App>>,
     method: Method,
     uri: Uri,
+    headers: HeaderMap,
     extensions: Extensions,
 ) -> Response {
     let path = uri.path().to_owned();
@@ -258,7 +298,7 @@ async fn handle(
             answer.body,
         );
     }
-    if !app.allow(&extensions) {
+    if !app.allow(&extensions, &headers) {
         return rate_limited();
     }
     let shared = Arc::clone(&app.shared);
@@ -335,13 +375,20 @@ async fn serve(indexer: Indexer, config: &Config) -> Result<(), ExplorerError> {
     let listener =
         TcpListener::bind(SocketAddr::from((config.http_bind, config.http_port))).await?;
     let local = listener.local_addr()?;
-    tracing::info!(%local, rpc = %config.rpc_url, api_rate = config.api_rate, "explorer berjalan");
+    tracing::info!(
+        %local,
+        rpc = %config.rpc_url,
+        api_rate = config.api_rate,
+        trust_proxy = config.trust_proxy,
+        "explorer berjalan"
+    );
     println!("http: http://{local}");
     let sync = tokio::spawn(sync_loop(Arc::clone(&shared), source));
-    let app = router(
+    let app = router_with_proxy(
         shared,
         config.web_dir.clone(),
         Limits::from_rate(config.api_rate),
+        config.trust_proxy,
     );
     let served = axum::serve(
         listener,

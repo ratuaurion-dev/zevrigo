@@ -1,10 +1,10 @@
 # Task kerja: FTR-01 sampai FTR-03 selesai, cabang chain dan reorg (TSK-M27) menuju FTR-04
 
-> Diperbarui: 8 November 2026 · Status keseluruhan: 🟡
+> Diperbarui: 9 November 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.2), TSK-M01, M02, M03, M04, M05, M06, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M32, M33, M34, M35, M36, M37, M38, M39, M40, M41, M42, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal), TSK-F07 (wallet desktop v0.1: aplikasi dan installer Windows) |
+| 🟢 Selesai | TSK-S01, TSK-S02 (aturan validasi), TSK-S03 (wallet v0.1), TSK-S04 (RPC v0.1), TSK-S05 (P2P v0.1), TSK-S06 (explorer v0.1), TSK-S07 (antarmuka web explorer v0.2), TSK-M01, M02, M03, M04, M05, M06, M07, M08, M09, M10, M11, M12, M13, M14, M15, M16, M18, M19, M27, M28, M29, M30, M31, M32, M33, M34, M35, M36, M37, M38, M39, M40, M41, M42, M43, M20, M21, M22, M24, M25, M26, TSK-F01 (node regtest tunggal), TSK-F02 (menambang di regtest), TSK-F03 (kirim dan terima lewat CLI), TSK-F04 (jaringan multi-node dan reorg dalam), TSK-F05 (explorer minimal), TSK-F07 (wallet desktop v0.1: aplikasi dan installer Windows) |
 | 🟡 Siap dikerjakan | TSK-M23 (pruning) |
 | 🔴 Terblokir | TSK-F06 oleh keputusan pencipta: waktu peluncuran (cap waktu genesis testnet) dan lokasi seed node |
 | ❓ Keputusan dibutuhkan | Waktu peluncuran testnet publik dan lokasi seed node (TSK-F06); DEC-07 penerbit rilis (tanda tangan installer) |
@@ -77,6 +77,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M40 | MOD-14 (`limit`, `server`, `cli`, `web/`) | Batas laju API per klien dan bersama (`--api-rate`), `429 rate_limited` dengan `Retry-After`, tanpa menyimpan alamat IP; pesan 429 di web (Spesifikasi Explorer v0.1 Bagian 6) | TSK-M33 | 🟢 selesai ([kartu](TSK-M40-batas-laju-api.md)) |
 | TSK-M41 | MOD-12, MOD-17 | Riwayat transaksi wallet dari blok (`get_block`) dengan tembolok `history.json`, entri tertunda dari mempool, perintah `history`; `os_random` lewat `getrandom` untuk Windows (Spesifikasi Wallet Bagian 6, DEC-31) | TSK-M36, DEC-10 bagian 11 | 🟢 selesai ([kartu](TSK-M41-riwayat-wallet.md)) |
 | TSK-M42 | MOD-15 (`apps/wallet`) | Wallet desktop Tauri 2 di atas pustaka CLI: 10 perintah IPC, antarmuka React tanpa simulasi (wallet baru dengan periksa 3 kata, pulihkan, ringkasan, terima + QR, kirim, riwayat, pengaturan), dua bahasa (DEC-31) | TSK-M41, DEC-10 bagian 11 | 🟢 selesai ([kartu](TSK-M42-wallet-desktop.md)) |
+| TSK-M43 | MOD-14 (`server`, `cli`) | Batas laju explorer di belakang Cloudflare Tunnel: `--trust-proxy`, kepala `CF-Connecting-IP` hanya untuk koneksi dari loopback (Spesifikasi Explorer v0.1 Bagian 6) | TSK-M40 | 🟢 selesai ([kartu](TSK-M43-explorer-trust-proxy.md)) |
 | TSK-M36 | MOD-08, MOD-11, MOD-12 | Metode RPC `scan_mempool`; saldo CLI dan pemilihan koin dengan transaksi tertunda (Spesifikasi RPC 3.9, Wallet Bagian 6) | TSK-M19 | 🟢 selesai ([kartu](TSK-M36-saldo-tertunda.md)) |
 | TSK-M25 | MOD-01 | `enum Network { Mainnet, Testnet, Regtest }` di `params` (Spesifikasi Validasi Bagian 11) | TSK-S02 | 🟢 selesai ([kartu](TSK-M25-primitives-network.md)) |
 

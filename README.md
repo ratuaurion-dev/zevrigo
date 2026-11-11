@@ -89,7 +89,8 @@ sendiri jumlah koin setiap blok, lalu melayani API JSON baca saja di `http://127
 `/status`, `/blocks`, `/block/<tinggi>`, `/tx/<txid>`, `/supply`, `/mempool`). Jumlah koin selalu string desimal quanta.
 Explorer hanya menyajikan data sistem (DEC-28): tanpa alamat, saldo, jumlah per penerima, jejak koin, dan alokasi genesis.
 Saldo sendiri diperiksa lewat `balance` di CLI. API dibatasi `--api-rate` (bawaan 10 permintaan per detik per klien;
-`0` = tanpa batas); di atas batas explorer menjawab `429`. Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
+`0` = tanpa batas); di atas batas explorer menjawab `429`. Di belakang Cloudflare Tunnel, `--trust-proxy` membuat batas
+berlaku per pengunjung (kepala `CF-Connecting-IP`, hanya dari loopback). Aturan lengkap di [docs/reference/spesifikasi-explorer-v0.1.md](docs/reference/spesifikasi-explorer-v0.1.md).
 
 ### Antarmuka web explorer
 

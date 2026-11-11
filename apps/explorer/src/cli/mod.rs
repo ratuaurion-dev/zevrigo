@@ -16,7 +16,7 @@ pub const USAGE: &str = concat!(
     "\n",
     "Pemakaian:\n",
     "  zevrigo-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-bind <ip>] [--http-port <port>]\n",
-    "                       [--api-rate <n>] [--web-dir <folder>]\n",
+    "                       [--api-rate <n>] [--web-dir <folder>] [--trust-proxy]\n",
     "  zevrigo-explorer --testnet --datadir <folder> [opsi yang sama]\n",
     "  zevrigo-explorer --help | --version\n",
     "\n",
@@ -31,6 +31,9 @@ pub const USAGE: &str = concat!(
     "  --api-rate <n>      batas laju API: n permintaan per detik per klien, kapasitas 4n; semua klien 20n per detik\n",
     "                      (bawaan 10; 0 = tanpa batas). Jawaban di atas batas: 429 rate_limited\n",
     "  --web-dir <folder>  antarmuka web hasil build apps/explorer/web (folder out); tanpa opsi ini hanya API\n",
+    "  --trust-proxy       di belakang Cloudflare Tunnel: untuk koneksi dari 127.0.0.1 atau ::1 (cloudflared di mesin\n",
+    "                      atau container yang sama), batas laju memakai alamat pengunjung dari kepala\n",
+    "                      CF-Connecting-IP; koneksi dari alamat lain tidak terpengaruh\n",
     "\n",
     "Setelah siap, alamat API dicetak ke stdout sebagai `http: http://<alamat>`; jalur API di /api/v1/.\n",
     "Log ditulis ke stderr. Explorer berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
@@ -67,6 +70,9 @@ pub struct Config {
     pub api_rate: u32,
     /// Folder hasil build antarmuka web (`apps/explorer/web/out`). `None` berarti hanya API.
     pub web_dir: Option<PathBuf>,
+    /// Batas laju memakai alamat pengunjung dari kepala `CF-Connecting-IP` untuk koneksi dari loopback
+    /// (`--trust-proxy`, Cloudflare Tunnel).
+    pub trust_proxy: bool,
 }
 
 /// Argumen tidak sah. Biner keluar dengan kode 2.
@@ -189,6 +195,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut http_port: Option<u16> = None;
     let mut api_rate: Option<u32> = None;
     let mut web_dir: Option<PathBuf> = None;
+    let mut trust_proxy = false;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -243,6 +250,12 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
                 }
                 web_dir = Some(PathBuf::from(value_of(&mut iter, "--web-dir")?));
             }
+            "--trust-proxy" => {
+                if trust_proxy {
+                    return Err(ArgError::Duplicate("--trust-proxy"));
+                }
+                trust_proxy = true;
+            }
             "--help" | "-h" | "--version" => return Err(ArgError::Exclusive),
             _ => return Err(ArgError::Unknown(arg)),
         }
@@ -257,6 +270,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         http_port: http_port.unwrap_or(default_http_port(network)),
         api_rate: api_rate.unwrap_or(DEFAULT_API_RATE),
         web_dir,
+        trust_proxy,
     }))
 }
 

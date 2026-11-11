@@ -3,7 +3,7 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `zevrigo-explorer` (bin)
-- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), paket Docker regtest (TSK-M33), dan batas laju API (TSK-M40) selesai; reverse proxy HTTPS untuk explorer publik berikutnya
+- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), paket Docker regtest (TSK-M33), batas laju API (TSK-M40), dan batas laju di belakang Cloudflare Tunnel (TSK-M43) selesai; paket Docker testnet + `cloudflared` berikutnya
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08` (DEC-25; `MOD-09` tidak dipakai lagi sejak DEC-28); pustaka `axum`, `rusqlite` (DEC-10 bagian 6), `sha2` (bagian 4)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
@@ -24,6 +24,8 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - Privasi pengunjung: tanpa cookie, analitik, atau log alamat IP dan kata pencarian.
 - Batas laju API per klien dan bersama (`--api-rate`, TSK-M40), tanpa menyimpan alamat IP (hash dengan kunci acak per
   proses, hanya di memori).
+- Di belakang Cloudflare Tunnel (`--trust-proxy`, TSK-M43): untuk koneksi dari loopback, pengunjung dikenali dari kepala
+  `CF-Connecting-IP`; koneksi dari alamat lain tidak bisa memalsukan alamatnya.
 - Antarmuka web Next.js + Tailwind CSS + shadcn/ui di `web/` (DEC-26,
   [spesifikasi-explorer-web-v0.2.md](../reference/spesifikasi-explorer-web-v0.2.md)), dua bahasa, static export yang
   disajikan program explorer lewat `--web-dir` dengan kebijakan keamanan konten berisi hash skrip inline setiap halaman.
@@ -32,7 +34,7 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 
 - Validasi konsensus (`MOD-04`, dijalankan node) maupun penyimpanan kunci pengguna (`MOD-09`).
 - Penyimpanan chain node (`MOD-05`): explorer punya indeks sendiri.
-- Reverse proxy HTTPS untuk explorer publik (menyusul sebelum testnet publik).
+- HTTPS dan perlindungan DDoS untuk explorer publik (di sisi Cloudflare Tunnel; atau reverse proxy di VPS nanti).
 
 ## Task terkait
 - [TSK-S06](../reference/spesifikasi-explorer-v0.1.md) — 🟢 spesifikasi v0.1
@@ -46,3 +48,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-M39](../tasks/TSK-M39-explorer-data-sistem.md) — 🟢 selesai (hanya data sistem: tanpa alamat, jejak koin, dan alokasi genesis; DEC-28)
 - [TSK-M33](../tasks/TSK-M33-paket-docker.md) — 🟢 selesai (paket Docker regtest: node + explorer + web, opsi `--http-bind`)
 - [TSK-M40](../tasks/TSK-M40-batas-laju-api.md) — 🟢 selesai (batas laju API per klien dan bersama, `429 rate_limited`)
+- [TSK-M43](../tasks/TSK-M43-explorer-trust-proxy.md) — 🟢 selesai (batas laju per pengunjung di belakang Cloudflare Tunnel, `--trust-proxy`)
