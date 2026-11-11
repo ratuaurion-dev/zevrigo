@@ -1,20 +1,28 @@
-# Explorer publik lewat Cloudflare Tunnel (TSK-M44, Spesifikasi Docker v0.1 Bagian 7). Dipakai bersama compose.yaml:
+# Explorer dan seed P2P publik lewat Cloudflare Tunnel (TSK-M44, TSK-M45, Spesifikasi Docker v0.1 Bagian 7). Dipakai
+# bersama compose.yaml:
 #
 #   docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared
 #   docker compose -f compose.yaml -f compose.publik.yaml down
 #
 # Token tunnel TIDAK disimpan di repo. File ${HOME}/.zevrigo-tunnel.env (izin 600) berisi satu baris: TUNNEL_TOKEN= lalu
-# token dari dasbor Cloudflare Zero Trust (Networks, Tunnels). Public hostname tunnel: zevrigo.ratuaurion.store, tipe HTTP,
-# URL localhost:28802.
+# token dari dasbor Cloudflare Zero Trust (Networks, Tunnels). Dua public hostname (route "Published application") tunnel,
+# keduanya tipe HTTP:
+#   zevrigo.ratuaurion.store       -> localhost:28802   explorer
+#   zevrigo-seed.ratuaurion.store  -> localhost:28803   seed P2P WebSocket (TLS diputus Cloudflare)
+# Node lain bergabung dengan:
+#   --connect /dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/<PeerId seed>
+# PeerId seed tercetak di log node sebagai baris p2p-ws: (kunci tetap di volume data).
 #
 # Explorer mendengar di 127.0.0.1 (bawaan) di dalam namespace jaringan node. Satu-satunya jalan masuk dari luar adalah
 # cloudflared yang berbagi namespace itu, sehingga --trust-proxy aman (TSK-M43). Port host dari compose.yaml dicabut;
-# RPC dan P2P node tetap tidak terbuka. Project terpisah (zevrigo-publik), jadi volume datanya terpisah dari compose.yaml
-# biasa. Saat ini regtest (uji); testnet menyusul bersama genesis testnet (TSK-F06).
+# RPC dan P2P TCP node tetap tidak terbuka; P2P WebSocket hanya di 127.0.0.1:28803 dan dicapai lewat cloudflared. Project
+# terpisah (zevrigo-publik), jadi volume datanya terpisah dari compose.yaml biasa. Saat ini regtest (uji, pilihan
+# pencipta 11 November 2026); testnet menyusul bersama genesis testnet (TSK-F06).
 name: zevrigo-publik
 
 services:
   node:
+    command: ["--regtest", "--datadir", "/data", "--p2p-ws-port", "28803"]
     ports: !reset []
 
   explorer:

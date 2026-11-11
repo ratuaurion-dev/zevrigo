@@ -20,7 +20,7 @@ use zevrigo_mempool::MempoolError;
 use zevrigo_network::message::{MAX_BLOCK_IDS, MAX_HEADERS};
 use zevrigo_network::{
     Ack, Blocks, GetBlocks, GetHeaders, Headers, Multiaddr, NetEvent, Network, PeerId,
-    ProtocolKind, Reply, RequestId, Status,
+    ProtocolKind, Reply, RequestId, Status, is_websocket,
 };
 use zevrigo_primitives::{Block, BlockHeight, Decode, Encode, Hash32, Transaction};
 use zevrigo_rpc::{
@@ -197,6 +197,7 @@ pub struct P2pService<S> {
     peers: BTreeMap<PeerId, PeerState>,
     bodies: Option<BodyRequest>,
     printed: bool,
+    printed_ws: bool,
 }
 
 impl<S: ChainStore + Send + 'static> P2pService<S> {
@@ -209,11 +210,13 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
             peers: BTreeMap::new(),
             bodies: None,
             printed: false,
+            printed_ws: false,
         }
     }
 
     /// Berjalan terus: event jaringan, pengumuman dari RPC, dan percobaan ulang setiap [`SYNC_INTERVAL`]. Alamat dengar
-    /// pertama dicetak ke stdout sebagai `p2p: <alamat>/p2p/<PeerId>`.
+    /// TCP pertama dicetak ke stdout sebagai `p2p: <alamat>/p2p/<PeerId>`, dan alamat WebSocket pertama (jika ada)
+    /// sebagai `p2p-ws: <alamat>/p2p/<PeerId>`.
     pub async fn run(mut self, mut announcements: UnboundedReceiver<Announcement>) {
         let mut tick = tokio::time::interval(SYNC_INTERVAL);
         tick.set_missed_tick_behavior(MissedTickBehavior::Delay);
@@ -291,7 +294,12 @@ impl<S: ChainStore + Send + 'static> P2pService<S> {
     fn on_listening(&mut self, address: &Multiaddr) {
         let full = format!("{address}/p2p/{}", self.net.local_peer_id());
         tracing::info!(address = %full, "P2P mendengar");
-        if !self.printed {
+        if is_websocket(address) {
+            if !self.printed_ws {
+                println!("p2p-ws: {full}");
+                self.printed_ws = true;
+            }
+        } else if !self.printed {
             println!("p2p: {full}");
             self.printed = true;
         }

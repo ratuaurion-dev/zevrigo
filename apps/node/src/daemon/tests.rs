@@ -5,7 +5,7 @@ use zevrigo_primitives::Network;
 
 use super::{
     ArgError, Command, Config, USAGE, chain_path, default_p2p_port, p2p_key_path,
-    p2p_listen_address, parse_args,
+    p2p_listen_address, p2p_ws_listen_address, parse_args,
 };
 
 fn args(list: &[&str]) -> Vec<String> {
@@ -18,6 +18,7 @@ fn run_config(datadir: &str, rpc_port: u16) -> Command {
         datadir: PathBuf::from(datadir),
         rpc_port,
         p2p_port: 28_800,
+        p2p_ws_port: None,
         connect: Vec::new(),
     })
 }
@@ -197,6 +198,7 @@ fn parses_testnet() {
             datadir: PathBuf::from("d"),
             rpc_port: 18_801,
             p2p_port: 18_800,
+            p2p_ws_port: None,
             connect: Vec::new(),
         }
     );
@@ -221,4 +223,64 @@ fn parses_testnet() {
         ArgError::MissingNetwork.to_string(),
         "jaringan wajib dipilih: --regtest atau --testnet"
     );
+}
+
+#[test]
+fn parses_websocket_options() {
+    let seed = concat!(
+        "/dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws",
+        "/p2p/12D3KooWQK1wnefoLrcVHbbnf5tLzbopUd3K3bFAoJpA7YJgL5pV"
+    );
+    let Ok(Command::Run(config)) = parse_args(args(&[
+        "--regtest",
+        "--datadir",
+        "d",
+        "--p2p-ws-port",
+        "28803",
+        "--connect",
+        seed,
+    ])) else {
+        unreachable!("argumen sah");
+    };
+    assert_eq!(config.p2p_ws_port, Some(28_803));
+    assert_eq!(config.p2p_port, 28_800);
+    assert_eq!(config.connect, vec![seed.parse::<Multiaddr>().unwrap()]);
+    assert_eq!(
+        p2p_ws_listen_address(28_803).unwrap(),
+        "/ip4/127.0.0.1/tcp/28803/ws".parse::<Multiaddr>().unwrap()
+    );
+    assert!(USAGE.contains("--p2p-ws-port"));
+    assert!(USAGE.contains("p2p-ws:"));
+    assert!(USAGE.contains("/tls/sni/"));
+
+    let Ok(Command::Run(plain)) = parse_args(args(&["--regtest", "--datadir", "d"])) else {
+        unreachable!("argumen sah");
+    };
+    assert_eq!(plain.p2p_ws_port, None);
+
+    let cases: [(&[&str], ArgError); 3] = [
+        (
+            &["--regtest", "--datadir", "x", "--p2p-ws-port", "65536"],
+            ArgError::InvalidP2pWsPort("65536".to_owned()),
+        ),
+        (
+            &[
+                "--regtest",
+                "--datadir",
+                "x",
+                "--p2p-ws-port",
+                "1",
+                "--p2p-ws-port",
+                "2",
+            ],
+            ArgError::Duplicate("--p2p-ws-port"),
+        ),
+        (
+            &["--regtest", "--datadir", "x", "--p2p-ws-port"],
+            ArgError::MissingValue("--p2p-ws-port"),
+        ),
+    ];
+    for (list, expected) in cases {
+        assert_eq!(parse_args(args(list)), Err(expected), "{list:?}");
+    }
 }

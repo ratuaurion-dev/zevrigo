@@ -1,0 +1,20 @@
+# Paket baru di Cargo.lock karena fitur `websocket` libp2p 0.57.1 di MOD-06 (TSK-M45, DEC-10 bagian 12, DEC-33)
+# Daftar dari ukur Q120 (cargo fetch di salinan repo, 11 November 2026); isi diperiksa Quick dari file .crate resmi
+# static.crates.io. Kolom: nama versi | lisensi | build script | baris unsafe di luar komentar (src/) |
+# forbid(unsafe_code) | sha256 file .crate (= checksum Cargo.lock, dicek skrip gerbang Q122).
+# jumlah: 6, hilang: 0, lisensi ditolak: 0
+futures-rustls 0.26.0 | MIT/Apache-2.0 | tidak | 0 | tidak | a8f2f12607f92c69b12ed746fabf9ca4f5c482cba46679c1a75b874ed7c26adb
+libp2p-websocket 0.46.0 | MIT | tidak | 0 | tidak | 02f11d7547a049e7a4d641ba73b400714ecaa85974d9700ac2014cdac63bfd47
+rustls 0.23.46 | Apache-2.0 OR ISC OR MIT | ya | 1 | ya | 48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf
+rustls-pki-types 1.15.1 | MIT OR Apache-2.0 | tidak | 1 | tidak | 2f4925028c7eb5d1fcdaf196971378ed9d2c1c4efc7dc5d011256f76c99c0a96
+rustls-webpki 0.103.16 | ISC | tidak | 0 | tidak | 4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281
+webpki-roots 1.0.12 | CDLA-Permissive-2.0 | tidak | 0 | ya | 7265c9301c16a8711c992c2d8da90ee77ef54b1ed51482d6dfeb00dc756b1297
+#
+# Catatan:
+# - rustls dipakai dengan penyedia kripto `ring` (sudah ada lewat Noise, DEC-24), tanpa aws-lc-rs: futures-rustls
+#   dirujuk libp2p-websocket tanpa fitur bawaan, fitur `ring` saja.
+# - webpki-roots berisi daftar sertifikat akar Mozilla (CCADB) sebagai data; lisensi CDLA-Permissive-2.0 (lisensi data
+#   permisif: boleh dipakai, diubah, dan dibagikan ulang, tanpa kewajiban copyleft). Disetujui pencipta 11 November 2026.
+# - Hanya klien TLS yang dipakai (peserta ke seed `wss`). Seed sendiri mendengar `/ws` tanpa TLS di 127.0.0.1; TLS diputus
+#   cloudflared. Tanpa libp2p-dns: nama `/dns*` di-resolve resolver sistem (tokio::net::lookup_host) di MOD-06.
+# - soketto 0.8.1 (handshake dan bingkai WebSocket) sudah ada di Cargo.lock lewat jsonrpsee; tidak dihitung paket baru.

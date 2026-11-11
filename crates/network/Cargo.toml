@@ -10,11 +10,14 @@ license.workspace = true
 zevrigo-primitives.workspace = true
 # DEC-10 bagian 5 (DEC-24), Spesifikasi P2P v0.1 Bagian 1. Tanpa fitur `tokio` libp2p (rujukan lemah ke QUIC, DNS, mDNS,
 # UPnP masuk Cargo.lock); runtime tokio lewat fitur `tokio` di libp2p-swarm dan libp2p-tcp.
-libp2p = { workspace = true, features = ["tcp", "noise", "yamux", "request-response", "ed25519", "macros"] }
+# DEC-10 bagian 12 (DEC-33, TSK-M45): fitur `websocket` (libp2p-websocket; TLS klien rustls dengan ring dan
+# webpki-roots) untuk seed di belakang Cloudflare Tunnel.
+libp2p = { workspace = true, features = ["tcp", "noise", "yamux", "request-response", "ed25519", "macros", "websocket"] }
 libp2p-swarm = { workspace = true, features = ["tokio"] }
 libp2p-tcp = { workspace = true, features = ["tokio"] }
 thiserror.workspace = true
-tokio = { workspace = true, features = ["macros", "time"] }
+# `net` dan `rt`: `tokio::net::lookup_host` (resolver sistem untuk alamat `/dns*`, TSK-M45); tanpa paket baru.
+tokio = { workspace = true, features = ["macros", "net", "rt", "time"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt", "time"] }

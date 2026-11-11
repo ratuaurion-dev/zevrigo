@@ -8,6 +8,7 @@ use zevrigo_primitives::{Block, BlockHeight, Hash32};
 use super::{NetEvent, Network, NetworkConfig, Offense, ip_of, peer_of, strip_p2p};
 use crate::message::{Ack, Blocks, GetBlocks, GetHeaders, Headers, Status};
 use crate::test_support::{id, sample_block, sample_tx};
+use crate::transport::is_websocket;
 
 const NET_A: Hash32 = id(0xa1);
 const NET_B: Hash32 = id(0xb2);
@@ -261,4 +262,82 @@ async fn dialer_reconnects_after_disconnect() {
     .await;
     assert!(matches!(event, NetEvent::PeerConnected { peer, .. } if peer == a_id));
     assert_eq!(wait_status(&mut b, a_id).await, status(NET_A, 1));
+}
+
+/// Port TCP di `address`.
+fn tcp_port(address: &Multiaddr) -> u16 {
+    address
+        .iter()
+        .find_map(|part| match part {
+            Protocol::Tcp(port) => Some(port),
+            _ => None,
+        })
+        .unwrap()
+}
+
+#[tokio::test]
+async fn websocket_and_dns_addresses_connect() {
+    let mut config = NetworkConfig::new(NET_A);
+    config.listen = vec![
+        "/ip4/127.0.0.1/tcp/0".parse().unwrap(),
+        "/ip4/127.0.0.1/tcp/0/ws".parse().unwrap(),
+    ];
+    let mut a = Network::new(Keypair::generate_ed25519(), config, status(NET_A, 4)).unwrap();
+    let a_id = a.local_peer_id();
+    let mut tcp = None;
+    let mut ws = None;
+    while tcp.is_none() || ws.is_none() {
+        let event =
+            next_matching(&mut a, |event| matches!(event, NetEvent::Listening { .. })).await;
+        let NetEvent::Listening { address } = event else {
+            unreachable!()
+        };
+        if is_websocket(&address) {
+            ws = Some(tcp_port(&address));
+        } else {
+            tcp = Some(tcp_port(&address));
+        }
+    }
+    tokio::spawn(serve(a, false));
+
+    // Nama `localhost` di-resolve di bawah WebSocket dan TCP (seperti alamat seed `/dns4/<nama>/tcp/443/tls/sni/...`).
+    let ws_address: Multiaddr = format!("/dns4/localhost/tcp/{}/ws/p2p/{a_id}", ws.unwrap())
+        .parse()
+        .unwrap();
+    let tcp_address: Multiaddr = format!("/dns4/localhost/tcp/{}/p2p/{a_id}", tcp.unwrap())
+        .parse()
+        .unwrap();
+    for (address, websocket) in [(ws_address, true), (tcp_address, false)] {
+        let mut b = node(NET_A, vec![address], 0);
+        let event = next_matching(&mut b, |event| {
+            matches!(event, NetEvent::PeerConnected { .. })
+        })
+        .await;
+        let NetEvent::PeerConnected { peer, address } = event else {
+            unreachable!()
+        };
+        assert_eq!(peer, a_id);
+        assert_eq!(is_websocket(&address), websocket, "{address}");
+        assert_eq!(wait_status(&mut b, a_id).await, status(NET_A, 4));
+        assert_eq!(b.connected_peers(), vec![a_id]);
+    }
+}
+
+#[tokio::test]
+async fn keepalive_sends_status_periodically() {
+    let mut a = node(NET_A, Vec::new(), 2);
+    let a_addr = dial_address(&mut a).await;
+    let mut config = NetworkConfig::new(NET_A);
+    config.connect = vec![a_addr];
+    config.keepalive_interval = Duration::from_millis(100);
+    let b = Network::new(Keypair::generate_ed25519(), config, status(NET_A, 0)).unwrap();
+    let b_id = b.local_peer_id();
+    tokio::spawn(serve(b, false));
+
+    // Saat terhubung `a` menerima dua `status` dari `b` (permintaan `b` dan jawaban atas permintaan `a`). Tiga
+    // berikutnya hanya datang dari keepalive `b`; keepalive `a` sendiri baru berdetak sesudah 60 detik.
+    for _ in 0..5 {
+        assert_eq!(wait_status(&mut a, b_id).await, status(NET_A, 0));
+    }
+    assert_eq!(a.connected_peers(), vec![b_id]);
 }

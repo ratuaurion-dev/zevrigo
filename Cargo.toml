@@ -70,6 +70,8 @@ serde_json = { version = "1.0.154", default-features = false, features = ["std"]
 tracing = { version = "0.1.44", default-features = false, features = ["std"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt"] }
 # DEC-10 bagian 5 (DEC-24): hanya MOD-06 network. Noise membawa ring (C dan assembly). Fitur ditambah di crate.
+# DEC-10 bagian 12 (DEC-33): fitur `websocket` di MOD-06 menambah 6 paket (libp2p-websocket, futures-rustls, rustls dengan
+# ring, rustls-pki-types, rustls-webpki, webpki-roots); docs/reference/paket-mod06-websocket-v0.1.txt.
 libp2p = { version = "0.57.1", default-features = false }
 # Fitur `tokio` libp2p tidak dipakai: isinya rujukan lemah (`libp2p-quic?/tokio`, dns, mdns, upnp) yang membuat Cargo.lock
 # memuat QUIC, TLS, dan DNS. Runtime tokio diaktifkan langsung di dua sub-paket resmi ini (versi sama dengan libp2p 0.57.1).

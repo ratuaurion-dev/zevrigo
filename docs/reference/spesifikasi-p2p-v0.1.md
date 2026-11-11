@@ -1,12 +1,12 @@
 # Spesifikasi P2P Zevrigo Coin (ZVRG) v0.1: transport libp2p, 5 protokol, sinkronisasi header lalu blok, siaran blok dan transaksi
 
-> Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S05 · Status: 🟢 v0.1
+> Diperbarui: 11 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S05, TSK-M45 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-p2p-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Dikunci | rust-libp2p 0.57 (DEC-24): TCP, Noise, Yamux, request-response. 5 protokol dengan encoding kanonis sendiri, sinkronisasi header lalu blok, siaran blok dan transaksi, pemilihan chain berdasarkan chainwork, sanksi rekan |
-| ⏳ Ditunda | Penemuan rekan otomatis (Kademlia, mDNS, seed DNS), relay dan NAT, pembatasan bandwidth, perlindungan eclipse, blok kompak, pemangkasan (TSK-M23) |
+| 🟢 Dikunci | rust-libp2p 0.57 (DEC-24): TCP atau WebSocket (DEC-33), Noise, Yamux, request-response. 5 protokol dengan encoding kanonis sendiri, sinkronisasi header lalu blok, siaran blok dan transaksi, pemilihan chain berdasarkan chainwork, sanksi rekan, keepalive `status` 60 detik |
+| ⏳ Ditunda | Penemuan rekan otomatis (Kademlia, mDNS, daftar rekan bertukar), relay dan NAT, pembatasan bandwidth, perlindungan eclipse, blok kompak, pemangkasan (TSK-M23) |
 | ➡️ Langkah berikutnya | Semua task v0.1 selesai: TSK-M27, TSK-M14 (MOD-06), TSK-M28 (daemon), TSK-F04 (lima node, reorg dalam). Batas memori node (TSK-M34) selesai. Sebelum testnet: penemuan rekan, perlindungan eclipse |
 
 P2P **bukan konsensus**. Aturan di dokumen ini bisa diubah lewat versi protokol baru tanpa memecah chain. Semua blok dan
@@ -18,17 +18,19 @@ transaksi yang diterima dari rekan tetap diperiksa penuh dengan MOD-04 (V1 sampa
 
 | Hal | Nilai |
 |---|---|
-| Pustaka | `libp2p` 0.57.1, tanpa fitur bawaan; fitur `tcp`, `noise`, `yamux`, `request-response`, `ed25519`, `macros`, ditambah `libp2p-swarm` 0.48.0 dan `libp2p-tcp` 0.45.0 dengan fitur `tokio` (runtime). Hanya di MOD-06. Fitur `tokio` libp2p sendiri tidak dipakai, karena rujukan lemahnya (`libp2p-quic?/tokio`, dns, mdns, upnp) memasukkan QUIC, TLS, dan DNS ke Cargo.lock walaupun tidak dikompilasi (TSK-M14, Q78) |
-| Lapisan | TCP, lalu Noise XX (enkripsi dan autentikasi rekan), lalu Yamux (multipleks aliran) |
+| Pustaka | `libp2p` 0.57.1, tanpa fitur bawaan; fitur `tcp`, `noise`, `yamux`, `request-response`, `ed25519`, `macros`, `websocket` (sejak TSK-M45, DEC-10 bagian 12), ditambah `libp2p-swarm` 0.48.0 dan `libp2p-tcp` 0.45.0 dengan fitur `tokio` (runtime). Hanya di MOD-06. Fitur `tokio` libp2p sendiri tidak dipakai, karena rujukan lemahnya (`libp2p-quic?/tokio`, dns, mdns, upnp) memasukkan QUIC dan DNS ke Cargo.lock walaupun tidak dikompilasi (TSK-M14, Q78) |
+| Lapisan | TCP, atau WebSocket di atas TCP (`/ws`; `/tls/.../ws` hanya sebagai klien), lalu Noise XX (enkripsi dan autentikasi rekan), lalu Yamux (multipleks aliran). Alamat `/ws` ditolak TCP lalu dicoba WebSocket. Noise tetap dipakai di atas WebSocket dan TLS, jadi rekan tetap diautentikasi lewat `PeerId`, bukan lewat sertifikat |
+| Alamat DNS | `/dns4/<nama>/tcp/<port>`, `/dns6/...`, dan `/dns/...` (juga di dalam `/tls/sni/<nama>/ws`) di-resolve resolver sistem operasi (`tokio::net::lookup_host`) setiap kali didial, di bawah lapisan WebSocket, sehingga SNI TLS dan kepala `Host` WebSocket berisi nama. Tanpa `libp2p-dns` |
 | Identitas rekan | Kunci Ed25519 libp2p, terpisah dari kunci wallet. 32 byte rahasia dari sumber acak sistem operasi saat node pertama kali berjalan, disimpan di `<datadir>/<jaringan>/p2p_key` (32 byte mentah, izin `0600`). `PeerId` diturunkan dari kunci ini |
-| Port bawaan | regtest 28_800 · testnet 18_800 · mainnet 8_800 (RPC tetap `x_801`) |
-| Alamat dengar bawaan | regtest `/ip4/127.0.0.1/tcp/28800`. Testnet dan mainnet ditetapkan bersama TSK-F06 |
-| Penemuan rekan v0.1 | Hanya alamat yang ditulis operator: opsi `--connect <multiaddr>` boleh berulang. Node menyambung ulang ke alamat itu setiap 10 detik jika putus |
+| Port bawaan | regtest 28_800 · testnet 18_800 · mainnet 8_800 (RPC tetap `x_801`). WebSocket tanpa bawaan (mati); paket publik memakai `x_803` (regtest 28_803) |
+| Alamat dengar bawaan | regtest `/ip4/127.0.0.1/tcp/28800`; dengan `--p2p-ws-port <port>` juga `/ip4/127.0.0.1/tcp/<port>/ws`. Testnet dan mainnet ditetapkan bersama TSK-F06 |
+| Seed di belakang proxy TLS (DEC-33) | Seed mendengar `/ws` tanpa TLS di 127.0.0.1; proxy (cloudflared, Cloudflare Tunnel) memutus TLS dan meneruskan WebSocket ke port itu. Peserta bergabung dengan `--connect /dns4/<nama>/tcp/443/tls/sni/<nama>/ws/p2p/<PeerId seed>`; TLS diperiksa terhadap sertifikat akar `webpki-roots` |
+| Penemuan rekan v0.1 | Hanya alamat yang ditulis operator: opsi `--connect <multiaddr>` boleh berulang (IP atau nama `/dns*`, TCP atau WebSocket). Node menyambung ulang ke alamat itu setiap 10 detik jika putus |
 | Batas koneksi | Paling banyak 8 koneksi keluar dan 32 koneksi masuk; satu koneksi per `PeerId` |
-| Koneksi menganggur | Ditutup setelah 300 detik tanpa aliran terbuka |
+| Koneksi menganggur | Ditutup setelah 300 detik tanpa aliran terbuka. Keepalive `status` setiap 60 detik (Bagian 4) membuat koneksi ke rekan aktif tidak pernah menganggur |
 
-Fitur lain libp2p (gossipsub, kad, mdns, identify, ping, quic, dns, websocket, relay, autonat, dcutr) tidak dipakai di v0.1,
-agar dependensi tetap seminimal mungkin.
+Fitur lain libp2p (gossipsub, kad, mdns, identify, ping, quic, dns, relay, autonat, dcutr) tidak dipakai di v0.1, agar
+dependensi tetap seminimal mungkin. Ping libp2p tidak diperlukan karena keepalive memakai protokol `status` yang sudah ada.
 
 ---
 
@@ -76,6 +78,10 @@ Koreksi 1 November 2026 (TSK-M14): ukuran `Status` adalah 105 byte; versi pertam
 2. Jika `chainwork` rekan lebih besar daripada chainwork ujung sendiri, node memulai sinkronisasi header dengan rekan itu
    (Bagian 5). Jika sama atau lebih kecil, node menunggu siaran.
 3. Node menyimpan ujung terakhir yang diketahui per rekan dan memperbaruinya dari `status`, `block`, dan `Headers`.
+4. **Keepalive (TSK-M45, DEC-33):** setiap 60 detik node mengirim `status` ke setiap rekan yang terhubung, dan rekan
+   menjawab seperti di langkah 1. Alasannya: Cloudflare menutup WebSocket yang diam sekitar 100 detik, dan nilai itu tidak
+   bisa diubah. Jawaban memperbarui ujung rekan (langkah 2 dan 3 berlaku lagi). Permintaan keepalive yang tidak dijawab
+   dihitung seperti permintaan lain (Bagian 7: 3 kali berturut-turut, putus tanpa blokir).
 
 ---
 
@@ -158,17 +164,22 @@ belum ada di view chain + mempool ditolak dengan status `4`, tanpa sanksi.
 
 Blokir disimpan di memori per `PeerId` dan per alamat IP, sehingga hilang saat node dimulai ulang. Alamat loopback
 (`127.0.0.0/8`, `::1`) hanya diblokir per `PeerId`, supaya beberapa node di satu mesin (uji TSK-F04) tidak saling
-memblokir (TSK-M14). Rekan dari alamat yang
-ditulis lewat `--connect` juga bisa diblokir.
+memblokir (TSK-M14). Rekan yang masuk lewat Cloudflare Tunnel tampak dari 127.0.0.1 (koneksi dari cloudflared), jadi juga
+hanya diblokir per `PeerId`; IP asli peserta tidak terlihat oleh node. Rekan dari alamat yang ditulis lewat `--connect`
+juga bisa diblokir.
 
 ---
 
 ## 8. Opsi daemon (MOD-11, TSK-M28)
 
-`zevrigo-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>] [--connect <multiaddr>]…`
+`zevrigo-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>] [--p2p-ws-port <port>] [--connect <multiaddr>]…`
 
 - `--p2p-port 0` memilih port bebas. Setelah baris `rpc: http://<alamat>`, stdout mencetak satu baris
   `p2p: /ip4/<alamat>/tcp/<port>/p2p/<PeerId>`, sehingga test dan skrip bisa menyambungkan node lain.
+- `--p2p-ws-port <port>` (TSK-M45) menambah alamat dengar WebSocket `/ip4/127.0.0.1/tcp/<port>/ws` (`0` = port bebas) dan
+  mencetak satu baris `p2p-ws: /ip4/127.0.0.1/tcp/<port>/ws/p2p/<PeerId>`. Tanpa opsi ini node tidak mendengar WebSocket.
+- `--connect` menerima alamat IP maupun nama, TCP maupun WebSocket, misalnya
+  `/dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/<PeerId>`.
 - Log rekan (terhubung, putus, sanksi) ke stderr lewat `tracing`.
 
 ---
@@ -212,6 +223,7 @@ ditulis lewat `--connect` juga bisa diblokir.
 | Badan blok cabang di penyimpanan (bagian A); presync header untuk cabang yang sangat dalam (bagian B) | MOD-05, MOD-11 | TSK-M35 |
 | Swarm libp2p, 5 protokol, codec pesan, kunci rekan, batas koneksi, sanksi | MOD-06 | TSK-M14 |
 | Sinkronisasi header lalu blok, siaran, opsi daemon | MOD-11 | TSK-M28 |
+| Transport WebSocket, alamat `/dns*`, keepalive `status` (MOD-06); opsi `--p2p-ws-port` (MOD-11); seed lewat Cloudflare Tunnel | MOD-06, MOD-11 | TSK-M45 |
 | 4 node atau lebih tetap sinkron, jaringan terpisah lalu tersambung (reorg dalam), node yang tertinggal mengejar | MOD-17 | TSK-F04 |
 
 ---
@@ -222,3 +234,5 @@ ditulis lewat `--connect` juga bisa diblokir.
 |---|---|---|
 | DEC-24 | Transport P2P memakai rust-libp2p 0.57 (TCP, Noise, Yamux, request-response), sesuai AGENTS.md. Konsekuensi: ring dan generasi kedua pustaka RustCrypto ikut masuk lewat MOD-06 | 🟢 diputuskan pencipta 1 November 2026 |
 | DEC-10 bagian 5 | `libp2p` 0.57.1 tanpa fitur bawaan, fitur `tcp`, `noise`, `yamux`, `request-response`, `ed25519`, `macros`, serta `libp2p-swarm` dan `libp2p-tcp` dengan fitur `tokio`, hanya di MOD-06 | 🟢 1 November 2026 (konsekuensi DEC-24) |
+| DEC-33 | Seed publik sementara lewat Cloudflare Tunnel memakai WebSocket libp2p; keepalive `status` 60 detik; nama `/dns*` di-resolve resolver sistem; regtest dulu | 🟢 diputuskan pencipta 11 November 2026 |
+| DEC-10 bagian 12 | Fitur `websocket` libp2p 0.57.1 di MOD-06: +6 paket (libp2p-websocket, futures-rustls, rustls dengan ring, rustls-pki-types, rustls-webpki, webpki-roots), reference/paket-mod06-websocket-v0.1.txt | 🟢 11 November 2026 (konsekuensi DEC-33) |

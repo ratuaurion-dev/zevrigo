@@ -36,6 +36,10 @@ cargo run -p zevrigo-node -- --regtest --datadir ~/.zevrigo-2 --rpc-port 28811 -
   --connect /ip4/127.0.0.1/tcp/28800/p2p/<PeerId>
 ```
 
+Dengan `--p2p-ws-port <port>` node juga mendengar P2P WebSocket di `/ip4/127.0.0.1/tcp/<port>/ws` (baris `p2p-ws: ...`),
+untuk seed di belakang proxy TLS seperti Cloudflare Tunnel. `--connect` juga menerima nama, misalnya
+`/dns4/<nama>/tcp/443/tls/sni/<nama>/ws/p2p/<PeerId>`.
+
 Blok dan transaksi baru disiarkan antar node. Aturan lengkap di [docs/reference/spesifikasi-p2p-v0.1.md](docs/reference/spesifikasi-p2p-v0.1.md).
 
 Opsi `--testnet` (PoW RandomX, port bawaan RPC 18801 dan P2P 18800) sudah ada, tetapi testnet publik belum diluncurkan:
@@ -127,11 +131,12 @@ docker compose down
 
 Aturan lengkap di [docs/reference/spesifikasi-docker-v0.1.md](docs/reference/spesifikasi-docker-v0.1.md).
 
-### Explorer publik lewat Cloudflare Tunnel
+### Explorer dan seed publik lewat Cloudflare Tunnel
 
-`compose.publik.yaml` membuka explorer ke internet lewat Cloudflare Tunnel tanpa membuka port router. Token tunnel
-disimpan di luar repo, di `~/.zevrigo-tunnel.env` (izin `600`, satu baris `TUNNEL_TOKEN=` diikuti token dari dasbor
-Cloudflare Zero Trust). Public hostname tunnel diarahkan ke `localhost:28802`.
+`compose.publik.yaml` membuka explorer dan seed P2P ke internet lewat Cloudflare Tunnel tanpa membuka port router. Token
+tunnel disimpan di luar repo, di `~/.zevrigo-tunnel.env` (izin `600`, satu baris `TUNNEL_TOKEN=` diikuti token dari dasbor
+Cloudflare Zero Trust). Dua public hostname tunnel, keduanya tipe HTTP: `zevrigo.ratuaurion.store` ke `localhost:28802`
+(explorer) dan `zevrigo-seed.ratuaurion.store` ke `localhost:28803` (seed P2P WebSocket).
 
 ```bash
 docker compose -f compose.yaml -f compose.publik.yaml build node
@@ -139,8 +144,15 @@ docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudf
 docker compose -f compose.yaml -f compose.publik.yaml down
 ```
 
-RPC dan P2P node tidak terbuka, explorer hanya bisa dicapai lewat tunnel, dan batas laju berlaku per pengunjung
-(`--trust-proxy`). Saat ini regtest (uji); testnet menyusul. Rincian di Spesifikasi Docker v0.1 Bagian 7.
+RPC dan P2P TCP node tidak terbuka, explorer dan seed hanya bisa dicapai lewat tunnel, dan batas laju explorer berlaku per
+pengunjung (`--trust-proxy`). Node lain bergabung ke seed dengan:
+
+```bash
+zevrigo-node --regtest --datadir ~/.zevrigo \
+  --connect /dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/<PeerId seed>
+```
+
+Saat ini regtest (uji); testnet menyusul. Rincian di Spesifikasi Docker v0.1 Bagian 7.
 
 ## Lisensi
 

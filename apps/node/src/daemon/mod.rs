@@ -4,7 +4,8 @@
 //! Tanpa `clap` dan `toml` (DEC-10 bagian 2): argumen dibaca sendiri dan tidak ada file konfigurasi. Chain disimpan di
 //! `<datadir>/regtest/chain.redb` (RedbStore, MOD-05), kunci rekan P2P di `<datadir>/regtest/p2p_key`. Setelah server
 //! RPC siap, daemon mencetak baris `rpc: http://<alamat>` ke stdout, lalu `p2p: /ip4/<alamat>/tcp/<port>/p2p/<PeerId>`
-//! setelah P2P mendengar (Spesifikasi P2P v0.1 Bagian 8); log ditulis ke stderr.
+//! setelah P2P mendengar (Spesifikasi P2P v0.1 Bagian 8), dan `p2p-ws: .../ws/p2p/<PeerId>` jika `--p2p-ws-port`
+//! dipakai (TSK-M45); log ditulis ke stderr.
 
 use std::net::{Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
@@ -33,7 +34,7 @@ pub const USAGE: &str = concat!(
     "\n",
     "Pemakaian:\n",
     "  zevrigo-node --regtest --datadir <folder> [--rpc-port <port>] [--p2p-port <port>]\n",
-    "                   [--connect <multiaddr>]...\n",
+    "                   [--p2p-ws-port <port>] [--connect <multiaddr>]...\n",
     "  zevrigo-node --testnet --datadir <folder> [opsi yang sama]\n",
     "  zevrigo-node --help | --version\n",
     "\n",
@@ -43,10 +44,15 @@ pub const USAGE: &str = concat!(
     "  --datadir <folder>  folder data; chain disimpan di <folder>/<jaringan>/chain.redb\n",
     "  --rpc-port <port>   port JSON-RPC di 127.0.0.1 (bawaan regtest 28801, testnet 18801; 0 = port bebas)\n",
     "  --p2p-port <port>   port P2P di 127.0.0.1 (bawaan regtest 28800, testnet 18800; 0 = port bebas)\n",
-    "  --connect <addr>    rekan P2P, misalnya /ip4/127.0.0.1/tcp/28800/p2p/<PeerId>; boleh berulang\n",
+    "  --p2p-ws-port <port>\n",
+    "                      port P2P WebSocket (/ws) di 127.0.0.1, untuk seed di belakang proxy TLS seperti\n",
+    "                      Cloudflare Tunnel (bawaan mati; 0 = port bebas)\n",
+    "  --connect <addr>    rekan P2P, misalnya /ip4/127.0.0.1/tcp/28800/p2p/<PeerId> atau\n",
+    "                      /dns4/<nama>/tcp/443/tls/sni/<nama>/ws/p2p/<PeerId>; boleh berulang\n",
     "\n",
     "Setelah siap, alamat RPC dicetak ke stdout sebagai `rpc: http://<alamat>`, lalu alamat P2P sebagai\n",
-    "`p2p: <multiaddr>`. Log ditulis ke stderr.\n",
+    "`p2p: <multiaddr>`, dan alamat WebSocket sebagai `p2p-ws: <multiaddr>` jika --p2p-ws-port dipakai.\n",
+    "Log ditulis ke stderr.\n",
     "Node berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
 );
 
@@ -75,6 +81,9 @@ pub struct Config {
     pub rpc_port: u16,
     /// Port P2P di 127.0.0.1. `0` memilih port bebas.
     pub p2p_port: u16,
+    /// Port P2P WebSocket (`/ws`) di 127.0.0.1, untuk seed di belakang proxy TLS (TSK-M45). `None` = tidak mendengar
+    /// WebSocket; `0` memilih port bebas.
+    pub p2p_ws_port: Option<u16>,
     /// Alamat rekan dari `--connect`, urut seperti di argumen.
     pub connect: Vec<Multiaddr>,
 }
@@ -97,6 +106,9 @@ pub enum ArgError {
     /// Port P2P bukan bilangan 0 sampai 65535.
     #[error("port P2P tidak sah: {0}")]
     InvalidP2pPort(String),
+    /// Port P2P WebSocket bukan bilangan 0 sampai 65535.
+    #[error("port P2P WebSocket tidak sah: {0}")]
+    InvalidP2pWsPort(String),
     /// Nilai `--connect` bukan multiaddr.
     #[error("alamat rekan tidak sah: {0}")]
     InvalidAddress(String),
@@ -200,6 +212,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut datadir: Option<PathBuf> = None;
     let mut rpc_port: Option<u16> = None;
     let mut p2p_port: Option<u16> = None;
+    let mut p2p_ws_port: Option<u16> = None;
     let mut connect: Vec<Multiaddr> = Vec::new();
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
@@ -233,6 +246,16 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
                     .map_err(|_| ArgError::InvalidP2pPort(value.clone()))?;
                 p2p_port = Some(port);
             }
+            "--p2p-ws-port" => {
+                if p2p_ws_port.is_some() {
+                    return Err(ArgError::Duplicate("--p2p-ws-port"));
+                }
+                let value = value_of(&mut iter, "--p2p-ws-port")?;
+                let port = value
+                    .parse::<u16>()
+                    .map_err(|_| ArgError::InvalidP2pWsPort(value.clone()))?;
+                p2p_ws_port = Some(port);
+            }
             "--connect" => {
                 let value = value_of(&mut iter, "--connect")?;
                 let address = value
@@ -251,6 +274,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         datadir,
         rpc_port: rpc_port.unwrap_or(default_port(network)),
         p2p_port: p2p_port.unwrap_or(default_p2p_port(network)),
+        p2p_ws_port,
         connect,
     }))
 }
@@ -289,6 +313,20 @@ pub fn p2p_key_path(config: &Config) -> PathBuf {
 /// [`NetworkError::Listen`] jika alamat tidak bisa disusun.
 pub fn p2p_listen_address(port: u16) -> Result<Multiaddr, NetworkError> {
     let text = format!("/ip4/127.0.0.1/tcp/{port}");
+    text.parse::<Multiaddr>()
+        .map_err(|error| NetworkError::Listen {
+            address: text.clone(),
+            reason: error.to_string(),
+        })
+}
+
+/// Alamat dengar P2P WebSocket `/ip4/127.0.0.1/tcp/<port>/ws` (TSK-M45). TLS diputus proxy di depannya (cloudflared).
+///
+/// # Errors
+///
+/// [`NetworkError::Listen`] jika alamat tidak bisa disusun.
+pub fn p2p_ws_listen_address(port: u16) -> Result<Multiaddr, NetworkError> {
+    let text = format!("/ip4/127.0.0.1/tcp/{port}/ws");
     text.parse::<Multiaddr>()
         .map_err(|error| NetworkError::Listen {
             address: text.clone(),
@@ -356,6 +394,9 @@ async fn serve<S: ChainStore + Send + 'static>(
     let keypair = load_or_create(&p2p_key_path(config))?;
     let mut p2p_config = NetworkConfig::new(node.params().network_id());
     p2p_config.listen = vec![p2p_listen_address(config.p2p_port)?];
+    if let Some(port) = config.p2p_ws_port {
+        p2p_config.listen.push(p2p_ws_listen_address(port)?);
+    }
     p2p_config.connect.clone_from(&config.connect);
     let network = P2pNetwork::new(keypair, p2p_config, local_status(&node)?)?;
     let p2p = P2pService::new(Arc::clone(&node), network).run(receiver);

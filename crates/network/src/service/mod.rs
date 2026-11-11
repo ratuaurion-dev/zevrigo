@@ -1,10 +1,13 @@
 //! Layanan jaringan MOD-06 (Spesifikasi P2P Bagian 1 sampai 4, 6, dan 7).
 //!
-//! [`Network`] memegang swarm libp2p: TCP, Noise XX, Yamux; lima protokol request-response; paling banyak 8 koneksi
-//! keluar, 32 masuk, dan satu per `PeerId`; koneksi menganggur ditutup setelah 300 detik; permintaan gagal setelah
-//! 30 detik. Layanan ini sendiri menangani:
+//! [`Network`] memegang swarm libp2p: TCP atau WebSocket di atas TCP (`/ws`, TSK-M45), lalu Noise XX dan Yamux; lima
+//! protokol request-response; paling banyak 8 koneksi keluar, 32 masuk, dan satu per `PeerId`; koneksi menganggur
+//! ditutup setelah 300 detik; permintaan gagal setelah 30 detik. Alamat `/dns4`, `/dns6`, dan `/dns` (juga di bawah
+//! `/tls/sni/<nama>/ws`) di-resolve resolver sistem setiap kali didial. Layanan ini sendiri menangani:
 //! - sambung ulang ke alamat `--connect` setiap 10 detik jika putus;
 //! - pertukaran `status` saat terhubung (versi atau jaringan lain: koneksi ditutup tanpa sanksi);
+//! - `status` ke setiap rekan setiap 60 detik (keepalive), karena proxy seperti Cloudflare menutup WebSocket yang diam
+//!   sekitar 100 detik;
 //! - sanksi untuk pesan rusak dan jawaban `Blocks` yang jumlah entrinya salah (putus dan blokir 24 jam);
 //! - putus tanpa blokir setelah 3 permintaan berturut-turut tidak dijawab dalam 30 detik.
 //!
@@ -27,7 +30,7 @@ use libp2p::request_response::{
 };
 use libp2p::swarm::{ConnectionId, NetworkBehaviour, SwarmEvent};
 use libp2p::{
-    Multiaddr, PeerId, Swarm, Transport as _, allow_block_list, noise, swarm, tcp, yamux,
+    Multiaddr, PeerId, Swarm, Transport as _, allow_block_list, noise, swarm, websocket, yamux,
 };
 use thiserror::Error;
 use tokio::time::{Interval, MissedTickBehavior};
@@ -37,6 +40,7 @@ use crate::ban::BanList;
 use crate::codec::{Received, WireCodec};
 use crate::message::{Ack, Blocks, GetBlocks, GetHeaders, Headers, MessageError, Status, Wire};
 use crate::protocol::{ProtocolKind, stream_protocol};
+use crate::transport::DnsTcp;
 
 /// Koneksi keluar paling banyak.
 pub const MAX_OUTBOUND: u32 = 8;
@@ -55,6 +59,10 @@ pub const CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Selang sambung ulang ke alamat `--connect` (10 detik).
 pub const REDIAL_INTERVAL: Duration = Duration::from_secs(10);
+
+/// Selang pengiriman `status` ke setiap rekan yang terhubung (60 detik), di bawah batas diam WebSocket Cloudflare
+/// (sekitar 100 detik) dan batas koneksi menganggur (300 detik).
+pub const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(60);
 
 /// Jumlah permintaan berturut-turut yang tidak dijawab sebelum koneksi diputus (tanpa blokir).
 pub const MAX_TIMEOUTS: u8 = 3;
@@ -131,16 +139,19 @@ pub enum NetworkError {
 pub struct NetworkConfig {
     /// `network_id` (block_id genesis) jaringan node.
     pub network_id: Hash32,
-    /// Alamat dengar, misalnya `/ip4/127.0.0.1/tcp/28800`.
+    /// Alamat dengar, misalnya `/ip4/127.0.0.1/tcp/28800` atau WebSocket `/ip4/127.0.0.1/tcp/28803/ws`.
     pub listen: Vec<Multiaddr>,
-    /// Alamat rekan dari operator (`--connect`), boleh diakhiri `/p2p/<PeerId>`.
+    /// Alamat rekan dari operator (`--connect`), boleh diakhiri `/p2p/<PeerId>`, misalnya
+    /// `/dns4/<nama>/tcp/443/tls/sni/<nama>/ws/p2p/<PeerId>`.
     pub connect: Vec<Multiaddr>,
     /// Selang sambung ulang; bawaan [`REDIAL_INTERVAL`] (test memakai selang lebih pendek).
     pub redial_interval: Duration,
+    /// Selang keepalive `status`; bawaan [`KEEPALIVE_INTERVAL`] (test memakai selang lebih pendek).
+    pub keepalive_interval: Duration,
 }
 
 impl NetworkConfig {
-    /// Konfigurasi tanpa alamat dengar dan tanpa rekan, selang sambung ulang 10 detik.
+    /// Konfigurasi tanpa alamat dengar dan tanpa rekan, selang sambung ulang 10 detik, keepalive 60 detik.
     #[must_use]
     pub const fn new(network_id: Hash32) -> Self {
         Self {
@@ -148,6 +159,7 @@ impl NetworkConfig {
             listen: Vec::new(),
             connect: Vec::new(),
             redial_interval: REDIAL_INTERVAL,
+            keepalive_interval: KEEPALIVE_INTERVAL,
         }
     }
 }
@@ -386,6 +398,14 @@ pub(crate) fn strip_p2p(address: &Multiaddr) -> Multiaddr {
     out
 }
 
+/// Selang yang berdetak pertama kali sesudah `period` (bukan langsung), paling pendek 1 milidetik.
+fn ticker(period: Duration) -> Interval {
+    let period = period.max(Duration::from_millis(1));
+    let mut interval = tokio::time::interval_at(tokio::time::Instant::now() + period, period);
+    interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    interval
+}
+
 /// Layanan jaringan satu node.
 pub struct Network {
     swarm: Swarm<Behaviour>,
@@ -397,6 +417,7 @@ pub struct Network {
     pending_bodies: BTreeMap<RequestId, usize>,
     events: VecDeque<NetEvent>,
     redial: Interval,
+    keepalive: Interval,
 }
 
 impl Network {
@@ -415,8 +436,11 @@ impl Network {
         let behaviour = Behaviour::new(&config.network_id)?;
         let noise = noise::Config::new(&keypair)
             .map_err(|error| NetworkError::Transport(error.to_string()))?;
-        // Sama dengan `SwarmBuilder::with_tcp` libp2p 0.57.1: TCP, lalu Noise XX, lalu Yamux, batas waktu 10 detik.
-        let transport = tcp::tokio::Transport::new(tcp::Config::default())
+        // Seperti `SwarmBuilder::with_tcp` libp2p 0.57.1 (TCP, lalu Noise XX, lalu Yamux, batas waktu 10 detik),
+        // dengan WebSocket sebagai jalur kedua: alamat `/ws` ditolak TCP lalu dicoba WebSocket. Keduanya di atas
+        // `DnsTcp`, jadi nama `/dns*` di-resolve di bawah lapisan WebSocket (kepala `Host` dan SNI tetap berisi nama).
+        let transport = DnsTcp::default()
+            .or_transport(websocket::Config::new(DnsTcp::default()))
             .upgrade(upgrade::Version::V1Lazy)
             .authenticate(noise)
             .multiplex(yamux::Config::default())
@@ -440,9 +464,8 @@ impl Network {
             // Gagal dial (misalnya alamat tidak didukung) tidak fatal; dicoba lagi pada selang berikutnya.
             let _ = swarm.dial(address.clone());
         }
-        let period = config.redial_interval.max(Duration::from_millis(1));
-        let mut redial = tokio::time::interval_at(tokio::time::Instant::now() + period, period);
-        redial.set_missed_tick_behavior(MissedTickBehavior::Delay);
+        let redial = ticker(config.redial_interval);
+        let keepalive = ticker(config.keepalive_interval);
         Ok(Self {
             swarm,
             network_id: config.network_id,
@@ -453,6 +476,7 @@ impl Network {
             pending_bodies: BTreeMap::new(),
             events: VecDeque::new(),
             redial,
+            keepalive,
         })
     }
 
@@ -557,19 +581,16 @@ impl Network {
     }
 
     /// Menunggu event berikutnya. Selama menunggu, layanan juga menjawab `status`, menyambung ulang, dan mencabut
-    /// blokir yang sudah berakhir.
+    /// blokir yang sudah berakhir, serta mengirim keepalive `status`.
     pub async fn next_event(&mut self) -> NetEvent {
         loop {
             if let Some(event) = self.events.pop_front() {
                 return event;
             }
-            let swarm_event = tokio::select! {
-                event = self.swarm.select_next_some() => Some(event),
-                _ = self.redial.tick() => None,
-            };
-            match swarm_event {
-                Some(event) => self.on_swarm_event(event),
-                None => self.on_tick(),
+            tokio::select! {
+                event = self.swarm.select_next_some() => self.on_swarm_event(event),
+                _ = self.redial.tick() => self.on_tick(),
+                _ = self.keepalive.tick() => self.on_keepalive(),
             }
         }
     }
@@ -902,6 +923,19 @@ impl Network {
             .collect();
         for address in targets {
             let _ = self.swarm.dial(address);
+        }
+    }
+
+    /// Mengirim `status` ke setiap rekan yang terhubung. Jawabannya memperbarui ujung chain rekan
+    /// ([`NetEvent::PeerStatus`]), dan lalu lintas ini menjaga koneksi lewat proxy tetap hidup.
+    fn on_keepalive(&mut self) {
+        let peers: Vec<PeerId> = self.peers.keys().copied().collect();
+        for peer in peers {
+            let status = self.local_status.clone();
+            self.swarm
+                .behaviour_mut()
+                .status
+                .send_request(&peer, Ok(status));
         }
     }
 

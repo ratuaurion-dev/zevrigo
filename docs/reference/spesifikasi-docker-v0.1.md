@@ -1,12 +1,12 @@
 # Spesifikasi Paket Docker Zevrigo Coin (ZVRG) v0.1: node, explorer, dan antarmuka web untuk regtest
 
-> Diperbarui: 11 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-M33, TSK-M44 · Status: 🟢 v0.1
+> Diperbarui: 11 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-M33, TSK-M44, TSK-M45 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-docker-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Dikunci | Satu image `zevrigo:regtest` (node, explorer, miner, CLI, antarmuka web) dari image dasar resmi yang dikunci digest, pengguna biasa uid 10001, data di volume `/data`. `compose.yaml` menjalankan node + explorer; explorer hanya terbuka di `127.0.0.1:28802` komputer host. `compose.publik.yaml` membuka explorer ke publik lewat Cloudflare Tunnel (Bagian 7) |
-| ⏳ Ditunda | Paket testnet (sesudah genesis testnet, TSK-F06), mainnet, seed node publik, image untuk arsitektur lain (arm64), build yang bisa diulang bit demi bit (TSK-F10) |
+| 🟢 Dikunci | Satu image `zevrigo:regtest` (node, explorer, miner, CLI, antarmuka web) dari image dasar resmi yang dikunci digest, pengguna biasa uid 10001, data di volume `/data`. `compose.yaml` menjalankan node + explorer; explorer hanya terbuka di `127.0.0.1:28802` komputer host. `compose.publik.yaml` membuka explorer dan seed P2P WebSocket regtest ke publik lewat Cloudflare Tunnel (Bagian 7) |
+| ⏳ Ditunda | Paket testnet (sesudah genesis testnet, TSK-F06), mainnet, seed testnet, image untuk arsitektur lain (arm64), build yang bisa diulang bit demi bit (TSK-F10) |
 | ➡️ Langkah berikutnya | Paket testnet: node `--testnet`, explorer `--testnet`, tunnel ke port 18802. Batas laju per pengunjung di belakang tunnel selesai (TSK-M43) |
 
 Paket Docker hanya membungkus program yang sudah ada. Tidak ada aturan chain, kunci, atau data baru di dalamnya.
@@ -82,29 +82,35 @@ bisa dijangkau dari host; `docker compose down -v` membersihkan container dan vo
 | DEC-10 bagian 9 | Image dasar Docker Bagian 1, dikunci digest, hanya untuk paket Docker | 🟢 3 November 2026 (konsekuensi TSK-M33, pilihan pencipta) |
 | DEC-10 bagian 9 (tambahan) | Image resmi `cloudflare/cloudflared` 2026.10.7, digest `sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba` (Q120), hanya di `compose.publik.yaml` | 🟢 11 November 2026 (pilihan pencipta: explorer publik sementara lewat Cloudflare) |
 
-## 7. Explorer publik lewat Cloudflare Tunnel (`compose.publik.yaml`, TSK-M44)
+## 7. Explorer dan seed P2P publik lewat Cloudflare Tunnel (`compose.publik.yaml`, TSK-M44, TSK-M45)
 
-Sementara (sebelum VPS), explorer dibuka ke internet dari komputer pencipta lewat Cloudflare Tunnel dengan domain
-`ratuaurion.store`. `cloudflared` hanya membuat koneksi keluar ke Cloudflare; tidak ada port router yang dibuka, dan alamat
-IP komputer pencipta tidak terlihat oleh pengunjung. HTTPS dan perlindungan DDoS di sisi Cloudflare.
+Sementara (sebelum VPS), explorer dan seed P2P dibuka ke internet dari komputer pencipta lewat Cloudflare Tunnel dengan
+domain `ratuaurion.store`. `cloudflared` hanya membuat koneksi keluar ke Cloudflare; tidak ada port router yang dibuka, dan
+alamat IP komputer pencipta tidak terlihat oleh pengunjung. HTTPS dan perlindungan DDoS di sisi Cloudflare.
 
 | Hal | Isi |
 |---|---|
 | Pemakaian | Dipakai bersama `compose.yaml` (`-f compose.yaml -f compose.publik.yaml`), project `zevrigo-publik` (volume sendiri `zevrigo-publik_zvrg-data`) |
-| `node` | Port host dicabut (`ports: !reset []`); RPC dan P2P tetap hanya di dalam namespace |
+| `node` | Port host dicabut (`ports: !reset []`); RPC dan P2P TCP tetap hanya di dalam namespace. `--p2p-ws-port 28803` (TSK-M45): P2P WebSocket `/ws` di `127.0.0.1:28803` dalam namespace, hanya dicapai lewat `cloudflared` |
 | `explorer` | `--web-dir /usr/share/zevrigo/web --trust-proxy`, mendengar di `127.0.0.1:28802` (bawaan) di dalam namespace node; tidak bisa dijangkau dari host maupun container lain |
-| `cloudflared` | Image resmi dikunci digest (Bagian 6), `tunnel --no-autoupdate run`, berbagi namespace jaringan dengan `node`, sehingga sampai ke explorer lewat loopback |
+| `cloudflared` | Image resmi dikunci digest (Bagian 6), `tunnel --no-autoupdate run`, berbagi namespace jaringan dengan `node`, sehingga sampai ke explorer dan WebSocket P2P lewat loopback |
 | Token | `${HOME}/.zevrigo-tunnel.env` di luar repo, izin `600`, satu baris `TUNNEL_TOKEN=` diikuti token dari dasbor Cloudflare Zero Trust (Networks, Tunnels, Install and run, pilihan Docker). Token tidak pernah ditulis ke repo, log skrip, atau chat |
-| Public hostname | Diatur di dasbor Cloudflare: `zevrigo.ratuaurion.store` (satu tingkat, tercakup sertifikat `*.ratuaurion.store`; subdomain lain di domain ini milik proyek lain), tipe HTTP, URL `localhost:28802` (testnet nanti `localhost:18802`) |
+| Public hostname | Diatur di dasbor Cloudflare (tab Routes, Published application), keduanya tipe **HTTP** (bukan HTTPS: TLS diputus Cloudflare): `zevrigo.ratuaurion.store` → `localhost:28802` (explorer) dan `zevrigo-seed.ratuaurion.store` → `localhost:28803` (seed P2P WebSocket). Satu tingkat, tercakup sertifikat `*.ratuaurion.store`; subdomain lain di domain ini milik proyek lain. Testnet nanti `localhost:18802` dan `localhost:18803` |
+| Bergabung ke seed | `zevrigo-node --regtest --datadir <folder> --connect /dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/<PeerId seed>`. PeerId seed tercetak di log node (`p2p-ws: …`) dan tetap selama volume data sama. Keepalive `status` 60 detik menjaga WebSocket tetap hidup (Cloudflare menutup yang diam sekitar 100 detik) |
 
 Keamanan `--trust-proxy` (Spesifikasi Explorer v0.1 Bagian 6): yang tersambung ke explorer lewat loopback hanya
 `cloudflared` dan proses di namespace yang sama (node dan miner, yang tidak memakai HTTP explorer). Siapa pun yang memegang
 token bisa menjalankan tunnel ini; jika token bocor, token diganti di dasbor Cloudflare.
 
+Seed regtest (pilihan pencipta, DEC-33) hanya bukti P2P: dengan PoW dev siapa pun yang tersambung bisa menambang instan.
+Semua peserta masuk lewat `cloudflared`, jadi tampak dari 127.0.0.1: batas 32 koneksi masuk dibagi bersama dan blokir
+hanya per `PeerId`.
+
 ```bash
 docker compose -f compose.yaml -f compose.publik.yaml build node
 docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared
 docker compose -f compose.yaml -f compose.publik.yaml logs -f cloudflared
+docker compose -f compose.yaml -f compose.publik.yaml logs --no-log-prefix node | grep '^p2p-ws:'
 docker compose -f compose.yaml -f compose.publik.yaml down
 ```
 
@@ -112,3 +118,7 @@ Gerbang (Q121): token ada dengan izin `600` (isinya tidak dibaca ke log), konfig
 dibangun ulang dengan `--trust-proxy`, `cloudflared` mencatat koneksi tunnel, miner di dalam namespace menambang 5 blok,
 lalu dari luar `https://zevrigo.ratuaurion.store/api/v1/status` menjawab `network` regtest dengan tinggi indeks paling
 sedikit 5 dan halaman `/` menjawab `200`.
+
+Gerbang seed (Q122): node mencetak `p2p-ws:`; node di container lain (jaringan Docker biasa, lewat internet) tersambung
+ke `zevrigo-seed.ratuaurion.store` dengan alamat di atas, mengejar tinggi seed, menerima blok baru lewat siaran, dan masih
+tersambung sesudah 150 detik; explorer publik tetap menjawab.
