@@ -1,0 +1,39 @@
+# Explorer publik lewat Cloudflare Tunnel (TSK-M44, Spesifikasi Docker v0.1 Bagian 7). Dipakai bersama compose.yaml:
+#
+#   docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared
+#   docker compose -f compose.yaml -f compose.publik.yaml down
+#
+# Token tunnel TIDAK disimpan di repo. File ${HOME}/.zevrigo-tunnel.env (izin 600) berisi satu baris: TUNNEL_TOKEN= lalu
+# token dari dasbor Cloudflare Zero Trust (Networks, Tunnels). Public hostname tunnel: zevrigo.ratuaurion.store, tipe HTTP,
+# URL localhost:28802.
+#
+# Explorer mendengar di 127.0.0.1 (bawaan) di dalam namespace jaringan node. Satu-satunya jalan masuk dari luar adalah
+# cloudflared yang berbagi namespace itu, sehingga --trust-proxy aman (TSK-M43). Port host dari compose.yaml dicabut;
+# RPC dan P2P node tetap tidak terbuka. Project terpisah (zevrigo-publik), jadi volume datanya terpisah dari compose.yaml
+# biasa. Saat ini regtest (uji); testnet menyusul bersama genesis testnet (TSK-F06).
+name: zevrigo-publik
+
+services:
+  node:
+    ports: !reset []
+
+  explorer:
+    command:
+      - --regtest
+      - --datadir
+      - /data
+      - --web-dir
+      - /usr/share/zevrigo/web
+      - --trust-proxy
+
+  cloudflared:
+    # cloudflared 2026.10.7 (Q120, 11 November 2026), image resmi Cloudflare dikunci digest (DEC-10 bagian 9).
+    image: cloudflare/cloudflared@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba
+    command: ["tunnel", "--no-autoupdate", "run"]
+    env_file:
+      - ${HOME}/.zevrigo-tunnel.env
+    network_mode: "service:node"
+    depends_on:
+      - explorer
+    stop_grace_period: 30s
+    restart: unless-stopped

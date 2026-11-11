@@ -127,6 +127,21 @@ docker compose down
 
 Aturan lengkap di [docs/reference/spesifikasi-docker-v0.1.md](docs/reference/spesifikasi-docker-v0.1.md).
 
+### Explorer publik lewat Cloudflare Tunnel
+
+`compose.publik.yaml` membuka explorer ke internet lewat Cloudflare Tunnel tanpa membuka port router. Token tunnel
+disimpan di luar repo, di `~/.zevrigo-tunnel.env` (izin `600`, satu baris `TUNNEL_TOKEN=` diikuti token dari dasbor
+Cloudflare Zero Trust). Public hostname tunnel diarahkan ke `localhost:28802`.
+
+```bash
+docker compose -f compose.yaml -f compose.publik.yaml build node
+docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared
+docker compose -f compose.yaml -f compose.publik.yaml down
+```
+
+RPC dan P2P node tidak terbuka, explorer hanya bisa dicapai lewat tunnel, dan batas laju berlaku per pengunjung
+(`--trust-proxy`). Saat ini regtest (uji); testnet menyusul. Rincian di Spesifikasi Docker v0.1 Bagian 7.
+
 ## Lisensi
 
 Dilisensikan dengan salah satu dari berikut, sesuai pilihan Anda (DEC-02):

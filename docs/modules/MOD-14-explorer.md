@@ -3,7 +3,7 @@
 - **ID:** `MOD-14`
 - **Path:** `apps/explorer`
 - **Paket:** `zevrigo-explorer` (bin)
-- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), paket Docker regtest (TSK-M33), batas laju API (TSK-M40), dan batas laju di belakang Cloudflare Tunnel (TSK-M43) selesai; paket Docker testnet + `cloudflared` berikutnya
+- **Status:** 🟡 indexer (TSK-M29), API dan program (TSK-M30), uji ujung ke ujung (TSK-F05), penyajian web `--web-dir` (TSK-M31), antarmuka web Next.js + Tailwind + shadcn/ui (TSK-M38, menggantikan TSK-M32), tampilan hanya data sistem (TSK-M39, DEC-28), paket Docker regtest (TSK-M33), batas laju API (TSK-M40), batas laju di belakang Cloudflare Tunnel (TSK-M43), dan explorer publik lewat tunnel dengan regtest (TSK-M44) selesai; explorer testnet publik berikutnya
 - **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-04`, `MOD-08` (DEC-25; `MOD-09` tidak dipakai lagi sejak DEC-28); pustaka `axum`, `rusqlite` (DEC-10 bagian 6), `sha2` (bagian 4)
 - **Dipakai oleh:** `MOD-17` (hanya dev-dependency, DEC-25)
 
@@ -49,3 +49,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-M33](../tasks/TSK-M33-paket-docker.md) — 🟢 selesai (paket Docker regtest: node + explorer + web, opsi `--http-bind`)
 - [TSK-M40](../tasks/TSK-M40-batas-laju-api.md) — 🟢 selesai (batas laju API per klien dan bersama, `429 rate_limited`)
 - [TSK-M43](../tasks/TSK-M43-explorer-trust-proxy.md) — 🟢 selesai (batas laju per pengunjung di belakang Cloudflare Tunnel, `--trust-proxy`)
+- [TSK-M44](../tasks/TSK-M44-explorer-publik-tunnel.md) — 🟢 selesai (explorer publik lewat Cloudflare Tunnel, `compose.publik.yaml`)
