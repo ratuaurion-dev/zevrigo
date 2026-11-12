@@ -23,6 +23,7 @@ Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai ·
 | MOD-15 | `apps/wallet` | zevrigo-wallet | Wallet desktop Tauri 2 (testnet, regtest) | MOD-01, 09, 12 | 🟡 |
 | MOD-16 | `apps/merchant` | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 | ⚪ |
 | MOD-17 | `tests/integration` | `zevrigo-integration-tests` | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, 13 (DEC-20), 12 (DEC-23), 14 (DEC-25) | 🟡 |
+| MOD-18 | `apps/demo` | (belum dibuat) | Layanan demo regtest: gerbang RPC, faucet, pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 | ⚪ |
 
 ## Diagram Dependensi Modul
 
@@ -47,6 +48,7 @@ graph LR
     MOD15["MOD-15 wallet"]
     MOD16["MOD-16 merchant"]
     MOD17["MOD-17 integration-tests"]
+    MOD18["MOD-18 demo"]
 
     MOD02 --> MOD01
     MOD03 --> MOD01
@@ -92,6 +94,11 @@ graph LR
     MOD16 --> MOD08
     MOD16 --> MOD10
 
+    MOD18 --> MOD01
+    MOD18 --> MOD02
+    MOD18 --> MOD08
+    MOD18 --> MOD09
+
     MOD17 --> MOD01
     MOD17 --> MOD02
     MOD17 --> MOD03
@@ -112,17 +119,18 @@ graph LR
 
 Keterangan: ● = memakai atau mengubah modul · ○ = hanya membaca
 
-| Fitur ↓ / Modul → | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| FTR-01 Node regtest | ● | ● | ● | ● | ● | | | ● | | | ● | | | | | | ● |
-| FTR-02 Menambang | ● | | ● | ● | ○ | | | ● | | | ● | | ● | | | | ● |
-| FTR-03 Kirim dan terima | ● | ● | | ● | ○ | | ● | ● | ● | | ● | ● | ● | | | | ● |
-| FTR-04 Multi-node | ○ | | | ● | ● | ● | ○ | | | | ● | | | | | | ● |
-| FTR-05 Explorer | ○ | ○ | | ○ | | | | ● | ○ | | ○ | | ○ | ● | | | ● |
-| FTR-06 Testnet publik | ● | ● | ● | ● | ● | ● | ● | ● | ● | | ● | ● | ● | ● | | | ● |
-| FTR-07 Wallet desktop | ○ | | | | | | | ● | ● | | | | | | ● | | |
-| FTR-08 Wallet mobile | ○ | | | | | | | ● | ● | | | | | | ● | | |
-| FTR-09 Pelaku usaha | ○ | | | | | | | ● | ● | ● | | | | | | ● | |
-| FTR-10 Rilis | | | | | | | | | | | ● | ● | ● | ● | ● | ● | |
+| Fitur ↓ / Modul → | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FTR-01 Node regtest | ● | ● | ● | ● | ● | | | ● | | | ● | | | | | | ● | |
+| FTR-02 Menambang | ● | | ● | ● | ○ | | | ● | | | ● | | ● | | | | ● | |
+| FTR-03 Kirim dan terima | ● | ● | | ● | ○ | | ● | ● | ● | | ● | ● | ● | | | | ● | |
+| FTR-04 Multi-node | ○ | | | ● | ● | ● | ○ | | | | ● | | | | | | ● | |
+| FTR-05 Explorer | ○ | ○ | | ○ | | | | ● | ○ | | ○ | | ○ | ● | | | ● | |
+| FTR-06 Testnet publik | ● | ● | ● | ● | ● | ● | ● | ● | ● | | ● | ● | ● | ● | | | ● | |
+| FTR-07 Wallet desktop | ○ | | | | | | | ● | ● | | | | | | ● | | | |
+| FTR-08 Wallet mobile | ○ | | | | | | | ● | ● | | | | | | ● | | | |
+| FTR-09 Pelaku usaha | ○ | | | | | | | ● | ● | ● | | | | | | ● | | |
+| FTR-10 Rilis | | | | | | | | | | | ● | ● | ● | ● | ● | ● | | |
+| FTR-11 Demo publik regtest | ○ | | | | | ● | | ● | ● | | ● | ● | ● | ● | ● | | | ● |
 
 **Analisis dampak:** MOD-04 (consensus) dipakai oleh FTR-01 sampai FTR-06; setiap perubahannya wajib diuji ulang lewat MOD-17.

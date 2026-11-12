@@ -1,6 +1,6 @@
-# Fitur: 10 fitur, 5 pertama membentuk jalur menuju testnet
+# Fitur: 11 fitur, 5 pertama membentuk jalur menuju testnet
 
-> Diperbarui: 8 November 2026 · Status keseluruhan: 🟡 FTR-01 sampai FTR-05 dan FTR-07 (v0.1) selesai
+> Diperbarui: 12 November 2026 · Status keseluruhan: 🟡 FTR-01 sampai FTR-05 dan FTR-07 (v0.1) selesai
 
 Fitur adalah kemampuan yang terasa bagi pengguna dan selalu melibatkan lebih dari satu modul.
 Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua task modul yang dibutuhkannya selesai.
@@ -17,6 +17,7 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
 | FTR-08 | Wallet mobile | MOD-09, 15 | TSK-F08 | ⚪ |
 | FTR-09 | Aplikasi pelaku usaha | MOD-08, 09, 10, 16 | TSK-F09 | ⚪ |
 | FTR-10 | Reproducible build dan rilis | semua aplikasi | TSK-F10 | ⚪ |
+| FTR-11 | Demo publik regtest untuk pemula (DEC-34) | MOD-06, 08, 09, 11, 12, 13, 14, 15, 18 | TSK-F11 | ⚪ |
 
 ## Kartu fitur
 
@@ -57,6 +58,15 @@ Fitur dikerjakan lewat task fitur (TSK-F), dan baru boleh dimulai setelah semua 
   (kirim 0,1 ZVRG ke wallet CLI, terkonfirmasi di blok 111).
 - **Belum (menyusul):** tanda tangan installer (DEC-07), build installer reproducible (TSK-F10), keychain sistem operasi,
   mainnet.
+
+### FTR-11 · Demo publik regtest untuk pemula · ⚪
+- **Nilai:** pemula memahami cara kerja Zevrigo dengan mencoba sendiri di jaringan demo yang terasa seperti jaringan
+  sungguhan: wallet di HP, faucet, kirim, menambang, menjalankan node, dan melihat koin Investor Demo terbuka sesuai aturan chain.
+- **Selesai bila:** chain demo diluncurkan tertutup (reset, upacara genesis ke 8 kantong); 5 node operator dan statistik jaringan
+  tampil di explorer; faucet, pendaftaran, dan gerbang RPC menjawab lewat hostname masing-masing; APK Wallet dan APK Explorer
+  bisa diunduh dengan SHA-256; peserta pertama menerima distribusi dan melihat output terkunci di halaman treasury.
+- **Batas:** regtest (PoW dev, chain bisa ditimpa), di komputer pencipta (bisa mati), koin demo tidak bernilai.
+- **Rujukan:** reference/rancangan-ekosistem-demo-v0.1.md.
 
 ### FTR-08 sampai FTR-10 · ⚪
 Dipecah menjadi task nanti. Rujukan: Dokumen Aplikasi Bagian 5, 8, dan 11.

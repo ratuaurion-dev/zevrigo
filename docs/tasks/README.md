@@ -1,6 +1,6 @@
 # Task kerja: FTR-01 sampai FTR-03 selesai, cabang chain dan reorg (TSK-M27) menuju FTR-04
 
-> Diperbarui: 11 November 2026 · Status keseluruhan: 🟡
+> Diperbarui: 12 November 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
@@ -32,6 +32,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-S05 | Pesan P2P (sinkronisasi header dan blok, gossip transaksi) | TSK-M14 | 🟢 v0.1 di [reference/spesifikasi-p2p-v0.1.md](../reference/spesifikasi-p2p-v0.1.md) (DEC-24, DEC-10 bagian 5) |
 | TSK-S06 | Explorer: indeks SQLite tahan reorg, pemeriksaan jumlah koin, API HTTP baca saja, halaman alokasi genesis | TSK-M29, TSK-M30 | 🟢 v0.1 di [reference/spesifikasi-explorer-v0.1.md](../reference/spesifikasi-explorer-v0.1.md) (DEC-25, DEC-10 bagian 6) |
 | TSK-S07 | Antarmuka web explorer: halaman, dua bahasa, format jumlah `bigint`, keamanan, penyajian `--web-dir`, dependensi npm | TSK-M31, TSK-M32, TSK-M38 | 🟢 v0.2 di [reference/spesifikasi-explorer-web-v0.2.md](../reference/spesifikasi-explorer-web-v0.2.md) (DEC-26, DEC-10 bagian 7; v0.1 diganti) |
+| TSK-S08 | Rancangan ekosistem demo regtest untuk pemula: 5 node, statistik jaringan, upacara genesis, treasury dan vesting dipercepat, faucet, pendaftaran, gerbang RPC, dua APK (DEC-34, DEC-35, DEC-36) | TSK-M47 sampai TSK-M59, TSK-F11 | 🟢 v0.1 di [reference/rancangan-ekosistem-demo-v0.1.md](../reference/rancangan-ekosistem-demo-v0.1.md) |
 
 ## Backlog: task modul (TSK-M)
 
@@ -81,6 +82,19 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M44 | repo (Docker) | Explorer publik lewat Cloudflare Tunnel: `compose.publik.yaml` (cloudflared dikunci digest, token di luar repo, port host dicabut), uji regtest di `zevrigo.ratuaurion.store` (Spesifikasi Docker v0.1 Bagian 7) | TSK-M33, TSK-M43 | 🟢 selesai ([kartu](TSK-M44-explorer-publik-tunnel.md)) |
 | TSK-M45 | MOD-06 (`transport`, `service`), MOD-11 (`daemon`, `p2p`), repo (Docker) | Seed P2P regtest lewat Cloudflare Tunnel: transport WebSocket libp2p, alamat `/dns*` lewat resolver sistem, keepalive `status` 60 detik, `--p2p-ws-port`, public hostname `zevrigo-seed.ratuaurion.store` (DEC-33, DEC-10 bagian 12, Spesifikasi P2P v0.1 Bagian 1, 4, 8) | TSK-M14, TSK-M28, TSK-M44 | 🟢 selesai ([kartu](TSK-M45-seed-websocket.md)) |
 | TSK-M46 | repo (Docker) | Miner berkala untuk demo explorer publik regtest: layanan `miner-berkala` di `compose.publik.yaml`, satu blok setiap 120 detik ke kunci NUMS (Spesifikasi Docker v0.1 Bagian 7) | TSK-M44, TSK-M45 | 🟢 selesai ([kartu](TSK-M46-miner-berkala-publik.md)) |
+| TSK-M47 | repo (Docker) | Demo D1: 5 node di `compose.publik.yaml` (seed, penambang, treasury, faucet, pengamat) lewat seed publik, batas RAM dari hasil ukur, daftar PeerId operator, `miner-berkala` ke node penambang dengan alamat wallet tetap (DEC-34) | TSK-M46, TSK-S08 | ⚪ |
+| TSK-M48 | MOD-06, MOD-08, MOD-11 | Demo D2: metode RPC `get_peer_info` (PeerId, arah, waktu tersambung, `status` terakhir, tinggi dan ujung rekan) | TSK-M47 | ⚪ |
+| TSK-M49 | MOD-14 | Demo D2: `/api/v1/network` dan tampilan statistik jaringan (node terhubung, aktif, operator/peserta, alamat penambang 720 blok) | TSK-M48 | ⚪ |
+| TSK-M50 | MOD-09 | Demo D3: output jenis 1 (kunci waktu, m = 1, n = 1): membuat, memindai, saldo terkunci, membelanjakan; pesan pendaftaran bertanda tangan | TSK-S08 | ⚪ |
+| TSK-M51 | MOD-12 | Demo D3: CLI output jenis 1 dan alat distribusi (daftar penerima menjadi transaksi dari kantong `G`, tokenomik v0.1 Bagian 7) | TSK-M50 | ⚪ |
+| TSK-M52 | MOD-14 | Demo D4: halaman treasury dan konfigurasi kantong (DEC-35) | TSK-M51 | ⚪ |
+| TSK-M53 | MOD-18 | Demo D5: inisialisasi `apps/demo` (DEC-36) dan mode `rpc` (gerbang RPC aman untuk HP) | TSK-S08 | ⚪ |
+| TSK-M54 | MOD-18, MOD-14 | Demo D6: mode `faucet` di node faucet (jaringan Docker), halaman faucet di explorer, Turnstile | TSK-M51, TSK-M53 | ⚪ |
+| TSK-M55 | MOD-18 | Demo D7: mode `daftar` (pesan bertanda tangan, antrean siapa cepat dia dapat, alat operator) | TSK-M50, TSK-M53 | ⚪ |
+| TSK-M56 | repo (alat) | Demo D8: toolchain Android di WSL (SDK, NDK, JDK, target Rust) lewat skrip langkah | — | ⚪ |
+| TSK-M57 | MOD-14 (`apps/explorer/android`) | Demo D9: APK Explorer Tauri 2 (antarmuka dibundel, alamat API bisa diatur) dan CORS API explorer (DEC-36) | TSK-M49, TSK-M52, TSK-M56 | ⚪ |
+| TSK-M58 | MOD-15 | Demo D10: APK Wallet Tauri 2 (HTTPS ke gerbang RPC, output jenis 1, faucet, daftar, label REGTEST) | TSK-M50, TSK-M53, TSK-M54, TSK-M55, TSK-M56 | ⚪ |
+| TSK-M59 | MOD-14 | Demo D11: halaman panduan, teks persetujuan, unduh APK + SHA-256 | TSK-M57, TSK-M58 | ⚪ |
 | TSK-M36 | MOD-08, MOD-11, MOD-12 | Metode RPC `scan_mempool`; saldo CLI dan pemilihan koin dengan transaksi tertunda (Spesifikasi RPC 3.9, Wallet Bagian 6) | TSK-M19 | 🟢 selesai ([kartu](TSK-M36-saldo-tertunda.md)) |
 | TSK-M25 | MOD-01 | `enum Network { Mainnet, Testnet, Regtest }` di `params` (Spesifikasi Validasi Bagian 11) | TSK-S02 | 🟢 selesai ([kartu](TSK-M25-primitives-network.md)) |
 
@@ -95,9 +109,10 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-F05 | FTR-05 Explorer minimal | TSK-F01, TSK-M29, TSK-M30, DEC-25 | 🟢 selesai ([kartu](TSK-F05-explorer-minimal.md)) |
 | TSK-F06 | FTR-06 Testnet publik | TSK-F03, F04, F05, TSK-M06 | 🔴 keputusan pencipta: waktu peluncuran dan lokasi seed node |
 | TSK-F07 | FTR-07 Wallet desktop | TSK-F03, TSK-M41, TSK-M42, DEC-31 | 🟢 v0.1: installer Windows NSIS, uji pencipta dengan node regtest (8 November 2026) |
-| TSK-F08 | FTR-08 Wallet mobile | TSK-F07, DEC-04, DEC-05 | ⚪ dipecah nanti |
+| TSK-F08 | FTR-08 Wallet mobile | TSK-F07, DEC-04, DEC-05 | ⚪ dipecah nanti (demo regtest lebih dulu: APK Wallet di TSK-M58, DEC-34) |
 | TSK-F09 | FTR-09 Aplikasi pelaku usaha | TSK-M17, TSK-F07, DEC-06 | ⚪ dipecah nanti |
 | TSK-F10 | FTR-10 Reproducible build dan rilis | TSK-F06, DEC-07 | ⚪ dipecah nanti |
+| TSK-F11 | FTR-11 Demo publik regtest untuk pemula: peluncuran tertutup (reset, upacara genesis), buka pendaftaran, distribusi, pengumuman | TSK-M47 sampai TSK-M59, DEC-34 | ⚪ |
 
 ## Jalur kritis menuju testnet
 

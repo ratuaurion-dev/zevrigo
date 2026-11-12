@@ -15,9 +15,9 @@
 | Dokumen | Isi |
 |---|---|
 | [system-map.md](system-map.md) | Peta modul, dependensi, matriks fitur × modul |
-| [modules/](modules/) | Kartu modul MOD-01 sampai MOD-17 |
-| [features/README.md](features/README.md) | Fitur FTR-01 sampai FTR-10 |
+| [modules/](modules/) | Kartu modul MOD-01 sampai MOD-18 |
+| [features/README.md](features/README.md) | Fitur FTR-01 sampai FTR-11 |
 | [tasks/README.md](tasks/README.md) | Backlog task: modul (TSK-M), fitur (TSK-F), spesifikasi (TSK-S), dan jalur kritis |
-| [decisions/README.md](decisions/README.md) | Keputusan DEC-01 sampai DEC-25 |
+| [decisions/README.md](decisions/README.md) | Keputusan DEC-01 sampai DEC-36 |
 | [glossary.md](glossary.md) | Istilah |
 | [reference/](reference/) | Dokumen Konsep v1.1, Dokumen Aplikasi v0.1, Spesifikasi Format v0.1, Spesifikasi Validasi v0.1, Spesifikasi RPC v0.1, Spesifikasi Wallet v0.1, Spesifikasi P2P v0.1, dan Spesifikasi Explorer v0.1 (sumber kebenaran desain) |
