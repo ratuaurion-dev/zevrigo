@@ -1,7 +1,7 @@
-# Explorer dan seed P2P publik lewat Cloudflare Tunnel (TSK-M44, TSK-M45, TSK-M46, Spesifikasi Docker v0.1 Bagian 7).
+# Explorer dan seed P2P publik lewat Cloudflare Tunnel (TSK-M44, TSK-M45, TSK-M46, TSK-M47, Spesifikasi Docker v0.1 Bagian 7).
 # Dipakai bersama compose.yaml:
 #
-#   docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared miner-berkala
+#   docker compose -f compose.yaml -f compose.publik.yaml up -d
 #   docker compose -f compose.yaml -f compose.publik.yaml down
 #
 # Token tunnel TIDAK disimpan di repo. File ${HOME}/.zevrigo-tunnel.env (izin 600) berisi satu baris: TUNNEL_TOKEN= lalu
@@ -19,9 +19,16 @@
 # terpisah (zevrigo-publik), jadi volume datanya terpisah dari compose.yaml biasa. Saat ini regtest (uji, pilihan
 # pencipta 11 November 2026); testnet menyusul bersama genesis testnet (TSK-F06).
 #
-# miner-berkala (TSK-M46, pilihan pencipta 12 November 2026): agar explorer publik tampak hidup, satu blok regtest
-# ditambang setiap ZVRG_JEDA detik (bawaan 120 = waktu blok target). Hadiah ke kunci NUMS yang tidak bisa dibelanjakan
-# (sama dengan gerbang Q121), jadi tidak ada wallet atau rahasia di container ini. Ganti jeda tanpa mengedit file:
+# Jaringan demo regtest (DEC-34, TSK-M47): 4 node operator lain, masing-masing di container dan volume sendiri, tersambung
+# ke seed lewat alamat publik di atas (lewat internet dan Cloudflare, seperti peserta). Mereka memakai 4 dari 32 slot masuk
+# seed. Tanpa port host; batas 256 MiB dan 0,5 CPU per node (terukur Q125: node sekitar 10 MiB, node baru sinkron 8 detik).
+#   node-penambang  tempat miner-berkala      node-treasury  wallet treasury (operator)
+#   node-faucet     layanan faucet (TSK-M54)   node-pengamat  hanya menerima siaran
+# Alamat seed bisa diganti dengan variabel ZVRG_SEED (misalnya volume seed baru dengan PeerId lain).
+#
+# miner-berkala (TSK-M46, TSK-M47): satu blok regtest setiap ZVRG_JEDA detik (bawaan 120 = waktu blok target), di namespace
+# node-penambang. Hadiah ke payload di /data/payout-penambang (volume node-penambang, dipasang baca saja); selama file itu
+# belum ada atau tidak sah, hadiah ke kunci NUMS yang tidak bisa dibelanjakan (sama dengan gerbang Q121). Ganti jeda:
 #   ZVRG_JEDA=60 docker compose -f compose.yaml -f compose.publik.yaml up -d --no-deps miner-berkala
 name: zevrigo-publik
 
@@ -57,17 +64,75 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        echo "miner-berkala: satu blok setiap $$ZVRG_JEDA detik"
+        echo "miner-berkala: satu blok setiap $$ZVRG_JEDA detik, menunggu node-penambang sinkron 30 detik"
+        sleep 30
         while :; do
-          zevrigo-miner --payout "$$ZVRG_PAYOUT" --blocks 1 || echo "miner-berkala: putaran gagal, dicoba lagi"
+          P=$$(cat /data/payout-penambang 2>/dev/null | tr -d ' \n')
+          case "$$P" in *[!0-9a-f]* | "") P="" ;; esac
+          if [ "$${#P}" -eq 64 ]; then echo "miner-berkala: payout alamat penambang"; else P="$$ZVRG_NUMS"; echo "miner-berkala: payout NUMS (belum ada /data/payout-penambang)"; fi
+          zevrigo-miner --payout "$$P" --blocks 1 || echo "miner-berkala: putaran gagal, dicoba lagi"
           sleep "$$ZVRG_JEDA"
         done
     environment:
-      ZVRG_PAYOUT: 50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
+      ZVRG_NUMS: 50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
       ZVRG_JEDA: ${ZVRG_JEDA:-120}
-    network_mode: "service:node"
+    volumes:
+      - zvrg-penambang:/data:ro
+    network_mode: "service:node-penambang"
     init: true
     depends_on:
-      - node
+      - node-penambang
+    mem_limit: 256m
+    cpus: 0.5
     stop_grace_period: 10s
     restart: unless-stopped
+
+  node-penambang:
+    image: zevrigo:regtest
+    pull_policy: never
+    command: &node-operator ["--regtest", "--datadir", "/data", "--connect", "${ZVRG_SEED:-/dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/12D3KooWAGJ2ax5LCU89ZeSg32yxndQSzkpTjv3fD3izZohY5rBa}"]
+    volumes:
+      - zvrg-penambang:/data
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+  node-treasury:
+    image: zevrigo:regtest
+    pull_policy: never
+    command: *node-operator
+    volumes:
+      - zvrg-treasury:/data
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+  node-faucet:
+    image: zevrigo:regtest
+    pull_policy: never
+    command: *node-operator
+    volumes:
+      - zvrg-faucet:/data
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+  node-pengamat:
+    image: zevrigo:regtest
+    pull_policy: never
+    command: *node-operator
+    volumes:
+      - zvrg-pengamat:/data
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+volumes:
+  zvrg-penambang:
+  zvrg-treasury:
+  zvrg-faucet:
+  zvrg-pengamat:

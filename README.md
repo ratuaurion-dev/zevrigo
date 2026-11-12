@@ -140,15 +140,18 @@ Cloudflare Zero Trust). Dua public hostname tunnel, keduanya tipe HTTP: `zevrigo
 
 ```bash
 docker compose -f compose.yaml -f compose.publik.yaml build node
-docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared miner-berkala
+docker compose -f compose.yaml -f compose.publik.yaml up -d
 docker compose -f compose.yaml -f compose.publik.yaml down
 ```
 
 RPC dan P2P TCP node tidak terbuka, explorer dan seed hanya bisa dicapai lewat tunnel, dan batas laju explorer berlaku per
-pengunjung (`--trust-proxy`). Layanan `miner-berkala` menambang satu blok regtest setiap 120 detik (waktu blok target)
-dengan hadiah ke kunci yang tidak bisa dibelanjakan, sehingga explorer publik terus menampilkan blok baru. Jeda bisa
-diganti dengan `ZVRG_JEDA=<detik>` saat `up`, dan layanan ini bisa dihentikan sendiri dengan
-`docker compose -f compose.yaml -f compose.publik.yaml stop miner-berkala`. Node lain bergabung ke seed dengan:
+pengunjung (`--trust-proxy`). Selain seed, empat node operator jaringan demo (`node-penambang`, `node-treasury`,
+`node-faucet`, `node-pengamat`) berjalan di container sendiri dan tersambung ke seed lewat alamat publik, sama seperti
+peserta. Layanan `miner-berkala` di node penambang menambang satu blok regtest setiap 120 detik (waktu blok target),
+sehingga explorer publik terus menampilkan blok baru. Jeda bisa diganti dengan `ZVRG_JEDA=<detik>` saat `up`, dan layanan ini
+bisa dihentikan sendiri dengan `docker compose -f compose.yaml -f compose.publik.yaml stop miner-berkala`. Rancangan jaringan
+demo: [docs/reference/rancangan-ekosistem-demo-v0.1.md](docs/reference/rancangan-ekosistem-demo-v0.1.md). Node lain bergabung
+ke seed dengan:
 
 ```bash
 zevrigo-node --regtest --datadir ~/.zevrigo \
