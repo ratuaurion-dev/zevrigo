@@ -1,7 +1,7 @@
-# Explorer dan seed P2P publik lewat Cloudflare Tunnel (TSK-M44, TSK-M45, Spesifikasi Docker v0.1 Bagian 7). Dipakai
-# bersama compose.yaml:
+# Explorer dan seed P2P publik lewat Cloudflare Tunnel (TSK-M44, TSK-M45, TSK-M46, Spesifikasi Docker v0.1 Bagian 7).
+# Dipakai bersama compose.yaml:
 #
-#   docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared
+#   docker compose -f compose.yaml -f compose.publik.yaml up -d node explorer cloudflared miner-berkala
 #   docker compose -f compose.yaml -f compose.publik.yaml down
 #
 # Token tunnel TIDAK disimpan di repo. File ${HOME}/.zevrigo-tunnel.env (izin 600) berisi satu baris: TUNNEL_TOKEN= lalu
@@ -18,6 +18,11 @@
 # RPC dan P2P TCP node tetap tidak terbuka; P2P WebSocket hanya di 127.0.0.1:28803 dan dicapai lewat cloudflared. Project
 # terpisah (zevrigo-publik), jadi volume datanya terpisah dari compose.yaml biasa. Saat ini regtest (uji, pilihan
 # pencipta 11 November 2026); testnet menyusul bersama genesis testnet (TSK-F06).
+#
+# miner-berkala (TSK-M46, pilihan pencipta 12 November 2026): agar explorer publik tampak hidup, satu blok regtest
+# ditambang setiap ZVRG_JEDA detik (bawaan 120 = waktu blok target). Hadiah ke kunci NUMS yang tidak bisa dibelanjakan
+# (sama dengan gerbang Q121), jadi tidak ada wallet atau rahasia di container ini. Ganti jeda tanpa mengedit file:
+#   ZVRG_JEDA=60 docker compose -f compose.yaml -f compose.publik.yaml up -d --no-deps miner-berkala
 name: zevrigo-publik
 
 services:
@@ -44,4 +49,25 @@ services:
     depends_on:
       - explorer
     stop_grace_period: 30s
+    restart: unless-stopped
+
+  miner-berkala:
+    image: zevrigo:regtest
+    pull_policy: never
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "miner-berkala: satu blok setiap $$ZVRG_JEDA detik"
+        while :; do
+          zevrigo-miner --payout "$$ZVRG_PAYOUT" --blocks 1 || echo "miner-berkala: putaran gagal, dicoba lagi"
+          sleep "$$ZVRG_JEDA"
+        done
+    environment:
+      ZVRG_PAYOUT: 50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
+      ZVRG_JEDA: ${ZVRG_JEDA:-120}
+    network_mode: "service:node"
+    init: true
+    depends_on:
+      - node
+    stop_grace_period: 10s
     restart: unless-stopped
