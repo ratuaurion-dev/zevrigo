@@ -5,6 +5,8 @@
 //! belakang Cloudflare Tunnel dengan hostname sendiri:
 //! - `rpc` ([`gateway`], TSK-M53): gerbang RPC untuk wallet peserta. Hanya metode aman yang diteruskan ke node, dengan
 //!   batas laju per pengunjung ([`limit`]) tanpa menyimpan alamat IP.
+//! - `upacara` ([`upacara`], TSK-M62): alat operator sekali pakai, upacara genesis regtest (alokasi genesis ke kantong
+//!   treasury). Bukan layanan dan tidak dibuka ke publik.
 //! - `faucet` (TSK-M54) dan `daftar` (TSK-M55): belum tersedia.
 //!
 //! [`cli`] membaca argumen program.
@@ -14,16 +16,21 @@
 pub mod cli;
 pub mod gateway;
 pub mod limit;
+pub mod upacara;
 
 pub use cli::{
     ArgError, Command, DEFAULT_NODE_URL, DEFAULT_RATE, DEFAULT_RPC_PORT, RpcConfig, USAGE,
-    parse_args,
+    UpacaraConfig, parse_args, parse_pocket,
 };
 pub use gateway::{
     ALLOWED_METHODS, CLIENT_IP_HEADER, Call, DemoError, MAX_BODY_BYTES, client_ip, init_logging,
     parse_call, router, run_rpc,
 };
 pub use limit::{Limits, MAX_CLIENTS, Rate, RateLimiter};
+pub use upacara::{
+    GENESIS_PAYLOAD, MAX_POCKETS, Pocket, REGTEST_NETWORK_ID, UpacaraError, build_ceremony,
+    run_command as run_upacara,
+};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-18";

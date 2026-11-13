@@ -4,6 +4,10 @@
 use std::net::{IpAddr, Ipv4Addr};
 
 use thiserror::Error;
+use zevrigo_primitives::{Amount, Network, OutputKind};
+use zevrigo_wallet_core::decode_address;
+
+use crate::upacara::{DEFAULT_FEE_RATE, Pocket};
 
 /// Teks bantuan `--help`.
 pub const USAGE: &str = concat!(
@@ -11,12 +15,16 @@ pub const USAGE: &str = concat!(
     "\n",
     "Pemakaian:\n",
     "  zevrigo-demo rpc [--node-url <url>] [--http-bind <ip>] [--http-port <port>] [--rate <n>] [--trust-proxy]\n",
+    "  zevrigo-demo upacara [--node-url <url>] --kantong <alamat>=<ZVRG>... [--fee-rate <n>] [--kirim]\n",
     "  zevrigo-demo --help | --version\n",
     "\n",
     "Mode:\n",
     "  rpc                 gerbang RPC untuk wallet peserta: hanya get_chain_info, get_block_hash, get_block,\n",
     "                      get_mempool, scan_utxos, scan_mempool, dan send_raw_transaction yang diteruskan ke node;\n",
     "                      metode lain (termasuk get_block_template dan submit_block) dijawab -32601\n",
+    "  upacara             upacara genesis regtest: membelanjakan alokasi genesis (10.000.000 ZVRG, kunci rahasia 1) ke\n",
+    "                      kantong treasury dalam satu transaksi; jumlah semua kantong wajib tepat 10000000 ZVRG, biaya\n",
+    "                      diambil dari kantong terakhir; tanpa --kirim hanya rencana dan txid\n",
     "  faucet, daftar      belum tersedia (TSK-M54, TSK-M55)\n",
     "\n",
     "Opsi mode rpc:\n",
@@ -27,6 +35,12 @@ pub const USAGE: &str = concat!(
     "                      detik (bawaan 20; 0 = tanpa batas). Jawaban di atas batas: 429 rate_limited\n",
     "  --trust-proxy       di belakang Cloudflare Tunnel: untuk koneksi dari 127.0.0.1 atau ::1, batas laju memakai\n",
     "                      alamat pengunjung dari kepala CF-Connecting-IP; koneksi dari alamat lain tidak terpengaruh\n",
+    "\n",
+    "Opsi mode upacara:\n",
+    "  --node-url <url>    node JSON-RPC regtest (bawaan http://127.0.0.1:28801)\n",
+    "  --kantong <a>=<z>   alamat regtest jenis 0 (rzvrg1q...) dan jumlah ZVRG; 1 sampai 16 kali, urut seperti ditulis\n",
+    "  --fee-rate <n>      tarif biaya quanta per byte (bawaan 1)\n",
+    "  --kirim             kirim transaksi ke node (tanpa opsi ini: rencana saja)\n",
     "\n",
     "Setelah siap, alamat dengar dicetak ke stdout sebagai `http: http://<alamat>`. Log ditulis ke stderr tanpa alamat\n",
     "pengunjung, metode, atau parameter. Program berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
@@ -51,6 +65,21 @@ pub enum Command {
     Version,
     /// Menjalankan gerbang RPC (mode `rpc`).
     Rpc(RpcConfig),
+    /// Upacara genesis regtest (mode `upacara`).
+    Upacara(UpacaraConfig),
+}
+
+/// Konfigurasi mode `upacara`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct UpacaraConfig {
+    /// URL JSON-RPC node regtest.
+    pub node_url: String,
+    /// Kantong tujuan, urut seperti ditulis.
+    pub pockets: Vec<Pocket>,
+    /// Tarif biaya quanta per byte.
+    pub fee_rate: u128,
+    /// Kirim transaksi ke node (`--kirim`).
+    pub send: bool,
 }
 
 /// Konfigurasi mode `rpc`.
@@ -99,6 +128,20 @@ pub enum ArgError {
     /// Batas laju bukan bilangan 0 sampai 4294967295.
     #[error("batas laju tidak sah: {0}")]
     InvalidRate(String),
+    /// Nilai `--kantong` tidak sah.
+    #[error("kantong tidak sah ({reason}): {value}")]
+    InvalidPocket {
+        /// Nilai yang ditulis.
+        value: String,
+        /// Alasan.
+        reason: &'static str,
+    },
+    /// Mode `upacara` tanpa `--kantong`.
+    #[error("mode upacara wajib memakai --kantong paling sedikit sekali")]
+    MissingPockets,
+    /// Tarif biaya bukan bilangan bulat tak bertanda.
+    #[error("tarif biaya tidak sah: {0}")]
+    InvalidFeeRate(String),
     /// `--help` atau `--version` digabung dengan argumen lain.
     #[error("--help dan --version tidak boleh digabung dengan argumen lain")]
     Exclusive,
@@ -132,6 +175,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mode = iter.next().ok_or(ArgError::MissingMode)?;
     match mode.as_str() {
         "rpc" => parse_rpc(iter).map(Command::Rpc),
+        "upacara" => parse_upacara(iter).map(Command::Upacara),
         "faucet" => Err(ArgError::NotYet("faucet")),
         "daftar" => Err(ArgError::NotYet("daftar")),
         "--help" | "-h" | "--version" => Err(ArgError::Exclusive),
@@ -201,6 +245,80 @@ fn parse_rpc(mut iter: impl Iterator<Item = String>) -> Result<RpcConfig, ArgErr
         http_port: http_port.unwrap_or(DEFAULT_RPC_PORT),
         rate: rate.unwrap_or(DEFAULT_RATE),
         trust_proxy,
+    })
+}
+
+/// Membaca satu `--kantong <alamat>=<ZVRG>`: alamat regtest jenis 0 dan jumlah ZVRG lebih dari nol.
+///
+/// # Errors
+///
+/// [`ArgError::InvalidPocket`] dengan alasan yang dilanggar.
+pub fn parse_pocket(value: &str) -> Result<Pocket, ArgError> {
+    let bad = |reason| ArgError::InvalidPocket {
+        value: value.to_owned(),
+        reason,
+    };
+    let (address, amount) = value
+        .split_once('=')
+        .ok_or_else(|| bad("format <alamat>=<ZVRG>"))?;
+    let (kind, payload) = decode_address(Network::Regtest, address.trim())
+        .map_err(|_| bad("alamat regtest tidak sah"))?;
+    if kind != OutputKind::SingleKey {
+        return Err(bad("alamat wajib jenis 0 (rzvrg1q...)"));
+    }
+    let amount = Amount::from_zvrg_str(amount.trim())
+        .ok()
+        .filter(|amount| *amount != Amount::ZERO)
+        .ok_or_else(|| bad("jumlah ZVRG tidak sah"))?;
+    Ok(Pocket { payload, amount })
+}
+
+/// Membaca opsi mode `upacara`.
+fn parse_upacara(mut iter: impl Iterator<Item = String>) -> Result<UpacaraConfig, ArgError> {
+    let mut node_url: Option<String> = None;
+    let mut pockets = Vec::new();
+    let mut fee_rate: Option<u128> = None;
+    let mut send = false;
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--node-url" => {
+                if node_url.is_some() {
+                    return Err(ArgError::Duplicate("--node-url"));
+                }
+                node_url = Some(value_of(&mut iter, "--node-url")?);
+            }
+            "--kantong" => {
+                let value = value_of(&mut iter, "--kantong")?;
+                pockets.push(parse_pocket(&value)?);
+            }
+            "--fee-rate" => {
+                if fee_rate.is_some() {
+                    return Err(ArgError::Duplicate("--fee-rate"));
+                }
+                let value = value_of(&mut iter, "--fee-rate")?;
+                let rate = value
+                    .parse::<u128>()
+                    .map_err(|_| ArgError::InvalidFeeRate(value.clone()))?;
+                fee_rate = Some(rate);
+            }
+            "--kirim" => {
+                if send {
+                    return Err(ArgError::Duplicate("--kirim"));
+                }
+                send = true;
+            }
+            "--help" | "-h" | "--version" => return Err(ArgError::Exclusive),
+            _ => return Err(ArgError::Unknown(arg)),
+        }
+    }
+    if pockets.is_empty() {
+        return Err(ArgError::MissingPockets);
+    }
+    Ok(UpacaraConfig {
+        node_url: node_url.unwrap_or_else(|| DEFAULT_NODE_URL.to_owned()),
+        pockets,
+        fee_rate: fee_rate.unwrap_or(DEFAULT_FEE_RATE),
+        send,
     })
 }
 

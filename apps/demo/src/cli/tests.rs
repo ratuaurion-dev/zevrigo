@@ -1,9 +1,13 @@
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
+use zevrigo_primitives::{Amount, Network, OutputKind};
+use zevrigo_wallet_core::encode_address;
+
 use super::{
     ArgError, Command, DEFAULT_NODE_URL, DEFAULT_RATE, DEFAULT_RPC_PORT, RpcConfig, USAGE,
-    parse_args,
+    UpacaraConfig, parse_args, parse_pocket,
 };
+use crate::upacara::Pocket;
 
 fn args(list: &[&str]) -> Vec<String> {
     list.iter().map(|arg| (*arg).to_owned()).collect()
@@ -119,4 +123,124 @@ fn rejects_bad_arguments() {
         ArgError::NotYet("faucet").to_string(),
         "mode faucet belum tersedia"
     );
+}
+
+fn address(network: Network, kind: OutputKind, byte: u8) -> String {
+    encode_address(network, kind, &[byte; 32])
+}
+
+#[test]
+fn parses_upacara_mode() {
+    let a = address(Network::Regtest, OutputKind::SingleKey, 0x11);
+    let b = address(Network::Regtest, OutputKind::SingleKey, 0x22);
+    let first = format!("{a}=9999999.5");
+    let second = format!("{b}=0.5");
+    assert_eq!(
+        parse_args(args(&[
+            "upacara",
+            "--kantong",
+            &first,
+            "--kantong",
+            &second
+        ])),
+        Ok(Command::Upacara(UpacaraConfig {
+            node_url: "http://127.0.0.1:28801".to_owned(),
+            pockets: vec![
+                Pocket {
+                    payload: [0x11; 32],
+                    amount: Amount::from_zvrg_str("9999999.5").unwrap(),
+                },
+                Pocket {
+                    payload: [0x22; 32],
+                    amount: Amount::from_zvrg_str("0.5").unwrap(),
+                },
+            ],
+            fee_rate: 1,
+            send: false,
+        }))
+    );
+    let Ok(Command::Upacara(config)) = parse_args(args(&[
+        "upacara",
+        "--kirim",
+        "--fee-rate",
+        "3",
+        "--node-url",
+        "http://127.0.0.1:38801",
+        "--kantong",
+        &first,
+    ])) else {
+        unreachable!("argumen upacara sah");
+    };
+    assert_eq!(
+        (
+            config.node_url.as_str(),
+            config.fee_rate,
+            config.send,
+            config.pockets.len()
+        ),
+        ("http://127.0.0.1:38801", 3, true, 1)
+    );
+    assert!(USAGE.contains("upacara") && USAGE.contains("--kantong") && USAGE.contains("--kirim"));
+}
+
+#[test]
+fn rejects_bad_pockets() {
+    let good = address(Network::Regtest, OutputKind::SingleKey, 0x11);
+    let testnet = address(Network::Testnet, OutputKind::SingleKey, 0x11);
+    let condition = address(Network::Regtest, OutputKind::ConditionHash, 0x11);
+    for (value, reason) in [
+        (good.clone(), "format <alamat>=<ZVRG>"),
+        (format!("{testnet}=1"), "alamat regtest tidak sah"),
+        ("bukan-alamat=1".to_owned(), "alamat regtest tidak sah"),
+        (
+            format!("{condition}=1"),
+            "alamat wajib jenis 0 (rzvrg1q...)",
+        ),
+        (format!("{good}=0"), "jumlah ZVRG tidak sah"),
+        (format!("{good}=-1"), "jumlah ZVRG tidak sah"),
+        (
+            format!("{good}=1.1234567890123456789"),
+            "jumlah ZVRG tidak sah",
+        ),
+    ] {
+        assert_eq!(
+            parse_pocket(&value),
+            Err(ArgError::InvalidPocket {
+                value: value.clone(),
+                reason
+            }),
+            "{value}"
+        );
+    }
+    assert_eq!(
+        parse_args(args(&["upacara"])),
+        Err(ArgError::MissingPockets)
+    );
+    let pocket = format!("{good}=1");
+    for (list, error) in [
+        (
+            vec![
+                "upacara",
+                "--kantong",
+                pocket.as_str(),
+                "--kirim",
+                "--kirim",
+            ],
+            ArgError::Duplicate("--kirim"),
+        ),
+        (
+            vec!["upacara", "--kantong", pocket.as_str(), "--fee-rate", "x"],
+            ArgError::InvalidFeeRate("x".to_owned()),
+        ),
+        (
+            vec!["upacara", "--kantong", pocket.as_str(), "--rate", "1"],
+            ArgError::Unknown("--rate".to_owned()),
+        ),
+        (
+            vec!["upacara", "--kantong"],
+            ArgError::MissingValue("--kantong"),
+        ),
+    ] {
+        assert_eq!(parse_args(args(&list)), Err(error), "{list:?}");
+    }
 }

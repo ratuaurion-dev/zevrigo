@@ -3,8 +3,8 @@
 - **ID:** `MOD-18`
 - **Path:** `apps/demo`
 - **Paket:** `zevrigo-demo` (pustaka + bin)
-- **Status:** 🟡 mode `rpc` (gerbang RPC, TSK-M53); mode `faucet` dan `daftar` belum (DEC-34, DEC-36)
-- **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-08`, `MOD-09` (DEC-36; mode `rpc` hanya memakai `MOD-08`)
+- **Status:** 🟡 mode `rpc` (gerbang RPC, TSK-M53) dan alat `upacara` (TSK-M62); mode `faucet` dan `daftar` belum (DEC-34, DEC-36)
+- **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-08`, `MOD-09` (DEC-36; mode `rpc` hanya memakai `MOD-08`, `upacara` memakai keempatnya)
 - **Dipakai oleh:** —
 
 ## Tujuan
@@ -24,6 +24,12 @@ yang dijalankan sebagai tiga proses di belakang Cloudflare Tunnel, masing-masing
   `429 {"error":"rate_limited"}` dengan `Retry-After: 1`. Modul `limit` adalah salinan pembatas MOD-14 (TSK-M40) karena MOD-18
   tidak bergantung pada MOD-14. Dengan `--trust-proxy`, alamat pengunjung dari `CF-Connecting-IP` hanya untuk koneksi dari
   loopback (pola TSK-M43). Alamat IP tidak disimpan dan tidak dicatat; log tanpa metode atau parameter.
+- `zevrigo-demo upacara [--node-url <url>] --kantong <alamat>=<ZVRG>... [--fee-rate <n>] [--kirim]` (TSK-M62): alat operator
+  sekali pakai untuk upacara genesis regtest. Memeriksa node (jaringan regtest, `network_id` = genesis regtest, output `G`
+  kunci `1` di tinggi 0 indeks 0 masih ada, matang di blok berikutnya), lalu menyusun satu transaksi `G` → 1 sampai 16
+  kantong alamat regtest jenis 0. Jumlah kantong wajib tepat 10.000.000 ZVRG; biaya (tarif × ukuran, bawaan 1 quanta per
+  byte) diambil dari kantong terakhir. Tanda tangan BIP340 kunci `1` dengan `aux_rand` nol (kunci publik), diperiksa ulang
+  sebelum dikirim. Tanpa `--kirim` hanya rencana dan txid. Bukan layanan dan tidak dibuka ke publik.
 - `faucet` (TSK-M54) dan `daftar` (TSK-M55): belum tersedia (`mode ... belum tersedia`).
 
 ## Bukan Tanggung Jawab
@@ -34,5 +40,6 @@ yang dijalankan sebagai tiga proses di belakang Cloudflare Tunnel, masing-masing
 
 ## Task terkait
 - [TSK-M53](../tasks/TSK-M53-gerbang-rpc.md) — 🟢 inisialisasi dan mode `rpc`
+- [TSK-M62](../tasks/TSK-M62-alat-upacara-genesis.md) — 🟢 alat `upacara`
 - [TSK-M54](../tasks/README.md) — ⚪ mode `faucet`
 - [TSK-M55](../tasks/README.md) — ⚪ mode `daftar`

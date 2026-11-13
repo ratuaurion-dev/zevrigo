@@ -11,8 +11,12 @@ name = "zevrigo-demo"
 path = "src/main.rs"
 
 [dependencies]
-# DEC-36: MOD-18 boleh memakai MOD-01, 02, 08, 09. Gerbang RPC (TSK-M53) hanya memakai MOD-08.
+# DEC-36: MOD-18 boleh memakai MOD-01, 02, 08, 09. Gerbang RPC (TSK-M53) hanya memakai MOD-08; upacara genesis (TSK-M62)
+# memakai MOD-01 (transaksi, jumlah), MOD-02 (sighash, tanda tangan BIP340), dan MOD-09 (alamat bech32m).
+zevrigo-crypto.workspace = true
+zevrigo-primitives.workspace = true
 zevrigo-rpc.workspace = true
+zevrigo-wallet-core.workspace = true
 # DEC-10 bagian 13 (DEC-36): server HTTP axum dengan fitur yang sama dengan MOD-14 (`http1`, `tokio`), tanpa paket baru.
 axum = { workspace = true, features = ["http1", "tokio"] }
 # DEC-10 bagian 13: tipe galat klien JSON-RPC (kode, pesan, `data`) untuk diteruskan apa adanya. Fitur sama dengan MOD-08.
@@ -22,9 +26,6 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "time"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true
-
-[dev-dependencies]
-zevrigo-primitives.workspace = true
 
 [lints]
 workspace = true

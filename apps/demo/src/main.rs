@@ -4,7 +4,7 @@
 
 use std::process::ExitCode;
 
-use zevrigo_demo::{Command, USAGE, init_logging, parse_args, run_rpc};
+use zevrigo_demo::{Command, USAGE, init_logging, parse_args, run_rpc, run_upacara};
 
 const BIN_NAME: &str = "zevrigo-demo";
 
@@ -28,6 +28,16 @@ fn main() -> ExitCode {
                 }
             }
         }
+        Ok(Command::Upacara(config)) => match run_upacara(&config) {
+            Ok(text) => {
+                print!("{text}");
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                eprintln!("{BIN_NAME}: {error}");
+                ExitCode::FAILURE
+            }
+        },
         Err(error) => {
             eprintln!("{BIN_NAME}: {error}");
             eprintln!();

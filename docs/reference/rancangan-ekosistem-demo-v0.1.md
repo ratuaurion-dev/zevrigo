@@ -107,7 +107,9 @@ Kunci rahasia output `G` regtest adalah `1` dan sengaja publik, sehingga siapa p
 seed terbuka saat chain baru mencapai blok 100, orang lain bisa memindah `G` lebih dulu. Urutan peluncuran:
 1. Hentikan seed dan explorer publik (route tunnel tidak menjawab).
 2. Reset chain: hapus `regtest/chain.redb` dan indeks explorer di semua volume, simpan `regtest/p2p_key`.
-3. Tambang 101 blok tertutup, kirim transaksi upacara, tambang 1 blok lagi.
+3. Tambang 99 blok tertutup (G boleh dibelanjakan di blok 100), kirim transaksi upacara dengan
+   `zevrigo-demo upacara --kantong <alamat>=<ZVRG>... --kirim` (TSK-M62; tanpa `--kirim` untuk memeriksa rencana lebih
+   dulu), tambang 1 blok lagi.
 4. Periksa 8 kantong di indeks, lalu buka kembali seed dan explorer.
 
 Batas yang diumumkan: siapa pun yang tersambung kemudian tetap bisa menimpa chain dengan chain yang kerjanya lebih banyak
@@ -236,7 +238,7 @@ chain dimajukan ke tahap 1. Tahap 2 tidak butuh reset kedua: vesting dibagi dari
 | 2 | TSK-M53 | `apps/demo` (MOD-18) mode `rpc`: gerbang RPC di `zevrigo-rpc.ratuaurion.store` (Bagian 4.9) | TSK-S08 |
 | 3 | TSK-M60 | HTTPS di klien RPC MOD-08: fitur `tls` `jsonrpsee-http-client` (pilihan pencipta, DEC-10 bagian 14) | TSK-M53 |
 | 4 | TSK-M61 | Wallet desktop versi demo: alamat node bawaan gerbang publik, label "REGTEST: koin demo", installer Windows dibangun GitHub Actions dan ditandatangani SignPath Foundation (DEC-07) | TSK-M60 |
-| 5 | TSK-M62 | Alat upacara genesis regtest: membelanjakan `G` (kunci rahasia `1`) ke 8 kantong (Bagian 4.2); tempatnya ditentukan di kartu | TSK-M47 |
+| 5 | TSK-M62 | Alat upacara genesis regtest `zevrigo-demo upacara` (MOD-18): `G` (kunci rahasia `1`) ke 8 kantong (Bagian 4.2) | TSK-M47 |
 | 6 | TSK-F11 bagian 1 | Peluncuran tertutup (Bagian 4.3): reset, upacara, buka kembali | TSK-M62 |
 | 7 | TSK-M54 | Mode `faucet` di node faucet, halaman faucet di explorer, Turnstile; stok diisi dari kantong Faucet | TSK-M53, TSK-F11 bagian 1 |
 | 8 | TSK-M59 bagian 1 | Halaman panduan dasar, teks persetujuan, unduh installer + SHA-256 | TSK-M61, TSK-M54 |

@@ -6570,8 +6570,10 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "zevrigo-crypto",
  "zevrigo-primitives",
  "zevrigo-rpc",
+ "zevrigo-wallet-core",
 ]
 
 [[package]]

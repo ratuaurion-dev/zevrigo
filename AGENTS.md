@@ -97,7 +97,7 @@ zevrigo/
 | MOD-15 | apps/wallet | zevrigo-wallet (bin, apps/wallet/src-tauri) | Wallet desktop Tauri 2, antarmuka React di apps/wallet/src | MOD-01, 09, 12 (DEC-31) |
 | MOD-16 | apps/merchant | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 |
 | MOD-17 | tests/integration | zevrigo-integration-tests | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, MOD-13 (DEC-20), MOD-12 (DEC-23), MOD-14 (DEC-25) |
-| MOD-18 | apps/demo | zevrigo-demo (bin) | Layanan demo regtest: gerbang RPC (TSK-M53), faucet, pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 |
+| MOD-18 | apps/demo | zevrigo-demo (bin) | Layanan demo regtest: gerbang RPC (TSK-M53), upacara genesis (TSK-M62), faucet, pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 |
 
 Aturan arah dependensi:
 - Crate di `crates/` tidak boleh bergantung pada apa pun di `apps/` atau `tests/`.
