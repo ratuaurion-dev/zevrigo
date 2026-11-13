@@ -1,5 +1,6 @@
 /**
- * Pengaturan: alamat node per jaringan, bahasa, tema, lokasi file wallet, dan lihat frasa pemulihan (password).
+ * Pengaturan: alamat node per jaringan (dengan catatan privasi gerbang demo untuk regtest), bahasa, tema, lokasi file
+ * wallet, dan lihat frasa pemulihan (password).
  */
 
 import { Eye, EyeOff, FolderOpen, Globe, KeyRound, Server } from 'lucide-react';
@@ -102,6 +103,11 @@ export function Settings() {
             <button type="button" onClick={resetRpc} className={secondaryButton}>
               {t.nodeReset}
             </button>
+          )}
+          {network === 'regtest' && (
+            <p data-testid="demo-privacy" className="text-xs text-amber-700 dark:text-amber-300">
+              {t.demoPrivacy}
+            </p>
           )}
         </Card>
 

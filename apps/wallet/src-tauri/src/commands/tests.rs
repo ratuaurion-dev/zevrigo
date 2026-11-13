@@ -10,8 +10,9 @@ use zevrigo_rpc::Hex32;
 use zevrigo_wallet_core::{Mnemonic, SendError};
 
 use super::{
-    BalanceView, CommandError, HistoryView, error_code, new_address_in, new_phrase_words,
-    parse_network, parse_quanta, receive_address_in, restore_in, reveal_in, wallet_info_in,
+    BalanceView, CommandError, DEMO_RPC_URL, HistoryView, error_code, new_address_in,
+    new_phrase_words, parse_network, parse_quanta, receive_address_in, restore_in, reveal_in,
+    wallet_default_rpc_url, wallet_info_in,
 };
 
 const W1: &str = concat!(
@@ -216,10 +217,7 @@ fn restores_wallet_and_keeps_last_receive_address() {
     let datadir = temp_datadir("pulih");
     let info = wallet_info_in(&datadir, Network::Regtest);
     assert!(!info.exists);
-    assert_eq!(
-        info.default_rpc_url,
-        zevrigo_cli::default_rpc_url(Network::Regtest)
-    );
+    assert_eq!(info.default_rpc_url, DEMO_RPC_URL);
     assert!(info.path.ends_with("wallet.json"));
 
     assert_eq!(
@@ -296,4 +294,18 @@ fn restores_wallet_and_keeps_last_receive_address() {
         Some("wallet_missing")
     );
     let _ = std::fs::remove_dir_all(&datadir);
+}
+
+#[test]
+fn regtest_defaults_to_demo_gateway_and_testnet_to_local_node() {
+    assert_eq!(DEMO_RPC_URL, "https://zevrigo-rpc.ratuaurion.store");
+    assert_eq!(wallet_default_rpc_url(Network::Regtest), DEMO_RPC_URL);
+    assert_eq!(
+        wallet_default_rpc_url(Network::Testnet),
+        zevrigo_cli::default_rpc_url(Network::Testnet)
+    );
+    assert_eq!(
+        wallet_default_rpc_url(Network::Testnet),
+        "http://127.0.0.1:18801"
+    );
 }

@@ -161,6 +161,18 @@ zevrigo-node --regtest --datadir ~/.zevrigo \
 
 Saat ini regtest (uji); testnet menyusul. Rincian di Spesifikasi Docker v0.1 Bagian 7.
 
+## Wallet desktop untuk jaringan demo
+
+Installer Windows wallet desktop (MOD-15) diterbitkan di [GitHub Releases](https://github.com/ratuaurion-dev/zevrigo/releases)
+dengan tag `wallet-v<versi>`, dibangun GitHub Actions dari repo ini (`.github/workflows/rilis-wallet.yml`) beserta
+`SHA256SUMS.txt`. Untuk regtest, wallet memakai gerbang demo publik `https://zevrigo-rpc.ratuaurion.store` secara bawaan;
+alamat node bisa diganti di Pengaturan. Koin demo tidak bernilai.
+
+## Code signing policy
+
+Installer Windows belum ditandatangani; permohonan ke SignPath Foundation sedang disiapkan. Aturan penandatanganan, peran
+tim, dan kebijakan privasi: [docs/code-signing-policy.md](docs/code-signing-policy.md).
+
 ## Lisensi
 
 Dilisensikan dengan salah satu dari berikut, sesuai pilihan Anda (DEC-02):

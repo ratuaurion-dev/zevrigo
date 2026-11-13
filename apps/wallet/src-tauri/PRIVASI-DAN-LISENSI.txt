@@ -1,0 +1,77 @@
+ZEVRIGO WALLET 0.2 - KEBIJAKAN PRIVASI DAN LISENSI
+(English below)
+
+1. Jaringan demo
+Versi ini dibuat untuk jaringan demo regtest Zevrigo, untuk belajar. Koin di jaringan
+demo tidak bernilai, tidak bisa dijual, dan bisa hilang kapan saja saat jaringan
+di-reset. Ini bukan penawaran investasi.
+
+2. Data yang dikirim aplikasi
+Aplikasi tidak mengirim analitik, telemetri, atau laporan galat ke mana pun.
+
+Untuk menampilkan saldo dan riwayat serta mengirim koin, aplikasi menghubungi satu node
+Zevrigo, yaitu alamat node yang tertulis di Pengaturan. Yang dikirim ke node itu:
+- alamat (payload kunci publik) milik wallet ini, untuk mencari saldo;
+- permintaan isi blok, untuk menyusun riwayat;
+- transaksi yang sudah ditandatangani di komputer ini.
+Frasa pemulihan, password, dan kunci rahasia tidak pernah dikirim. File wallet dikunci
+password dan disimpan di komputer ini.
+
+Untuk jaringan regtest, node bawaan adalah gerbang demo publik
+https://zevrigo-rpc.ratuaurion.store yang dijalankan pembuat Zevrigo di belakang
+Cloudflare. Gerbang itu bisa melihat alamat mana yang dicek wallet ini, dan alamat IP
+Anda lewat Cloudflare. Gerbang tidak menyimpan alamat IP dan tidak mencatat isi
+permintaan. Cloudflare memproses lalu lintas menurut kebijakan privasinya sendiri:
+https://www.cloudflare.com/privacypolicy/
+
+Untuk jaringan testnet, node bawaan adalah node di komputer Anda sendiri
+(http://127.0.0.1:18801).
+
+3. Cara mematikan
+Buka Pengaturan, bagian Node, lalu isi alamat node Anda sendiri, misalnya
+http://127.0.0.1:28801 untuk zevrigo-node --regtest. Setelah itu aplikasi hanya
+menghubungi node itu. Tombol "Pakai bawaan" mengembalikan gerbang demo.
+
+4. Lisensi
+Dilisensikan dengan MIT atau Apache-2.0, sesuai pilihan Anda.
+Kode sumber: https://github.com/ratuaurion-dev/zevrigo
+Perangkat lunak ini disediakan "apa adanya", tanpa jaminan apa pun.
+
+------------------------------------------------------------------------------------
+
+ZEVRIGO WALLET 0.2 - PRIVACY POLICY AND LICENSE
+
+1. Demo network
+This version is made for the Zevrigo regtest demo network, for learning. Coins on the
+demo network have no value, cannot be sold, and may disappear at any time when the
+network is reset. This is not an investment offer.
+
+2. Data sent by the application
+The application sends no analytics, telemetry, or error reports anywhere.
+
+To show the balance and history and to send coins, the application contacts one Zevrigo
+node: the node address shown in Settings. It sends to that node:
+- addresses (public key payloads) of this wallet, to look up the balance;
+- block requests, to build the history;
+- transactions already signed on this computer.
+The recovery phrase, password, and secret keys are never sent. The wallet file is
+locked with the password and stays on this computer.
+
+For regtest, the default node is the public demo gateway
+https://zevrigo-rpc.ratuaurion.store, run by the Zevrigo creator behind Cloudflare.
+The gateway can see which addresses this wallet checks, and your IP address through
+Cloudflare. The gateway does not store IP addresses and does not log request contents.
+Cloudflare processes the traffic under its own privacy policy:
+https://www.cloudflare.com/privacypolicy/
+
+For testnet, the default node is a node on your own computer (http://127.0.0.1:18801).
+
+3. How to turn it off
+Open Settings, Node section, and enter the address of your own node, for example
+http://127.0.0.1:28801 for zevrigo-node --regtest. The application then contacts only
+that node. "Use default" switches back to the demo gateway.
+
+4. License
+Licensed under MIT or Apache-2.0, at your option.
+Source code: https://github.com/ratuaurion-dev/zevrigo
+This software is provided "as is", without warranty of any kind.

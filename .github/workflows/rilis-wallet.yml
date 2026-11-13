@@ -1,0 +1,114 @@
+# Rilis installer wallet desktop Windows (TSK-M61, DEC-07, DEC-34).
+# Jalan saat pencipta mem-push tag `wallet-v<versi>` (versi sama dengan apps/wallet/src-tauri/tauri.conf.json), atau manual
+# (workflow_dispatch: hanya artefak, tanpa rilis). Dibangun dari commit tag dengan Cargo.lock dan package-lock.json tetap
+# (`--locked`, `npm ci`), lalu membuat rilis DRAF berisi installer NSIS dan SHA256SUMS.txt. Pencipta memeriksa draf lalu
+# menerbitkannya (persetujuan manual setiap rilis). Belum ditandatangani: langkah SignPath ditambahkan sesudah permohonan
+# SignPath Foundation disetujui (docs/code-signing-policy.md).
+
+name: Rilis wallet
+
+on:
+  push:
+    tags: ["wallet-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rilis-wallet-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Installer Windows (NSIS)
+    runs-on: windows-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Versi tag sama dengan tauri.conf.json
+        id: versi
+        shell: pwsh
+        run: |
+          $conf = Get-Content apps/wallet/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json
+          $versi = $conf.version
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "wallet-v$versi") {
+            Write-Error "tag $env:GITHUB_REF_NAME tidak sama dengan wallet-v$versi (tauri.conf.json)"
+            exit 1
+          }
+          "versi=$versi" >> $env:GITHUB_OUTPUT
+
+      - name: Toolchain Rust (rust-toolchain.toml)
+        shell: pwsh
+        run: |
+          rustup --version
+          rustup toolchain install
+          rustc --version
+          cargo --version
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Paket npm (package-lock.json, tanpa skrip pasang)
+        working-directory: apps/wallet
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Typecheck, test, build antarmuka
+        working-directory: apps/wallet
+        run: npm run check
+
+      - name: Aplikasi rilis dan installer NSIS
+        working-directory: apps/wallet
+        run: npm run tauri -- build -- --locked
+
+      - name: Nama tetap dan SHA-256
+        id: berkas
+        shell: pwsh
+        run: |
+          $versi = '${{ steps.versi.outputs.versi }}'
+          $exe = Get-ChildItem -Path target/release/bundle/nsis -Filter '*-setup.exe' | Select-Object -First 1
+          if (-not $exe) { Write-Error 'installer tidak ditemukan'; exit 1 }
+          New-Item -ItemType Directory -Force -Path rilis | Out-Null
+          $nama = "zevrigo-wallet-$versi-x64-setup.exe"
+          Copy-Item $exe.FullName (Join-Path rilis $nama)
+          $sha = (Get-FileHash -Algorithm SHA256 (Join-Path rilis $nama)).Hash.ToLower()
+          "$sha  $nama" | Out-File -Encoding ascii -NoNewline rilis/SHA256SUMS.txt
+          "nama=$nama" >> $env:GITHUB_OUTPUT
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+          Write-Output "$sha  $nama"
+
+      - name: Artefak
+        uses: actions/upload-artifact@v4
+        with:
+          name: zevrigo-wallet-${{ steps.versi.outputs.versi }}-windows
+          path: rilis/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Rilis draf
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $catatan = Get-Content apps/wallet/rilis-catatan.md -Raw
+          $catatan = $catatan.Replace('{{VERSI}}', '${{ steps.versi.outputs.versi }}')
+          $catatan = $catatan.Replace('{{TAG}}', $env:GITHUB_REF_NAME)
+          $catatan = $catatan.Replace('{{COMMIT}}', $env:GITHUB_SHA.Substring(0, 7))
+          $catatan = $catatan.Replace('{{BERKAS}}', '${{ steps.berkas.outputs.nama }}')
+          $catatan = $catatan.Replace('{{SHA256}}', '${{ steps.berkas.outputs.sha }}')
+          $catatan | Out-File -Encoding utf8 rilis/catatan.md
+          gh release create $env:GITHUB_REF_NAME --draft --prerelease --verify-tag `
+            --title "Zevrigo Wallet ${{ steps.versi.outputs.versi }} (demo regtest)" `
+            --notes-file rilis/catatan.md `
+            "rilis/${{ steps.berkas.outputs.nama }}" rilis/SHA256SUMS.txt

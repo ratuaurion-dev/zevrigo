@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Zevrigo Wallet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.zevrigo.wallet",
   "build": {
     "devUrl": "http://127.0.0.1:1420",
@@ -29,6 +29,9 @@
     "targets": ["nsis"],
     "publisher": "Zevrigo",
     "license": "MIT OR Apache-2.0",
+    "licenseFile": "PRIVASI-DAN-LISENSI.txt",
+    "homepage": "https://github.com/ratuaurion-dev/zevrigo",
+    "copyright": "Pembuat Zevrigo, MIT OR Apache-2.0",
     "shortDescription": "Wallet desktop Zevrigo Coin (ZVRG)",
     "icon": [
       "icons/32x32.png",

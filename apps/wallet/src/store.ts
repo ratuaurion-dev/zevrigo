@@ -20,7 +20,8 @@ interface Settings {
 }
 
 const SETTINGS_KEY = 'zevrigo-wallet-settings-v1';
-const DEFAULT_SETTINGS: Settings = { network: 'testnet', rpcUrls: {}, language: 'id', theme: 'dark' };
+// Bawaan regtest: jaringan demo publik (DEC-34, TSK-M61). Testnet publik belum diluncurkan.
+const DEFAULT_SETTINGS: Settings = { network: 'regtest', rpcUrls: {}, language: 'id', theme: 'dark' };
 
 function loadSettings(): Settings {
   try {
@@ -37,7 +38,7 @@ function loadSettings(): Settings {
       }
     }
     return {
-      network: NETWORKS.includes(value.network as WalletNetwork) ? (value.network as WalletNetwork) : 'testnet',
+      network: NETWORKS.includes(value.network as WalletNetwork) ? (value.network as WalletNetwork) : DEFAULT_SETTINGS.network,
       rpcUrls,
       language: value.language === 'en' ? 'en' : 'id',
       theme: value.theme === 'light' ? 'light' : 'dark',

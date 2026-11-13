@@ -1,6 +1,7 @@
 /**
- * Kerangka wallet desktop: bilah atas (nama, navigasi), bilah status (node, tinggi blok, jaringan, bahasa, tema), dan
- * layar aktif. Tanpa wallet di jaringan aktif, hanya layar wallet baru / pulihkan yang tampil.
+ * Kerangka wallet desktop: bilah atas (nama, navigasi), bilah status (node, tinggi blok, jaringan, bahasa, tema), pita
+ * jaringan demo untuk regtest (TSK-M61), dan layar aktif. Tanpa wallet di jaringan aktif, hanya layar wallet baru /
+ * pulihkan yang tampil.
  */
 
 import { Blocks, CircleCheck, Moon, OctagonAlert, RefreshCw, Sun } from 'lucide-react';
@@ -162,6 +163,16 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {network === 'regtest' && (
+        <div
+          data-testid="demo-banner"
+          role="note"
+          className="bg-amber-500/15 border-b border-amber-500/40 px-6 py-2 text-xs font-semibold text-amber-800 dark:text-amber-300"
+        >
+          <div className="max-w-6xl mx-auto">{t.demoBanner}</div>
+        </div>
+      )}
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8">{body}</main>
 

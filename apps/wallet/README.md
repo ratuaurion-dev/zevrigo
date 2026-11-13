@@ -40,10 +40,17 @@ npm run check
 npm run tauri -- build -- --locked
 ```
 
-Hasilnya `<CARGO_TARGET_DIR>\release\bundle\nsis\Zevrigo Wallet_0.1.0_x64-setup.exe`. Installer belum ditandatangani
-(DEC-07), sehingga Windows SmartScreen menampilkan peringatan.
+Hasilnya `<CARGO_TARGET_DIR>\release\bundle\nsis\Zevrigo Wallet_0.2.0_x64-setup.exe`. Installer belum ditandatangani
+(DEC-07), sehingga Windows SmartScreen menampilkan peringatan. Installer menampilkan kebijakan privasi dan lisensi
+(`src-tauri/PRIVASI-DAN-LISENSI.txt`, `bundle.licenseFile`) sebelum memasang.
 
-Wallet butuh node yang berjalan di jaringan yang sama, misalnya `zevrigo-node --testnet` (RPC bawaan
-`http://127.0.0.1:18801`); alamat node bisa diubah di Pengaturan. Untuk uji coba sebelum testnet publik, pilih **Regtest**
-di bilah status dan jalankan `zevrigo-node --regtest` (RPC `http://127.0.0.1:28801`). Node di WSL2 bisa dihubungi dari
-wallet Windows lewat `127.0.0.1`.
+Rilis resmi dibangun GitHub Actions (`.github/workflows/rilis-wallet.yml`) saat tag `wallet-v<versi>` di-push; versi tag
+wajib sama dengan `version` di `src-tauri/tauri.conf.json`. Workflow membuat rilis draf berisi
+`zevrigo-wallet-<versi>-x64-setup.exe` dan `SHA256SUMS.txt` (catatan dari `rilis-catatan.md`); pencipta memeriksa lalu
+menerbitkannya. Aturan penandatanganan: `docs/code-signing-policy.md`.
+
+Sejak 0.2.0 (TSK-M61) jaringan bawaan wallet adalah **Regtest**, jaringan demo publik (DEC-34): node bawaannya gerbang
+RPC `https://zevrigo-rpc.ratuaurion.store` (MOD-18), dengan pita "REGTEST" dan catatan privasi di Pengaturan. Untuk
+testnet, wallet butuh node di komputer sendiri, misalnya `zevrigo-node --testnet` (RPC bawaan `http://127.0.0.1:18801`).
+Alamat node bisa diubah di Pengaturan, misalnya `http://127.0.0.1:28801` untuk `zevrigo-node --regtest`. Node di WSL2 bisa
+dihubungi dari wallet Windows lewat `127.0.0.1`.

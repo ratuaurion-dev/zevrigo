@@ -8,7 +8,7 @@ import { useWallet } from '../store';
 import { secondaryButton } from './ui';
 
 export function Offline() {
-  const { language, syncError, refresh, refreshing, rpcUrl } = useWallet();
+  const { language, network, syncError, refresh, refreshing, rpcUrl } = useWallet();
   const t = TEXT[language];
   return (
     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30">
@@ -20,7 +20,7 @@ export function Offline() {
             {syncError ? walletErrorText(t, syncError.code) : ''} {t.offlineBody}
           </div>
           <div className="font-mono text-xs text-slate-500 dark:text-slate-400">
-            {rpcUrl()} · {t.offlineCommand}
+            {rpcUrl()} · {network === 'regtest' ? t.offlineDemo : t.offlineCommand}
           </div>
           {syncError && <div className="font-mono text-[11px] text-slate-500 break-all">{syncError.message}</div>}
         </div>

@@ -3,7 +3,7 @@
 - **ID:** `MOD-15`
 - **Path:** `apps/wallet` (antarmuka), `apps/wallet/src-tauri` (crate Rust)
 - **Paket:** `zevrigo-wallet` (bin), antarmuka npm `zevrigo-wallet`
-- **Status:** 🟢 v0.1: aplikasi desktop Tauri 2 untuk testnet dan regtest (TSK-M42), installer Windows NSIS (TSK-F07)
+- **Status:** 🟢 v0.1: aplikasi desktop Tauri 2 untuk testnet dan regtest (TSK-M42), installer Windows NSIS (TSK-F07); 🟢 0.2.0 versi demo (TSK-M61)
 - **Bergantung pada:** `MOD-01` (`Amount`, `Network`), `MOD-09` (frasa baru, alamat), `MOD-12` (pustaka CLI, DEC-31)
 - **Dipakai oleh:** —
 
@@ -24,6 +24,11 @@ dan mengirim ZVRG, dengan kunci hanya di komputer pengguna.
 - Galat dikirim dengan kode tetap (`wrong_password`, `node_unreachable`, `insufficient_funds`, ...) dan diterjemahkan.
 - Folder data: `%APPDATA%\Zevrigo` (Windows) atau `~/.zevrigo`, atau `ZEVRIGO_WALLET_DATADIR`.
 - CSP ketat di `tauri.conf.json`: hanya sumber aplikasi sendiri dan IPC.
+- Versi demo 0.2.0 (TSK-M61, DEC-34): jaringan bawaan regtest dengan node bawaan gerbang demo publik
+  `https://zevrigo-rpc.ratuaurion.store` (`wallet_default_rpc_url`; testnet tetap node lokal), pita "REGTEST" berisi
+  peringatan koin demo, catatan privasi di Pengaturan, pesan offline khusus gerbang demo. Installer menampilkan
+  `src-tauri/PRIVASI-DAN-LISENSI.txt` (`bundle.licenseFile`). Rilis dibangun `.github/workflows/rilis-wallet.yml` dari tag
+  `wallet-v<versi>` (rilis draf + SHA256SUMS.txt); belum ditandatangani (DEC-07, `docs/code-signing-policy.md`).
 
 ## Bukan Tanggung Jawab
 
@@ -40,4 +45,5 @@ dan mengirim ZVRG, dengan kunci hanya di komputer pengguna.
 ## Task terkait
 - [TSK-M42](../tasks/TSK-M42-wallet-desktop.md) — 🟢 aplikasi wallet desktop
 - [TSK-F07](../tasks/README.md) — 🟢 wallet desktop v0.1 (installer Windows, uji dengan node regtest 8 November 2026)
+- [TSK-M61](../tasks/TSK-M61-wallet-demo.md) — 🟢 versi demo 0.2.0 dan workflow rilis
 - [TSK-F08](../tasks/README.md)

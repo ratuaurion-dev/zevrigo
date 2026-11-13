@@ -22,6 +22,19 @@ use zevrigo_wallet_core::{
 /// Variabel lingkungan untuk memilih folder data wallet (misalnya folder yang sama dengan `--datadir` CLI).
 pub const DATADIR_ENV: &str = "ZEVRIGO_WALLET_DATADIR";
 
+/// Gerbang RPC publik jaringan demo regtest (DEC-34, TSK-M53): alamat node bawaan wallet untuk regtest (TSK-M61).
+pub const DEMO_RPC_URL: &str = "https://zevrigo-rpc.ratuaurion.store";
+
+/// Alamat node bawaan wallet: regtest memakai gerbang demo publik [`DEMO_RPC_URL`], jaringan lain node di komputer sendiri
+/// (alamat bawaan CLI). Pengguna bisa menggantinya di Pengaturan.
+#[must_use]
+pub fn wallet_default_rpc_url(network: Network) -> String {
+    match network {
+        Network::Regtest => DEMO_RPC_URL.to_owned(),
+        Network::Testnet | Network::Mainnet => default_rpc_url(network),
+    }
+}
+
 /// Folder data wallet desktop. File wallet per jaringan ada di `<datadir>/<jaringan>/wallet.json`.
 pub struct AppState {
     datadir: PathBuf,
@@ -150,7 +163,7 @@ pub struct WalletInfo {
     pub exists: bool,
     /// Path file wallet.
     pub path: String,
-    /// Alamat RPC bawaan node jaringan ini.
+    /// Alamat RPC bawaan node jaringan ini ([`wallet_default_rpc_url`]).
     pub default_rpc_url: String,
 }
 
@@ -294,7 +307,7 @@ pub fn wallet_info_in(datadir: &Path, network: Network) -> WalletInfo {
     WalletInfo {
         exists: path.is_file(),
         path: path.display().to_string(),
-        default_rpc_url: default_rpc_url(network),
+        default_rpc_url: wallet_default_rpc_url(network),
     }
 }
 
