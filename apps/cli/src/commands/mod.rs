@@ -81,6 +81,15 @@ pub enum CliError {
     /// Alamat penerima tidak sah.
     #[error("alamat penerima tidak sah: {0}")]
     Address(#[from] AddressError),
+    /// Alamat `--dari` tidak sah (TSK-M63).
+    #[error("alamat --dari tidak sah: {0}")]
+    SourceAddress(AddressError),
+    /// Alamat `--dari` bukan alamat jenis 0 wallet ini, sampai batas pemindaian (TSK-M63).
+    #[error("alamat --dari {address} bukan alamat wallet ini")]
+    SourceNotOwned {
+        /// Alamat yang ditulis.
+        address: String,
+    },
     /// Transaksi tidak bisa disusun.
     #[error("transaksi tidak bisa disusun: {0}")]
     Send(#[from] SendError),
@@ -732,7 +741,41 @@ impl Cli {
         fee_rate: u128,
         aux_rand: &[u8; 32],
     ) -> Result<Sent, CliError> {
+        self.send_from(
+            datadir, passphrase, password, None, to, amount, fee_rate, aux_rand,
+        )
+    }
+
+    /// `send` dengan sumber pilihan (`send --dari <alamat>`, TSK-M63). Dengan `from`, hanya UTXO alamat itu yang
+    /// dipilih dan kembalian kembali ke alamat itu, sehingga saldo alamat lain di wallet tidak tersentuh dan indeks
+    /// kembalian di file wallet tidak berubah. Dipakai untuk kantong treasury demo. Tanpa `from` sama dengan [`Cli::send`].
+    ///
+    /// # Errors
+    ///
+    /// Seperti [`Cli::send`], ditambah [`CliError::SourceAddress`] jika `from` bukan alamat jaringan ini dan
+    /// [`CliError::SourceNotOwned`] jika `from` bukan alamat jenis 0 wallet ini (sampai batas pemindaian).
+    /// [`SendError::InsufficientFunds`] melaporkan saldo alamat `from` saja.
+    #[allow(clippy::too_many_arguments)]
+    pub fn send_from(
+        &self,
+        datadir: &Path,
+        passphrase: &str,
+        password: &str,
+        from: Option<&str>,
+        to: &str,
+        amount: Amount,
+        fee_rate: u128,
+        aux_rand: &[u8; 32],
+    ) -> Result<Sent, CliError> {
         let (recipient_kind, recipient_payload) = decode_address(self.network, to)?;
+        let source = match from {
+            Some(address) => {
+                let (kind, payload) =
+                    decode_address(self.network, address).map_err(CliError::SourceAddress)?;
+                Some((address, kind, payload))
+            }
+            None => None,
+        };
         let info = self.checked_info()?;
         let network_id = self
             .runtime
@@ -742,11 +785,26 @@ impl Cli {
         let mut wallet = open_wallet(self.network, datadir, passphrase)?;
         let account = private_account(&wallet, passphrase, password)?;
         let scanned = self.scan(&mut wallet)?;
+        let source = match source {
+            Some((address, kind, payload)) => {
+                let owned = kind == OutputKind::SingleKey
+                    && wallet_payloads(&wallet.public, scanned.next_index)
+                        .contains(&Hex32::new(payload));
+                if !owned {
+                    return Err(CliError::SourceNotOwned {
+                        address: address.to_owned(),
+                    });
+                }
+                Some(payload)
+            }
+            None => None,
+        };
         let pending = self.pending(&wallet, &scanned)?;
         let coins: Vec<Coin> = scanned
             .found
             .iter()
             .filter(|found| !pending.spent.contains(&(found.utxo.txid, found.utxo.index)))
+            .filter(|found| source.is_none_or(|payload| *found.utxo.payload.bytes() == payload))
             .map(|found| {
                 Coin::new(
                     OutPoint::new(found.utxo.txid.to_hash32(), found.utxo.index),
@@ -758,8 +816,14 @@ impl Cli {
                 )
             })
             .collect();
-        let (change_index, change_payload) =
-            derive_unused(&wallet.public, CHANGE_BRANCH, wallet.file.next_index.change)?;
+        let (change_index, change_payload) = match source {
+            Some(payload) => (None, payload),
+            None => {
+                let (index, payload) =
+                    derive_unused(&wallet.public, CHANGE_BRANCH, wallet.file.next_index.change)?;
+                (Some(index), payload)
+            }
+        };
         let request = SendRequest {
             recipient_kind,
             recipient_payload,
@@ -776,10 +840,10 @@ impl Cli {
                 Some(reason) => CliError::Rejected { reason },
                 None => rpc_error(error),
             })?;
-        if plan.change().is_some() {
-            wallet.file.next_index.change = change_index
-                .checked_add(1)
-                .ok_or(CliError::IndexExhausted)?;
+        if plan.change().is_some()
+            && let Some(index) = change_index
+        {
+            wallet.file.next_index.change = index.checked_add(1).ok_or(CliError::IndexExhausted)?;
             wallet_file::save(&wallet.path, &wallet.file)?;
         }
         Ok(Sent {
@@ -1013,15 +1077,17 @@ pub fn run(
             to,
             amount,
             fee_rate,
+            from,
         } => {
             let datadir = datadir()?;
             let secret = unlock_password(network, datadir, &mut password)?;
             let cli = Cli::connect(&config.rpc_url, network)?;
             let aux_rand = random()?;
-            let sent = cli.send(
+            let sent = cli.send_from(
                 datadir,
                 &config.passphrase,
                 &secret,
+                from.as_deref(),
                 to,
                 *amount,
                 *fee_rate,

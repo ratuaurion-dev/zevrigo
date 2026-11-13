@@ -975,3 +975,88 @@ fn os_random_differs_between_calls() {
     assert_ne!(first, second);
     assert_ne!(first, [0_u8; 32]);
 }
+
+#[test]
+fn send_from_spends_only_that_address_and_returns_change_to_it() {
+    use zevrigo_primitives::{Decode, Hash32, Transaction, TxBody};
+    use zevrigo_wallet_core::encode_address;
+
+    let dir = TempDir::new("send-from");
+    wallet_create(Network::Regtest, &dir.0, &[0_u8; 32], "", &lock(1)).unwrap();
+    let harness = Harness::start(Network::Regtest, t1_utxos(), None);
+    let cli = harness.cli();
+    let send = |from: &str, quanta: u128| {
+        cli.send_from(
+            &dir.0,
+            "",
+            PASSWORD,
+            Some(from),
+            RECIPIENT,
+            Amount::from_quanta(quanta),
+            1,
+            &[0_u8; 32],
+        )
+    };
+
+    // `send` biasa memilih 5 ZVRG di W5 dulu; dengan --dari W6 hanya 3 ZVRG di W6 yang dipakai.
+    let sent = send(W6, TWO_ZVRG).unwrap();
+    assert_eq!(sent.inputs, 1);
+    assert_eq!(sent.amount, Amount::from_quanta(TWO_ZVRG));
+    let change = sent.change.unwrap();
+    assert_eq!(change.as_quanta() + sent.fee.as_quanta(), ZVRG);
+    let bytes = harness.node.sent.lock().unwrap()[0].clone();
+    let tx = Transaction::from_bytes(&bytes).unwrap();
+    let TxBody::Regular(body) = tx.body() else {
+        unreachable!("transaksi kirim bukan coinbase");
+    };
+    assert_eq!(body.inputs().len(), 1);
+    assert_eq!(body.inputs()[0].prev_txid(), Hash32::from_bytes([0xb2; 32]));
+    assert_eq!(body.inputs()[0].prev_index(), 1);
+    assert_eq!(body.outputs().len(), 2);
+    assert_eq!(body.outputs()[0].amount(), Amount::from_quanta(TWO_ZVRG));
+    assert_eq!(body.outputs()[1].payload(), hex32(W6_XONLY).bytes());
+    assert_eq!(body.outputs()[1].amount(), change);
+    // Kembalian ke W6 sendiri: indeks kembalian di file wallet tidak naik.
+    let path = wallet_path(Network::Regtest, &dir.0);
+    assert_eq!(
+        load(&path).unwrap().next_index,
+        NextIndex {
+            receive: 2,
+            change: 1
+        }
+    );
+
+    // Saldo yang dilaporkan hanya saldo alamat --dari; alamat lain wallet tidak dipakai.
+    assert!(matches!(
+        send(W6, FOUR_ZVRG),
+        Err(CliError::Send(SendError::InsufficientFunds { available, .. }))
+            if available == Amount::from_quanta(THREE_ZVRG)
+    ));
+    let w7 = encode_address(
+        Network::Regtest,
+        OutputKind::SingleKey,
+        hex32(W7_XONLY).bytes(),
+    );
+    assert!(matches!(
+        send(&w7, ZVRG),
+        Err(CliError::Send(SendError::InsufficientFunds { available, .. }))
+            if available == Amount::ZERO
+    ));
+    // Alamat di luar wallet, jaringan lain, atau bukan alamat.
+    let error = send(RECIPIENT, ZVRG).unwrap_err();
+    assert!(matches!(&error, CliError::SourceNotOwned { address } if address == RECIPIENT));
+    assert_eq!(
+        error.to_string(),
+        format!("alamat --dari {RECIPIENT} bukan alamat wallet ini")
+    );
+    assert!(matches!(
+        send(TESTNET_RECIPIENT, ZVRG),
+        Err(CliError::SourceAddress(AddressError::WrongNetwork))
+    ));
+    assert!(matches!(
+        send("bukan-alamat", ZVRG),
+        Err(CliError::SourceAddress(_))
+    ));
+    assert_eq!(harness.node.sent.lock().unwrap().len(), 1);
+    assert_eq!(load(&path).unwrap().next_index.change, 1);
+}

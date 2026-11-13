@@ -27,8 +27,10 @@ pub const USAGE: &str = concat!(
     "  address                             alamat penerimaan baru dan payload-nya (tanpa node)\n",
     "  balance                             saldo dari node lewat scan_utxos\n",
     "  history                             riwayat transaksi dari blok node (tembolok <folder>/<jaringan>/history.json)\n",
-    "  send --to <alamat> --amount <ZVRG> [--fee-rate <quanta per byte>]\n",
-    "                                      kirim ZVRG (tarif bawaan 1 quanta per byte, butuh password)\n",
+    "  send --to <alamat> --amount <ZVRG> [--fee-rate <quanta per byte>] [--dari <alamat>]\n",
+    "                                      kirim ZVRG (tarif bawaan 1 quanta per byte, butuh password); dengan\n",
+    "                                      --dari hanya koin alamat wallet itu yang dipakai dan kembalian kembali\n",
+    "                                      ke alamat itu (kantong treasury)\n",
     "\n",
     "Opsi umum:\n",
     "  --regtest             jaringan regtest (bawaan): alamat rzvrg1..., wallet di <folder>/regtest/\n",
@@ -109,6 +111,8 @@ pub enum Action {
         amount: Amount,
         /// Tarif biaya dalam quanta per byte.
         fee_rate: u128,
+        /// Alamat sumber (`--dari`): hanya koin alamat ini, kembalian ke alamat ini.
+        from: Option<String>,
     },
 }
 
@@ -138,11 +142,13 @@ impl core::fmt::Debug for Action {
                 to,
                 amount,
                 fee_rate,
+                from,
             } => f
                 .debug_struct("Send")
                 .field("to", to)
                 .field("amount", amount)
                 .field("fee_rate", fee_rate)
+                .field("from", from)
                 .finish(),
             Self::Info
             | Self::WalletCreate
@@ -327,6 +333,7 @@ struct Options {
     to: Option<String>,
     amount: Option<Amount>,
     fee_rate: Option<u128>,
+    from: Option<String>,
 }
 
 /// Membaca argumen (tanpa nama program). Tanpa argumen sama dengan `--help`. Opsi boleh ditulis sebelum atau
@@ -369,6 +376,10 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
             "--to" => {
                 let value = value_of(&mut iter, "--to")?;
                 set_once(&mut options.to, value, "--to")?;
+            }
+            "--dari" => {
+                let value = value_of(&mut iter, "--dari")?;
+                set_once(&mut options.from, value, "--dari")?;
             }
             "--amount" => {
                 let value = value_of(&mut iter, "--amount")?;
@@ -416,6 +427,7 @@ fn build(kind: Kind, options: Options) -> Result<Config, ArgError> {
     reject(&options.to, send, "--to", kind)?;
     reject(&options.amount, send, "--amount", kind)?;
     reject(&options.fee_rate, send, "--fee-rate", kind)?;
+    reject(&options.from, send, "--dari", kind)?;
     let datadir = if wallet {
         Some(require(options.datadir, "--datadir", kind)?)
     } else {
@@ -436,6 +448,7 @@ fn build(kind: Kind, options: Options) -> Result<Config, ArgError> {
             to: require(options.to, "--to", kind)?,
             amount: require(options.amount, "--amount", kind)?,
             fee_rate: options.fee_rate.unwrap_or(DEFAULT_FEE_RATE),
+            from: options.from,
         },
     };
     let network = options.network.unwrap_or(Network::Regtest);

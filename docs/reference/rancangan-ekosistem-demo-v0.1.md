@@ -172,6 +172,9 @@ tinggi buka berikutnya; grafik koin terkunci per tinggi buka (tokenomik v0.1 Bag
   /api/v1/faucet`, batas per pengunjung, per alamat, dan harian, kiriman berantai lewat mempool, CORS hanya untuk explorer,
   `CF-Connecting-IP` hanya dari `--trust-proxy-host`). Bagian B: layanan di `compose.publik.yaml`, route
   `zevrigo-faucet.ratuaurion.store`, halaman faucet di explorer, dan anti-bot.
+- Pengisian (keputusan pencipta 13 November 2026): upacara mengirim 500.000 ZVRG ke kantong Faucet di wallet treasury, bukan
+  ke wallet panas layanan faucet. Faucet diisi ulang bertahap (misalnya 10.000 ZVRG) dengan `zevrigo-cli send --dari
+  <alamat kantong Faucet>` (TSK-M63), sehingga kantong lain tidak tersentuh dan sisa kantong Faucet terlihat di explorer.
 
 ### 4.8 Pendaftaran Investor Demo
 - Tombol "Daftar Investor Demo" di APK Wallet, aktif setelah peserta mencentang persetujuan (Bagian 10).

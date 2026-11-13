@@ -91,6 +91,7 @@ fn parses_wallet_actions_with_options_in_any_order() {
             to: ADDRESS.to_owned(),
             amount: Amount::from_quanta(1_500_000_000_000_000_000),
             fee_rate: 1,
+            from: None,
         }
     );
     let with_rate = run(&[
@@ -110,6 +111,7 @@ fn parses_wallet_actions_with_options_in_any_order() {
             to: ADDRESS.to_owned(),
             amount: Amount::from_quanta(1),
             fee_rate: 0,
+            from: None,
         }
     );
 }
@@ -230,4 +232,47 @@ fn parses_network_options() {
     );
     assert!(USAGE.contains("--testnet"));
     assert!(format!("{address:?}").contains("Testnet"));
+}
+
+#[test]
+fn parses_send_from() {
+    let send = run(&[
+        "--datadir",
+        "d",
+        "send",
+        "--dari",
+        ADDRESS,
+        "--to",
+        ADDRESS,
+        "--amount",
+        "10000",
+    ]);
+    assert_eq!(
+        send.action,
+        Action::Send {
+            to: ADDRESS.to_owned(),
+            amount: Amount::from_quanta(10_000_000_000_000_000_000_000),
+            fee_rate: 1,
+            from: Some(ADDRESS.to_owned()),
+        }
+    );
+    assert!(format!("{:?}", send.action).contains("from: Some("));
+    assert!(USAGE.contains("--dari <alamat>"));
+    let cases: [(&[&str], ArgError); 3] = [
+        (
+            &["--datadir", "d", "balance", "--dari", ADDRESS],
+            ArgError::NotFor {
+                option: "--dari",
+                action: "balance",
+            },
+        ),
+        (
+            &["send", "--dari", ADDRESS, "--dari", ADDRESS],
+            ArgError::Duplicate("--dari"),
+        ),
+        (&["send", "--dari"], ArgError::MissingValue("--dari")),
+    ];
+    for (list, expected) in cases {
+        assert_eq!(parse_args(args(list)), Err(expected), "{list:?}");
+    }
 }
