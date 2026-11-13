@@ -135,8 +135,9 @@ Aturan lengkap di [docs/reference/spesifikasi-docker-v0.1.md](docs/reference/spe
 
 `compose.publik.yaml` membuka explorer dan seed P2P ke internet lewat Cloudflare Tunnel tanpa membuka port router. Token
 tunnel disimpan di luar repo, di `~/.zevrigo-tunnel.env` (izin `600`, satu baris `TUNNEL_TOKEN=` diikuti token dari dasbor
-Cloudflare Zero Trust). Dua public hostname tunnel, keduanya tipe HTTP: `zevrigo.ratuaurion.store` ke `localhost:28802`
-(explorer) dan `zevrigo-seed.ratuaurion.store` ke `localhost:28803` (seed P2P WebSocket).
+Cloudflare Zero Trust). Public hostname tunnel, semuanya tipe HTTP: `zevrigo.ratuaurion.store` ke `localhost:28802`
+(explorer), `zevrigo-seed.ratuaurion.store` ke `localhost:28803` (seed P2P WebSocket), dan `zevrigo-rpc.ratuaurion.store` ke
+`localhost:28804` (gerbang RPC untuk wallet peserta: hanya metode aman, tanpa menambang).
 
 ```bash
 docker compose -f compose.yaml -f compose.publik.yaml build node

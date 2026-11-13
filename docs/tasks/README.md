@@ -88,13 +88,16 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M50 | MOD-09 | Demo D3: output jenis 1 (kunci waktu, m = 1, n = 1): membuat, memindai, saldo terkunci, membelanjakan; pesan pendaftaran bertanda tangan | TSK-S08 | ⚪ |
 | TSK-M51 | MOD-12 | Demo D3: CLI output jenis 1 dan alat distribusi (daftar penerima menjadi transaksi dari kantong `G`, tokenomik v0.1 Bagian 7) | TSK-M50 | ⚪ |
 | TSK-M52 | MOD-14 | Demo D4: halaman treasury dan konfigurasi kantong (DEC-35) | TSK-M51 | ⚪ |
-| TSK-M53 | MOD-18 | Demo D5: inisialisasi `apps/demo` (DEC-36) dan mode `rpc` (gerbang RPC aman untuk HP) | TSK-S08 | ⚪ |
-| TSK-M54 | MOD-18, MOD-14 | Demo D6: mode `faucet` di node faucet (jaringan Docker), halaman faucet di explorer, Turnstile | TSK-M51, TSK-M53 | ⚪ |
+| TSK-M53 | MOD-18 | Demo tahap 1 langkah 1: inisialisasi `apps/demo` (DEC-36) dan mode `rpc` (gerbang RPC aman untuk wallet peserta), layanan `gerbang-rpc` dan hostname `zevrigo-rpc.ratuaurion.store` | TSK-S08 | 🟢 selesai ([kartu](TSK-M53-gerbang-rpc.md)) |
+| TSK-M54 | MOD-18, MOD-14 | Demo tahap 1: mode `faucet` di node faucet (jaringan Docker), halaman faucet di explorer, Turnstile; stok dari kantong Faucet | TSK-M53, TSK-F11 bagian 1 | ⚪ |
 | TSK-M55 | MOD-18 | Demo D7: mode `daftar` (pesan bertanda tangan, antrean siapa cepat dia dapat, alat operator) | TSK-M50, TSK-M53 | ⚪ |
 | TSK-M56 | repo (alat) | Demo D8: toolchain Android di WSL (SDK, NDK, JDK, target Rust) lewat skrip langkah | — | ⚪ |
 | TSK-M57 | MOD-14 (`apps/explorer/android`) | Demo D9: APK Explorer Tauri 2 (antarmuka dibundel, alamat API bisa diatur) dan CORS API explorer (DEC-36) | TSK-M49, TSK-M52, TSK-M56 | ⚪ |
 | TSK-M58 | MOD-15 | Demo D10: APK Wallet Tauri 2 (HTTPS ke gerbang RPC, output jenis 1, faucet, daftar, label REGTEST) | TSK-M50, TSK-M53, TSK-M54, TSK-M55, TSK-M56 | ⚪ |
 | TSK-M59 | MOD-14 | Demo D11: halaman panduan, teks persetujuan, unduh APK + SHA-256 | TSK-M57, TSK-M58 | ⚪ |
+| TSK-M60 | MOD-08 | Demo tahap 1: HTTPS di klien RPC lewat fitur `tls` `jsonrpsee-http-client` (pilihan pencipta 12 November 2026, DEC-10 bagian 14) | TSK-M53 | ⚪ |
+| TSK-M61 | MOD-15, repo (CI) | Demo tahap 1: wallet desktop versi demo (alamat node bawaan gerbang publik, label REGTEST), installer Windows dibangun GitHub Actions dan ditandatangani SignPath Foundation (DEC-07) | TSK-M60 | ⚪ |
+| TSK-M62 | (ditentukan di kartu) | Demo tahap 1: alat upacara genesis regtest, membelanjakan `G` (kunci rahasia `1`) ke 8 kantong (Rancangan Ekosistem Demo v0.1 Bagian 4.2, 4.3) | TSK-M47 | ⚪ |
 | TSK-M36 | MOD-08, MOD-11, MOD-12 | Metode RPC `scan_mempool`; saldo CLI dan pemilihan koin dengan transaksi tertunda (Spesifikasi RPC 3.9, Wallet Bagian 6) | TSK-M19 | 🟢 selesai ([kartu](TSK-M36-saldo-tertunda.md)) |
 | TSK-M25 | MOD-01 | `enum Network { Mainnet, Testnet, Regtest }` di `params` (Spesifikasi Validasi Bagian 11) | TSK-S02 | 🟢 selesai ([kartu](TSK-M25-primitives-network.md)) |
 
@@ -112,7 +115,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-F08 | FTR-08 Wallet mobile | TSK-F07, DEC-04, DEC-05 | ⚪ dipecah nanti (demo regtest lebih dulu: APK Wallet di TSK-M58, DEC-34) |
 | TSK-F09 | FTR-09 Aplikasi pelaku usaha | TSK-M17, TSK-F07, DEC-06 | ⚪ dipecah nanti |
 | TSK-F10 | FTR-10 Reproducible build dan rilis | TSK-F06, DEC-07 | ⚪ dipecah nanti |
-| TSK-F11 | FTR-11 Demo publik regtest untuk pemula: peluncuran tertutup (reset, upacara genesis), buka pendaftaran, distribusi, pengumuman | TSK-M47 sampai TSK-M59, DEC-34 | ⚪ |
+| TSK-F11 | FTR-11 Demo publik regtest untuk pemula: bagian 1 peluncuran tertutup (reset, upacara genesis, tahap 1); bagian 2 pendaftaran, distribusi vesting, pengumuman (tahap 2) | TSK-M47 sampai TSK-M62, DEC-34 | ⚪ |
 
 ## Jalur kritis menuju testnet
 

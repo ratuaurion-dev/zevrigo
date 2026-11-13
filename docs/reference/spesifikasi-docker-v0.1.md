@@ -1,11 +1,11 @@
 # Spesifikasi Paket Docker Zevrigo Coin (ZVRG) v0.1: node, explorer, dan antarmuka web untuk regtest
 
-> Diperbarui: 12 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-M33, TSK-M44, TSK-M45, TSK-M46, TSK-M47 · Status: 🟢 v0.1
+> Diperbarui: 12 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-M33, TSK-M44, TSK-M45, TSK-M46, TSK-M47, TSK-M53 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-docker-v0.1.md`
 
 | Status | Ringkasan |
 |---|---|
-| 🟢 Dikunci | Satu image `zevrigo:regtest` (node, explorer, miner, CLI, antarmuka web) dari image dasar resmi yang dikunci digest, pengguna biasa uid 10001, data di volume `/data`. `compose.yaml` menjalankan node + explorer; explorer hanya terbuka di `127.0.0.1:28802` komputer host. `compose.publik.yaml` membuka explorer dan seed P2P WebSocket regtest ke publik lewat Cloudflare Tunnel, dengan miner berkala satu blok setiap 120 detik (Bagian 7) |
+| 🟢 Dikunci | Satu image `zevrigo:regtest` (node, explorer, miner, CLI, layanan demo, antarmuka web) dari image dasar resmi yang dikunci digest, pengguna biasa uid 10001, data di volume `/data`. `compose.yaml` menjalankan node + explorer; explorer hanya terbuka di `127.0.0.1:28802` komputer host. `compose.publik.yaml` membuka explorer dan seed P2P WebSocket regtest ke publik lewat Cloudflare Tunnel, dengan miner berkala satu blok setiap 120 detik (Bagian 7) |
 | ⏳ Ditunda | Paket testnet (sesudah genesis testnet, TSK-F06), mainnet, seed testnet, image untuk arsitektur lain (arm64), build yang bisa diulang bit demi bit (TSK-F10) |
 | ➡️ Langkah berikutnya | Paket testnet: node `--testnet`, explorer `--testnet`, tunnel ke port 18802. Batas laju per pengunjung di belakang tunnel selesai (TSK-M43) |
 
@@ -31,7 +31,7 @@ Paket Docker hanya membungkus program yang sudah ada. Tidak ada aturan chain, ku
 
 | Bagian | Isi |
 |---|---|
-| Program | `/usr/local/bin/zevrigo-node`, `zevrigo-explorer`, `zevrigo-miner`, `zevrigo-cli` (`cargo build --release --locked`) |
+| Program | `/usr/local/bin/zevrigo-node`, `zevrigo-explorer`, `zevrigo-miner`, `zevrigo-cli`, `zevrigo-demo` (MOD-18, sejak TSK-M53) (`cargo build --release --locked`) |
 | Antarmuka web | `/usr/share/zevrigo/web` (hasil `npm ci --ignore-scripts` dan `next build`, static export) |
 | Pengguna | `zevrigo` (uid dan gid 10001), bukan root |
 | Data | Volume `/data`: chain `regtest/chain.redb`, indeks `regtest/explorer.sqlite`, wallet `regtest/wallet.json` |
@@ -94,10 +94,11 @@ alamat IP komputer pencipta tidak terlihat oleh pengunjung. HTTPS dan perlindung
 | `node` | Port host dicabut (`ports: !reset []`); RPC dan P2P TCP tetap hanya di dalam namespace. `--p2p-ws-port 28803` (TSK-M45): P2P WebSocket `/ws` di `127.0.0.1:28803` dalam namespace, hanya dicapai lewat `cloudflared` |
 | `explorer` | `--web-dir /usr/share/zevrigo/web --trust-proxy`, mendengar di `127.0.0.1:28802` (bawaan) di dalam namespace node; tidak bisa dijangkau dari host maupun container lain |
 | `cloudflared` | Image resmi dikunci digest (Bagian 6), `tunnel --no-autoupdate run`, berbagi namespace jaringan dengan `node`, sehingga sampai ke explorer dan WebSocket P2P lewat loopback |
+| `gerbang-rpc` | TSK-M53 (DEC-36): `zevrigo-demo rpc --trust-proxy` di namespace `node` (RPC node lewat `127.0.0.1:28801`), mendengar `127.0.0.1:28804`, hanya dicapai lewat `cloudflared`. Meneruskan hanya `get_chain_info`, `get_block_hash`, `get_block`, `get_mempool`, `scan_utxos`, `scan_mempool`, `send_raw_transaction`; `get_block_template`, `submit_block`, dan metode lain `-32601`; batch `-32600`; badan di atas 256 KiB `413`; batas laju 20 per detik per pengunjung (`CF-Connecting-IP`). Batas 256 MiB, 0,5 CPU, `restart: unless-stopped` |
 | `miner-berkala` | TSK-M46, TSK-M47: image `zevrigo:regtest`, `/bin/sh -c`: tunggu 30 detik, lalu ulangi `zevrigo-miner --blocks 1` dan `sleep $ZVRG_JEDA` (bawaan 120 detik = waktu blok target). Berbagi namespace jaringan dengan `node-penambang` (RPC lewat `127.0.0.1:28801` node itu), volume `zvrg-penambang` dipasang baca saja. Hadiah ke payload hex 64 di `/data/payout-penambang` (ditulis operator dari wallet penambang); selama file itu belum ada atau tidak sah, ke kunci NUMS `50929b74…3ac0` yang tidak bisa dibelanjakan. Batas 256 MiB, 0,5 CPU, `init: true`, `restart: unless-stopped` |
 | `node-penambang`, `node-treasury`, `node-faucet`, `node-pengamat` | TSK-M47 (DEC-34): node operator jaringan demo, container dan volume sendiri (`zvrg-penambang`, `zvrg-treasury`, `zvrg-faucet`, `zvrg-pengamat`), tanpa port host, `--connect` ke seed publik (alamat Bagian 7 di bawah, bisa diganti `ZVRG_SEED`), lewat internet dan Cloudflare seperti peserta, memakai 4 dari 32 slot masuk seed. Batas 256 MiB dan 0,5 CPU per node (Q125: node seed sekitar 10 MiB, node baru sekitar 2 MiB dan sinkron dalam 8 detik pada tinggi 121; volume data seed 4,4 MB). Wallet operator dibuat pencipta sendiri dengan CLI di container (`wallet-create`, password diketik di terminal), file di `/data/regtest/wallet.json` volume itu |
 | Token | `${HOME}/.zevrigo-tunnel.env` di luar repo, izin `600`, satu baris `TUNNEL_TOKEN=` diikuti token dari dasbor Cloudflare Zero Trust (Networks, Tunnels, Install and run, pilihan Docker). Token tidak pernah ditulis ke repo, log skrip, atau chat |
-| Public hostname | Diatur di dasbor Cloudflare (tab Routes, Published application), keduanya tipe **HTTP** (bukan HTTPS: TLS diputus Cloudflare): `zevrigo.ratuaurion.store` → `localhost:28802` (explorer) dan `zevrigo-seed.ratuaurion.store` → `localhost:28803` (seed P2P WebSocket). Satu tingkat, tercakup sertifikat `*.ratuaurion.store`; subdomain lain di domain ini milik proyek lain. Testnet nanti `localhost:18802` dan `localhost:18803` |
+| Public hostname | Diatur di dasbor Cloudflare (tab Routes, Published application), semuanya tipe **HTTP** (bukan HTTPS: TLS diputus Cloudflare): `zevrigo.ratuaurion.store` → `localhost:28802` (explorer), `zevrigo-seed.ratuaurion.store` → `localhost:28803` (seed P2P WebSocket), dan `zevrigo-rpc.ratuaurion.store` → `localhost:28804` (gerbang RPC, TSK-M53). Satu tingkat, tercakup sertifikat `*.ratuaurion.store`; subdomain lain di domain ini milik proyek lain. Testnet nanti `localhost:18802` dan `localhost:18803` |
 | Bergabung ke seed | `zevrigo-node --regtest --datadir <folder> --connect /dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/<PeerId seed>`. PeerId seed tercetak di log node (`p2p-ws: …`) dan tetap selama volume data sama. Keepalive `status` 60 detik menjaga WebSocket tetap hidup (Cloudflare menutup yang diam sekitar 100 detik) |
 
 Keamanan `--trust-proxy` (Spesifikasi Explorer v0.1 Bagian 6): yang tersambung ke explorer lewat loopback hanya
@@ -113,6 +114,7 @@ docker compose -f compose.yaml -f compose.publik.yaml build node
 docker compose -f compose.yaml -f compose.publik.yaml up -d
 docker compose -f compose.yaml -f compose.publik.yaml logs -f cloudflared
 docker compose -f compose.yaml -f compose.publik.yaml logs -f miner-berkala
+docker compose -f compose.yaml -f compose.publik.yaml logs -f gerbang-rpc
 docker compose -f compose.yaml -f compose.publik.yaml logs --no-log-prefix node | grep '^p2p-ws:'
 docker compose -f compose.yaml -f compose.publik.yaml logs --no-log-prefix node-penambang | grep '^p2p:'   # PeerId node operator
 ZVRG_JEDA=60 docker compose -f compose.yaml -f compose.publik.yaml up -d --no-deps miner-berkala   # ganti jeda
@@ -140,3 +142,11 @@ cloudflared tidak dinyalakan ulang; dalam 180 detik setiap node operator mencata
 dan seed mencatat paling sedikit 4 rekan masuk baru; dalam 330 detik tinggi seed naik paling sedikit 2 blok dari
 `miner-berkala` yang baru (payout NUMS selama `/data/payout-penambang` belum ada) dan semua node operator mengikuti; explorer
 publik mengikuti tinggi baru.
+
+Gerbang RPC (Q127): Cargo.lock hanya bertambah entri `zevrigo-demo`; `make check-all` lolos; image dibangun ulang dan
+`zevrigo-demo --version` menjawab; konfigurasi compose sah dengan `gerbang-rpc` di namespace node, tanpa port host, `rpc
+--trust-proxy`; `gerbang-rpc` dinyalakan tanpa menyalakan ulang container lain; di namespace seed `zevrigo-cli --rpc-url
+http://127.0.0.1:28804 info` menjawab tinggi yang sama dengan node; dari internet `https://zevrigo-rpc.ratuaurion.store`
+menjawab `get_chain_info` (`network` regtest) dan `get_block_hash` tinggi 0 (`network_id` regtest), menjawab
+`get_block_template` dan `submit_block` dengan `-32601`, batch dengan `-32600`, `GET` dengan `405`, dan badan 262.145 byte
+(batas + 1) dengan `413`; explorer publik tetap menjawab.

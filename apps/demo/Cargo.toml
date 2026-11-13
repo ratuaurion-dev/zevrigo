@@ -1,0 +1,30 @@
+[package]
+name = "zevrigo-demo"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "zevrigo-demo"
+path = "src/main.rs"
+
+[dependencies]
+# DEC-36: MOD-18 boleh memakai MOD-01, 02, 08, 09. Gerbang RPC (TSK-M53) hanya memakai MOD-08.
+zevrigo-rpc.workspace = true
+# DEC-10 bagian 13 (DEC-36): server HTTP axum dengan fitur yang sama dengan MOD-14 (`http1`, `tokio`), tanpa paket baru.
+axum = { workspace = true, features = ["http1", "tokio"] }
+# DEC-10 bagian 13: tipe galat klien JSON-RPC (kode, pesan, `data`) untuk diteruskan apa adanya. Fitur sama dengan MOD-08.
+jsonrpsee = { workspace = true, features = ["client-core"] }
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "time"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+zevrigo-primitives.workspace = true
+
+[lints]
+workspace = true

@@ -97,12 +97,12 @@ zevrigo/
 | MOD-15 | apps/wallet | zevrigo-wallet (bin, apps/wallet/src-tauri) | Wallet desktop Tauri 2, antarmuka React di apps/wallet/src | MOD-01, 09, 12 (DEC-31) |
 | MOD-16 | apps/merchant | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 |
 | MOD-17 | tests/integration | zevrigo-integration-tests | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, MOD-13 (DEC-20), MOD-12 (DEC-23), MOD-14 (DEC-25) |
-| MOD-18 | apps/demo | zevrigo-demo (bin, belum dibuat) | Layanan demo regtest: gerbang RPC, faucet, pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 |
+| MOD-18 | apps/demo | zevrigo-demo (bin) | Layanan demo regtest: gerbang RPC (TSK-M53), faucet, pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 |
 
 Aturan arah dependensi:
 - Crate di `crates/` tidak boleh bergantung pada apa pun di `apps/` atau `tests/`.
 - Dependensi antar modul hanya boleh mengikuti kolom "Bergantung pada". Dependensi baru antar modul wajib minta izin dan dicatat sebagai DEC.
-- MOD-15 (TSK-M42): crate Rust di apps/wallet/src-tauri (anggota workspace), antarmuka di apps/wallet (npm, package-lock.json, `make wallet-check`). Di Linux, kompilasi MOD-15 butuh WebKitGTK 4.1 (libwebkit2gtk-4.1-dev, librsvg2-dev, libxdo-dev, libayatana-appindicator3-dev). MOD-16 diinisialisasi lewat task tersendiri. MOD-18 (`apps/demo`, DEC-36) diinisialisasi di TSK-M53 dan hanya untuk demo regtest; `apps/explorer/android` (pembungkus Tauri 2 APK Explorer, bagian MOD-14) diinisialisasi di TSK-M57.
+- MOD-15 (TSK-M42): crate Rust di apps/wallet/src-tauri (anggota workspace), antarmuka di apps/wallet (npm, package-lock.json, `make wallet-check`). Di Linux, kompilasi MOD-15 butuh WebKitGTK 4.1 (libwebkit2gtk-4.1-dev, librsvg2-dev, libxdo-dev, libayatana-appindicator3-dev). MOD-16 diinisialisasi lewat task tersendiri. MOD-18 (`apps/demo`, DEC-36) diinisialisasi di TSK-M53 (mode `rpc`) dan hanya untuk demo regtest; `apps/explorer/android` (pembungkus Tauri 2 APK Explorer, bagian MOD-14) diinisialisasi di TSK-M57.
 
 ## Perintah
 ```bash

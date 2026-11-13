@@ -1,6 +1,6 @@
 # Rancangan Ekosistem Demo Zevrigo Coin (ZVRG) v0.1: jaringan demo regtest untuk pemula
 
-> Diperbarui: 12 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S08 · Status: 🟢 v0.1 (DEC-34, DEC-35, DEC-36)
+> Diperbarui: 12 November 2026 (urutan tahap 1 dan 2, gerbang RPC) · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S08, TSK-M53 · Status: 🟢 v0.1 (DEC-34, DEC-35, DEC-36)
 > Lokasi di repo: `docs/reference/rancangan-ekosistem-demo-v0.1.md`
 
 | Status | Ringkasan |
@@ -176,12 +176,19 @@ tinggi buka berikutnya; grafik koin terkunci per tinggi buka (tokenomik v0.1 Bag
   10 slot terisi. Operator boleh menolak yang mencurigakan; penolakan tidak menghapus slot orang lain.
 - Operator memeriksa antrean lalu menjalankan alat distribusi dari wallet treasury.
 
-### 4.9 Gerbang RPC untuk HP
-Meneruskan hanya metode aman ke RPC node seed: `get_chain_info`, `get_block_hash`, `get_block`, `get_mempool`, `scan_utxos`,
-`scan_mempool`, `send_raw_transaction`. Tanpa `get_block_template` dan `submit_block` (menambang tetap lewat node sendiri).
-Batas laju per pengunjung dan batas ukuran permintaan. Server melihat alamat yang dicek; ini diumumkan. Riwayat wallet
-memindai blok, sehingga di HP makin berat seiring chain tumbuh (±720 blok per hari); dipantau, metode bantu menyusul bila
-perlu.
+### 4.9 Gerbang RPC untuk wallet peserta (TSK-M53)
+`zevrigo-demo rpc` (MOD-18) di namespace node seed, `127.0.0.1:28804`, hostname `zevrigo-rpc.ratuaurion.store`. Dipakai
+wallet desktop dan APK Wallet peserta yang tidak menjalankan node sendiri.
+- Satu permintaan JSON-RPC 2.0 per `POST`. Hanya metode aman yang diteruskan ke RPC node seed: `get_chain_info`,
+  `get_block_hash`, `get_block`, `get_mempool`, `scan_utxos`, `scan_mempool`, `send_raw_transaction`. Hasil atau galat node
+  (kode, pesan, `data`) dikembalikan apa adanya, sehingga wallet bekerja sama seperti ke node sendiri.
+- `get_block_template`, `submit_block`, dan metode lain: `-32601` tanpa dikirim ke node (menambang tetap lewat node sendiri).
+  Batch: `-32600`. Badan di atas 256 KiB: `413`. Selain `POST`: `405`. Node tidak menjawab: `-32603` tanpa rincian.
+- Batas laju per pengunjung 20 permintaan per detik (kapasitas 80) dan bersama 400 per detik, diperiksa sebelum badan dibaca;
+  pengunjung dikenali dari `CF-Connecting-IP` hanya untuk koneksi dari loopback, alamat tidak disimpan dan tidak dicatat.
+- Server melihat alamat yang dicek wallet; ini diumumkan. Riwayat wallet memindai blok (`get_block` per blok), sehingga makin
+  berat seiring chain tumbuh (±720 blok per hari); dipantau, metode bantu menyusul bila perlu.
+- Wallet MOD-15 dan CLI baru bisa memakai gerbang ini setelah klien RPC mendukung HTTPS (TSK-M60).
 
 ### 4.10 Dua APK
 
@@ -216,24 +223,39 @@ seri 1880x.
 
 ## 6. Urutan task
 
-| Langkah | Task | Isi | Bergantung |
-|---|---|---|---|
-| D0 | TSK-S08 | Dokumen ini, DEC-34 sampai DEC-36, backlog | — |
-| D1 | TSK-M47 | 5 node di compose publik, ukur RAM, PeerId operator, `miner-berkala` ke node penambang | TSK-S08 |
-| D2 | TSK-M48, TSK-M49 | `get_peer_info` (MOD-06, 08, 11); `/api/v1/network` dan tampilan statistik (MOD-14) | TSK-M47 |
-| D3 | TSK-M50, TSK-M51 | Output jenis 1 di MOD-09; CLI jenis 1 dan alat distribusi di MOD-12 | TSK-S08 |
-| D4 | TSK-M52 | Halaman treasury dan konfigurasi kantong (MOD-14, DEC-35) | TSK-M51 |
-| D5 | TSK-M53 | Inisialisasi `apps/demo` (MOD-18) dan mode `rpc` | TSK-S08 |
-| D6 | TSK-M54 | Mode `faucet` di node faucet, halaman faucet di explorer, Turnstile | TSK-M51, TSK-M53 |
-| D7 | TSK-M55 | Mode `daftar`: pesan bertanda tangan, antrean, alat operator | TSK-M50, TSK-M53 |
-| D8 | TSK-M56 | Toolchain Android di WSL (skrip pemasangan) | — |
-| D9 | TSK-M57 | APK Explorer (`apps/explorer/android`) dan CORS | TSK-M49, TSK-M52, TSK-M56 |
-| D10 | TSK-M58 | APK Wallet: HTTPS, jenis 1, faucet, daftar | TSK-M50, TSK-M53, TSK-M54, TSK-M55, TSK-M56 |
-| D11 | TSK-M59 | Halaman panduan, teks persetujuan, unduh APK + SHA-256 | TSK-M57, TSK-M58 |
-| D12 | TSK-F11 | Peluncuran tertutup (Bagian 4.3), buka pendaftaran, distribusi, pengumuman | semua di atas |
+Diubah pencipta 12 November 2026 ("dahulukan jalur orang awam"): peserta dengan laptop Windows memakai wallet desktop
+MOD-15 lebih dulu, Android menyusul. Faucet diisi dari kantong Faucet di `G` (Bagian 4.2), jadi upacara genesis dan reset
+chain dimajukan ke tahap 1. Tahap 2 tidak butuh reset kedua: vesting dibagi dari kantong Investor Demo yang sudah ada.
 
-Semua dikerjakan di chain uji yang berjalan; reset hanya sekali di TSK-F11. Paket baru dicatat di DEC-10 pada task yang
-memakainya. Pembagian task bisa berubah saat kartunya ditulis.
+**Tahap 1: orang awam bisa memakai wallet di laptop**
+
+| # | Task | Isi | Bergantung |
+|---|---|---|---|
+| 1 | TSK-M47 | 5 node di compose publik; bagian B: wallet penambang dan treasury dibuat pencipta | TSK-S08 |
+| 2 | TSK-M53 | `apps/demo` (MOD-18) mode `rpc`: gerbang RPC di `zevrigo-rpc.ratuaurion.store` (Bagian 4.9) | TSK-S08 |
+| 3 | TSK-M60 | HTTPS di klien RPC MOD-08: fitur `tls` `jsonrpsee-http-client` (pilihan pencipta, DEC-10 bagian 14) | TSK-M53 |
+| 4 | TSK-M61 | Wallet desktop versi demo: alamat node bawaan gerbang publik, label "REGTEST: koin demo", installer Windows dibangun GitHub Actions dan ditandatangani SignPath Foundation (DEC-07) | TSK-M60 |
+| 5 | TSK-M62 | Alat upacara genesis regtest: membelanjakan `G` (kunci rahasia `1`) ke 8 kantong (Bagian 4.2); tempatnya ditentukan di kartu | TSK-M47 |
+| 6 | TSK-F11 bagian 1 | Peluncuran tertutup (Bagian 4.3): reset, upacara, buka kembali | TSK-M62 |
+| 7 | TSK-M54 | Mode `faucet` di node faucet, halaman faucet di explorer, Turnstile; stok diisi dari kantong Faucet | TSK-M53, TSK-F11 bagian 1 |
+| 8 | TSK-M59 bagian 1 | Halaman panduan dasar, teks persetujuan, unduh installer + SHA-256 | TSK-M61, TSK-M54 |
+
+**Tahap 2: statistik, vesting, treasury, Android**
+
+| # | Task | Isi | Bergantung |
+|---|---|---|---|
+| 9 | TSK-M48, TSK-M49 | `get_peer_info` (MOD-06, 08, 11); `/api/v1/network` dan tampilan statistik (MOD-14) | TSK-M47 |
+| 10 | TSK-M50, TSK-M51 | Output jenis 1 di MOD-09; CLI jenis 1 dan alat distribusi di MOD-12; wallet desktop menampilkan koin terkunci | TSK-S08 |
+| 11 | TSK-M52 | Halaman treasury dan konfigurasi kantong (MOD-14, DEC-35) | TSK-M51 |
+| 12 | TSK-M55 | Mode `daftar`: pesan bertanda tangan, antrean, alat operator | TSK-M50, TSK-M53 |
+| 13 | TSK-M56 | Toolchain Android di WSL (skrip pemasangan) | — |
+| 14 | TSK-M57 | APK Explorer (`apps/explorer/android`) dan CORS | TSK-M49, TSK-M52, TSK-M56 |
+| 15 | TSK-M58 | APK Wallet: HTTPS, jenis 1, faucet, daftar | TSK-M50, TSK-M54, TSK-M55, TSK-M56, TSK-M60 |
+| 16 | TSK-M59 bagian 2 | Panduan APK, unduh APK + SHA-256 | TSK-M57, TSK-M58 |
+| 17 | TSK-F11 bagian 2 | Buka pendaftaran, distribusi vesting dari kantong Investor Demo, pengumuman | semua di atas |
+
+Semua dikerjakan di chain uji yang berjalan; reset hanya sekali di TSK-F11 bagian 1. Paket baru dicatat di DEC-10 pada task
+yang memakainya. Pembagian task bisa berubah saat kartunya ditulis.
 
 ## 7. Risiko dan mitigasi
 
@@ -259,6 +281,9 @@ memakainya. Pembagian task bisa berubah saat kartunya ditulis.
 | DEC-36 | Struktur repo: `apps/demo` (MOD-18) dan `apps/explorer/android` | 🟢 12 November 2026 |
 | DEC-04 | Untuk demo regtest: Tauri 2 di Android | 🟡 demo saja |
 | DEC-05 | Untuk demo regtest: unduh dari situs + SHA-256 | 🟡 demo saja |
+| DEC-07 | Untuk installer wallet desktop demo: SignPath Foundation (build GitHub Actions dari repo publik) | 🟡 permohonan belum |
+| DEC-10 bagian 13 | MOD-18 memakai axum, jsonrpsee (`client-core`), serde_json, thiserror, tokio, tracing; tanpa paket baru | 🟢 12 November 2026 |
+| DEC-10 bagian 14 | HTTPS klien RPC lewat fitur `tls` jsonrpsee-http-client (pilihan pencipta) | ⏳ dicatat di TSK-M60 |
 
 ## 9. Rincian yang diputuskan di task
 Peserta memilih kategori sendiri atau diberi kategori yang masih kosong (usul: memilih sendiri, TSK-M55); stok awal wallet

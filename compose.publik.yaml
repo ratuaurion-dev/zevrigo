@@ -5,10 +5,11 @@
 #   docker compose -f compose.yaml -f compose.publik.yaml down
 #
 # Token tunnel TIDAK disimpan di repo. File ${HOME}/.zevrigo-tunnel.env (izin 600) berisi satu baris: TUNNEL_TOKEN= lalu
-# token dari dasbor Cloudflare Zero Trust (Networks, Tunnels). Dua public hostname (route "Published application") tunnel,
-# keduanya tipe HTTP:
+# token dari dasbor Cloudflare Zero Trust (Networks, Tunnels). Public hostname (route "Published application") tunnel,
+# semuanya tipe HTTP:
 #   zevrigo.ratuaurion.store       -> localhost:28802   explorer
 #   zevrigo-seed.ratuaurion.store  -> localhost:28803   seed P2P WebSocket (TLS diputus Cloudflare)
+#   zevrigo-rpc.ratuaurion.store   -> localhost:28804   gerbang RPC wallet peserta (gerbang-rpc, TSK-M53)
 # Node lain bergabung dengan:
 #   --connect /dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/<PeerId seed>
 # PeerId seed tercetak di log node sebagai baris p2p-ws: (kunci tetap di volume data).
@@ -45,6 +46,22 @@ services:
       - --web-dir
       - /usr/share/zevrigo/web
       - --trust-proxy
+
+  gerbang-rpc:
+    # TSK-M53 (DEC-36): zevrigo-demo mode rpc, di namespace node seed (RPC node lewat 127.0.0.1:28801). Hanya metode aman
+    # yang diteruskan; get_block_template dan submit_block dijawab -32601. Mendengar di 127.0.0.1:28804, hanya dicapai lewat
+    # cloudflared; --trust-proxy aman karena yang tersambung lewat loopback hanya proses di namespace ini.
+    image: zevrigo:regtest
+    pull_policy: never
+    entrypoint: ["zevrigo-demo"]
+    command: ["rpc", "--trust-proxy"]
+    network_mode: "service:node"
+    depends_on:
+      - node
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 10s
+    restart: unless-stopped
 
   cloudflared:
     # cloudflared 2026.10.7 (Q120, 11 November 2026), image resmi Cloudflare dikunci digest (DEC-10 bagian 9).

@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 # Paket Docker Zevrigo Coin, hanya regtest (TSK-M33, Spesifikasi Docker v0.1, DEC-10 bagian 9).
-# Satu image: zevrigo-node, zevrigo-explorer, zevrigo-miner, zevrigo-cli, dan antarmuka web explorer.
+# Satu image: zevrigo-node, zevrigo-explorer, zevrigo-miner, zevrigo-cli, zevrigo-demo (layanan jaringan demo, DEC-36),
+# dan antarmuka web explorer.
 # Image dasar dikunci digest indeks (registry resmi Docker Hub), sehingga build ulang memakai dasar yang sama.
 #
 #   docker build -t zevrigo:regtest .      (atau: make docker-build)
@@ -25,10 +26,10 @@ COPY tests ./tests
 # Salinan randomx-rs + RandomX dengan salt ZVRG (DEC-01), dipakai lewat [patch.crates-io].
 COPY vendor ./vendor
 RUN cargo build --release --locked \
-      -p zevrigo-node -p zevrigo-explorer -p zevrigo-miner -p zevrigo-cli \
+      -p zevrigo-node -p zevrigo-explorer -p zevrigo-miner -p zevrigo-cli -p zevrigo-demo \
  && mkdir /out \
  && cp target/release/zevrigo-node target/release/zevrigo-explorer \
-       target/release/zevrigo-miner target/release/zevrigo-cli /out/
+       target/release/zevrigo-miner target/release/zevrigo-cli target/release/zevrigo-demo /out/
 
 # 2. Antarmuka web explorer (Next.js static export): paket dari package-lock.json tanpa skrip pasang.
 FROM ${NODE_IMAGE} AS web-build

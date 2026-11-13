@@ -23,7 +23,7 @@ Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai ·
 | MOD-15 | `apps/wallet` | zevrigo-wallet | Wallet desktop Tauri 2 (testnet, regtest) | MOD-01, 09, 12 | 🟡 |
 | MOD-16 | `apps/merchant` | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 | ⚪ |
 | MOD-17 | `tests/integration` | `zevrigo-integration-tests` | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, 13 (DEC-20), 12 (DEC-23), 14 (DEC-25) | 🟡 |
-| MOD-18 | `apps/demo` | (belum dibuat) | Layanan demo regtest: gerbang RPC, faucet, pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 | ⚪ |
+| MOD-18 | `apps/demo` | `zevrigo-demo` (bin) | Layanan demo regtest: gerbang RPC (TSK-M53), faucet, pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 | 🟡 |
 
 ## Diagram Dependensi Modul
 
