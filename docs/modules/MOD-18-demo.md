@@ -3,8 +3,8 @@
 - **ID:** `MOD-18`
 - **Path:** `apps/demo`
 - **Paket:** `zevrigo-demo` (pustaka + bin)
-- **Status:** 🟡 mode `rpc` (gerbang RPC, TSK-M53) dan alat `upacara` (TSK-M62); mode `faucet` dan `daftar` belum (DEC-34, DEC-36)
-- **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-08`, `MOD-09` (DEC-36; mode `rpc` hanya memakai `MOD-08`, `upacara` memakai keempatnya)
+- **Status:** 🟡 mode `rpc` (gerbang RPC, TSK-M53), alat `upacara` (TSK-M62), dan mode `faucet` (TSK-M54 bagian A); mode `daftar` belum (DEC-34, DEC-36)
+- **Bergantung pada:** `MOD-01`, `MOD-02`, `MOD-08`, `MOD-09` (DEC-36; mode `rpc` hanya memakai `MOD-08`, `upacara` dan `faucet` memakai keempatnya)
 - **Dipakai oleh:** —
 
 ## Tujuan
@@ -30,7 +30,20 @@ yang dijalankan sebagai tiga proses di belakang Cloudflare Tunnel, masing-masing
   kantong alamat regtest jenis 0. Jumlah kantong wajib tepat 10.000.000 ZVRG; biaya (tarif × ukuran, bawaan 1 quanta per
   byte) diambil dari kantong terakhir. Tanda tangan BIP340 kunci `1` dengan `aux_rand` nol (kunci publik), diperiksa ulang
   sebelum dikirim. Tanpa `--kirim` hanya rencana dan txid. Bukan layanan dan tidak dibuka ke publik.
-- `faucet` (TSK-M54) dan `daftar` (TSK-M55): belum tersedia (`mode ... belum tersedia`).
+- `zevrigo-demo faucet --datadir <dir> [--node-url <url>] [--http-bind <ip>] [--http-port <port>] [--rate <n>] [--jumlah
+  <ZVRG>] [--batas-harian <n>] [--fee-rate <n>] [--trust-proxy-host <nama>] [--allow-origin <origin>]...` (TSK-M54 bagian A):
+  faucet demo di `127.0.0.1:28805` (bawaan). Wallet panas regtest: frasa 24 kata di `<datadir>/faucet-frasa.txt` (dibuat
+  sekali, izin `0600`), alamat `m/44'/1'/0'/0/0` yang juga menjadi alamat kembalian; isi ulang manual dari kantong Faucet.
+  `GET /api/v1/faucet`: alamat, jumlah per kiriman, saldo, sisa hari ini, siap/tidak. `POST /api/v1/faucet` badan
+  `{"address": "rzvrg1..."}`: kirim `--jumlah` (bawaan 100 ZVRG) dengan pemilihan koin MOD-09. Batas: sekali per pengunjung
+  dan sekali per alamat per hari UTC, `--batas-harian` kiriman (bawaan 100); batas alamat dan harian disimpan di
+  `<datadir>/faucet-batas.json` (hari, jumlah, alamat penerima), pengunjung hanya sebagai hash alamat IP dengan kunci acak per
+  hari di memori. Kiriman berantai lewat mempool (kembalian yang belum masuk blok langsung dipakai); setelah start, faucet
+  menunggu sampai mempool bersih dari transaksi faucet (`busy`). Galat JSON `{"error", "message"}`: `400` alamat, `429` batas
+  dan laju (bawaan 2 per detik), `503` kosong, sibuk, atau node, tanpa rincian node. CORS hanya untuk `--allow-origin`
+  (bawaan explorer publik). `CF-Connecting-IP` dipercaya hanya dari alamat `--trust-proxy-host` (di-resolve ulang tiap 60
+  detik). Log tanpa alamat IP dan tanpa alamat penerima.
+- `daftar` (TSK-M55): belum tersedia (`mode daftar belum tersedia`).
 
 ## Bukan Tanggung Jawab
 
@@ -41,5 +54,5 @@ yang dijalankan sebagai tiga proses di belakang Cloudflare Tunnel, masing-masing
 ## Task terkait
 - [TSK-M53](../tasks/TSK-M53-gerbang-rpc.md) — 🟢 inisialisasi dan mode `rpc`
 - [TSK-M62](../tasks/TSK-M62-alat-upacara-genesis.md) — 🟢 alat `upacara`
-- [TSK-M54](../tasks/README.md) — ⚪ mode `faucet`
+- [TSK-M54](../tasks/TSK-M54-faucet.md) — 🟡 bagian A: mode `faucet`; bagian B: compose, halaman explorer, anti-bot
 - [TSK-M55](../tasks/README.md) — ⚪ mode `daftar`

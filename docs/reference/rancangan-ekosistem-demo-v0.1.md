@@ -168,6 +168,10 @@ tinggi buka berikutnya; grafik koin terkunci per tinggi buka (tokenomik v0.1 Bag
 - Anti-bot: Cloudflare Turnstile di web; di APK diperiksa di task APK Wallet. Jika tidak bisa, faucet APK hanya untuk alamat
   terdaftar atau dengan batas lebih kecil.
 - Untuk pemula: faucet hanya ada di demo; di mainnet tidak ada koin gratis (tokenomik v0.1 Bagian 5).
+- Bagian A (TSK-M54): `zevrigo-demo faucet` sudah ada (wallet panas regtest dengan frasa di volume faucet, `GET`/`POST
+  /api/v1/faucet`, batas per pengunjung, per alamat, dan harian, kiriman berantai lewat mempool, CORS hanya untuk explorer,
+  `CF-Connecting-IP` hanya dari `--trust-proxy-host`). Bagian B: layanan di `compose.publik.yaml`, route
+  `zevrigo-faucet.ratuaurion.store`, halaman faucet di explorer, dan anti-bot.
 
 ### 4.8 Pendaftaran Investor Demo
 - Tombol "Daftar Investor Demo" di APK Wallet, aktif setelah peserta mencentang persetujuan (Bagian 10).

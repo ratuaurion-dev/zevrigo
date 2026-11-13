@@ -89,7 +89,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M51 | MOD-12 | Demo D3: CLI output jenis 1 dan alat distribusi (daftar penerima menjadi transaksi dari kantong `G`, tokenomik v0.1 Bagian 7) | TSK-M50 | ⚪ |
 | TSK-M52 | MOD-14 | Demo D4: halaman treasury dan konfigurasi kantong (DEC-35) | TSK-M51 | ⚪ |
 | TSK-M53 | MOD-18 | Demo tahap 1 langkah 1: inisialisasi `apps/demo` (DEC-36) dan mode `rpc` (gerbang RPC aman untuk wallet peserta), layanan `gerbang-rpc` dan hostname `zevrigo-rpc.ratuaurion.store` | TSK-S08 | 🟢 selesai ([kartu](TSK-M53-gerbang-rpc.md)) |
-| TSK-M54 | MOD-18, MOD-14 | Demo tahap 1: mode `faucet` di node faucet (jaringan Docker), halaman faucet di explorer, Turnstile; stok dari kantong Faucet | TSK-M53, TSK-F11 bagian 1 | ⚪ |
+| TSK-M54 | MOD-18, MOD-14 | Demo tahap 1: mode `faucet` di node faucet (jaringan Docker), halaman faucet di explorer, Turnstile; stok dari kantong Faucet | TSK-M53, TSK-F11 bagian 1 | 🟡 bagian A: mode `faucet` ([kartu](TSK-M54-faucet.md)); bagian B: compose, halaman explorer, anti-bot |
 | TSK-M55 | MOD-18 | Demo D7: mode `daftar` (pesan bertanda tangan, antrean siapa cepat dia dapat, alat operator) | TSK-M50, TSK-M53 | ⚪ |
 | TSK-M56 | repo (alat) | Demo D8: toolchain Android di WSL (SDK, NDK, JDK, target Rust) lewat skrip langkah | — | ⚪ |
 | TSK-M57 | MOD-14 (`apps/explorer/android`) | Demo D9: APK Explorer Tauri 2 (antarmuka dibundel, alamat API bisa diatur) dan CORS API explorer (DEC-36) | TSK-M49, TSK-M52, TSK-M56 | ⚪ |

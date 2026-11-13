@@ -69,7 +69,7 @@ fn parses_help_version_and_rpc_mode() {
 #[test]
 fn rejects_bad_arguments() {
     let cases: Vec<(Vec<String>, ArgError)> = vec![
-        (args(&["faucet"]), ArgError::NotYet("faucet")),
+        (args(&["faucet"]), ArgError::MissingOption("--datadir")),
         (args(&["daftar", "--rate", "1"]), ArgError::NotYet("daftar")),
         (
             args(&["dompet"]),
@@ -120,8 +120,8 @@ fn rejects_bad_arguments() {
         assert_eq!(parse_args(list.clone()), Err(error), "{list:?}");
     }
     assert_eq!(
-        ArgError::NotYet("faucet").to_string(),
-        "mode faucet belum tersedia"
+        ArgError::NotYet("daftar").to_string(),
+        "mode daftar belum tersedia"
     );
 }
 
@@ -242,5 +242,142 @@ fn rejects_bad_pockets() {
         ),
     ] {
         assert_eq!(parse_args(args(&list)), Err(error), "{list:?}");
+    }
+}
+
+#[test]
+fn parses_faucet_mode() {
+    use std::path::PathBuf;
+
+    use super::{
+        DEFAULT_DAILY_LIMIT, DEFAULT_FAUCET_AMOUNT, DEFAULT_FAUCET_PORT, DEFAULT_FAUCET_RATE,
+        DEFAULT_ORIGIN, FaucetConfig,
+    };
+
+    assert_eq!(
+        parse_args(args(&["faucet", "--datadir", "/data"])),
+        Ok(Command::Faucet(FaucetConfig {
+            node_url: DEFAULT_NODE_URL.to_owned(),
+            datadir: PathBuf::from("/data"),
+            http_bind: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            http_port: DEFAULT_FAUCET_PORT,
+            rate: DEFAULT_FAUCET_RATE,
+            amount: DEFAULT_FAUCET_AMOUNT,
+            daily_limit: DEFAULT_DAILY_LIMIT,
+            fee_rate: 1,
+            trust_proxy_host: None,
+            origins: vec![DEFAULT_ORIGIN.to_owned()],
+        }))
+    );
+    assert_eq!(DEFAULT_FAUCET_AMOUNT, Amount::from_zvrg_str("100").unwrap());
+    assert_eq!(
+        parse_args(args(&[
+            "faucet",
+            "--node-url",
+            "http://node:28801",
+            "--datadir",
+            "/data",
+            "--http-bind",
+            "0.0.0.0",
+            "--http-port",
+            "0",
+            "--rate",
+            "0",
+            "--jumlah",
+            "2.5",
+            "--batas-harian",
+            "3",
+            "--fee-rate",
+            "2",
+            "--trust-proxy-host",
+            "cloudflared",
+            "--allow-origin",
+            "https://a.example",
+            "--allow-origin",
+            "http://localhost:28802",
+        ])),
+        Ok(Command::Faucet(FaucetConfig {
+            node_url: "http://node:28801".to_owned(),
+            datadir: PathBuf::from("/data"),
+            http_bind: IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+            http_port: 0,
+            rate: 0,
+            amount: Amount::from_zvrg_str("2.5").unwrap(),
+            daily_limit: 3,
+            fee_rate: 2,
+            trust_proxy_host: Some("cloudflared".to_owned()),
+            origins: vec![
+                "https://a.example".to_owned(),
+                "http://localhost:28802".to_owned()
+            ],
+        }))
+    );
+    for word in [
+        "--datadir",
+        "--batas-harian",
+        "--jumlah",
+        "--allow-origin",
+        "--trust-proxy-host",
+    ] {
+        assert!(USAGE.contains(word), "{word}");
+    }
+}
+
+#[test]
+fn rejects_bad_faucet_arguments() {
+    let base = |extra: &[&str]| {
+        let mut list = args(&["faucet", "--datadir", "/data"]);
+        list.extend(extra.iter().map(|item| (*item).to_owned()));
+        list
+    };
+    let cases: Vec<(Vec<String>, ArgError)> = vec![
+        (
+            args(&["faucet", "--rate", "1"]),
+            ArgError::MissingOption("--datadir"),
+        ),
+        (
+            base(&["--datadir", "/lain"]),
+            ArgError::Duplicate("--datadir"),
+        ),
+        (
+            base(&["--jumlah", "0"]),
+            ArgError::InvalidAmount("0".to_owned()),
+        ),
+        (
+            base(&["--jumlah", "satu"]),
+            ArgError::InvalidAmount("satu".to_owned()),
+        ),
+        (
+            base(&["--batas-harian", "0"]),
+            ArgError::InvalidLimit("0".to_owned()),
+        ),
+        (
+            base(&["--batas-harian", "-1"]),
+            ArgError::InvalidLimit("-1".to_owned()),
+        ),
+        (
+            base(&["--allow-origin", "https://a.example/"]),
+            ArgError::InvalidOrigin("https://a.example/".to_owned()),
+        ),
+        (
+            base(&["--allow-origin", "a.example"]),
+            ArgError::InvalidOrigin("a.example".to_owned()),
+        ),
+        (
+            base(&["--http-port", "70000"]),
+            ArgError::InvalidPort("70000".to_owned()),
+        ),
+        (
+            base(&["--trust-proxy"]),
+            ArgError::Unknown("--trust-proxy".to_owned()),
+        ),
+        (
+            base(&["--rate", "1", "--rate", "2"]),
+            ArgError::Duplicate("--rate"),
+        ),
+        (base(&["--help"]), ArgError::Exclusive),
+    ];
+    for (list, error) in cases {
+        assert_eq!(parse_args(list.clone()), Err(error), "{list:?}");
     }
 }

@@ -77,6 +77,9 @@ pub enum DemoError {
     /// Klien RPC ke node tidak bisa dibuat (URL tidak sah).
     #[error("klien RPC gagal dibuat: {0}")]
     Rpc(String),
+    /// File kunci atau file batas faucet gagal dibuka (mode `faucet`).
+    #[error("faucet: {0}")]
+    Faucet(String),
 }
 
 /// Satu permintaan JSON-RPC yang lolos pemeriksaan gerbang dan boleh diteruskan ke node.
@@ -308,7 +311,7 @@ pub fn init_logging() {
 
 /// Menunggu SIGINT atau SIGTERM. Penangkap sinyal dipasang saat fungsi ini dipanggil. Wajib di dalam runtime tokio.
 #[cfg(unix)]
-fn shutdown_signal() -> std::io::Result<impl Future<Output = ()> + Send + 'static> {
+pub(crate) fn shutdown_signal() -> std::io::Result<impl Future<Output = ()> + Send + 'static> {
     use tokio::signal::unix::{SignalKind, signal};
     let mut interrupt = signal(SignalKind::interrupt())?;
     let mut terminate = signal(SignalKind::terminate())?;
@@ -322,7 +325,7 @@ fn shutdown_signal() -> std::io::Result<impl Future<Output = ()> + Send + 'stati
 
 /// Menunggu Ctrl-C (bukan Unix).
 #[cfg(not(unix))]
-fn shutdown_signal() -> std::io::Result<impl Future<Output = ()> + Send + 'static> {
+pub(crate) fn shutdown_signal() -> std::io::Result<impl Future<Output = ()> + Send + 'static> {
     Ok(async {
         // Galat berarti sinyal tidak bisa dipasang; gerbang berhenti seperti menerima Ctrl-C.
         let _ = tokio::signal::ctrl_c().await;

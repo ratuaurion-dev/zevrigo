@@ -12,7 +12,8 @@ path = "src/main.rs"
 
 [dependencies]
 # DEC-36: MOD-18 boleh memakai MOD-01, 02, 08, 09. Gerbang RPC (TSK-M53) hanya memakai MOD-08; upacara genesis (TSK-M62)
-# memakai MOD-01 (transaksi, jumlah), MOD-02 (sighash, tanda tangan BIP340), dan MOD-09 (alamat bech32m).
+# memakai MOD-01 (transaksi, jumlah), MOD-02 (sighash, tanda tangan BIP340), dan MOD-09 (alamat bech32m). Faucet
+# (TSK-M54) memakai MOD-08 dan MOD-09 (frasa, kunci akun, pemilihan koin, tanda tangan kirim).
 zevrigo-crypto.workspace = true
 zevrigo-primitives.workspace = true
 zevrigo-rpc.workspace = true
@@ -23,7 +24,8 @@ axum = { workspace = true, features = ["http1", "tokio"] }
 jsonrpsee = { workspace = true, features = ["client-core"] }
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "time"] }
+# Fitur `sync` (TSK-M54): `tokio::sync::Mutex` untuk wallet faucet; bagian dari paket tokio yang sama, tanpa paket baru.
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time"] }
 tracing.workspace = true
 tracing-subscriber.workspace = true
 
