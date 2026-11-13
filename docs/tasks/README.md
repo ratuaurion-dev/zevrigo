@@ -1,6 +1,6 @@
 # Task kerja: FTR-01 sampai FTR-03 selesai, cabang chain dan reorg (TSK-M27) menuju FTR-04
 
-> Diperbarui: 12 November 2026 · Status keseluruhan: 🟡
+> Diperbarui: 13 November 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
@@ -95,7 +95,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M57 | MOD-14 (`apps/explorer/android`) | Demo D9: APK Explorer Tauri 2 (antarmuka dibundel, alamat API bisa diatur) dan CORS API explorer (DEC-36) | TSK-M49, TSK-M52, TSK-M56 | ⚪ |
 | TSK-M58 | MOD-15 | Demo D10: APK Wallet Tauri 2 (HTTPS ke gerbang RPC, output jenis 1, faucet, daftar, label REGTEST) | TSK-M50, TSK-M53, TSK-M54, TSK-M55, TSK-M56 | ⚪ |
 | TSK-M59 | MOD-14 | Demo D11: halaman panduan, teks persetujuan, unduh APK + SHA-256 | TSK-M57, TSK-M58 | ⚪ |
-| TSK-M60 | MOD-08 | Demo tahap 1: HTTPS di klien RPC lewat fitur `tls` `jsonrpsee-http-client` (pilihan pencipta 12 November 2026, DEC-10 bagian 14) | TSK-M53 | ⚪ |
+| TSK-M60 | MOD-08 | Demo tahap 1: HTTPS di klien RPC lewat fitur `tls` `jsonrpsee-http-client` (pilihan pencipta 12 November 2026, DEC-10 bagian 14, 11 paket) | TSK-M53 | 🟢 selesai ([kartu](TSK-M60-tls-klien-rpc.md)) |
 | TSK-M61 | MOD-15, repo (CI) | Demo tahap 1: wallet desktop versi demo (alamat node bawaan gerbang publik, label REGTEST), installer Windows dibangun GitHub Actions dan ditandatangani SignPath Foundation (DEC-07) | TSK-M60 | ⚪ |
 | TSK-M62 | (ditentukan di kartu) | Demo tahap 1: alat upacara genesis regtest, membelanjakan `G` (kunci rahasia `1`) ke 8 kantong (Rancangan Ekosistem Demo v0.1 Bagian 4.2, 4.3) | TSK-M47 | ⚪ |
 | TSK-M36 | MOD-08, MOD-11, MOD-12 | Metode RPC `scan_mempool`; saldo CLI dan pemilihan koin dengan transaksi tertunda (Spesifikasi RPC 3.9, Wallet Bagian 6) | TSK-M19 | 🟢 selesai ([kartu](TSK-M36-saldo-tertunda.md)) |

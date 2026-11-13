@@ -188,7 +188,8 @@ wallet desktop dan APK Wallet peserta yang tidak menjalankan node sendiri.
   pengunjung dikenali dari `CF-Connecting-IP` hanya untuk koneksi dari loopback, alamat tidak disimpan dan tidak dicatat.
 - Server melihat alamat yang dicek wallet; ini diumumkan. Riwayat wallet memindai blok (`get_block` per blok), sehingga makin
   berat seiring chain tumbuh (±720 blok per hari); dipantau, metode bantu menyusul bila perlu.
-- Wallet MOD-15 dan CLI baru bisa memakai gerbang ini setelah klien RPC mendukung HTTPS (TSK-M60).
+- Klien RPC MOD-08 mendukung `https://` sejak TSK-M60, sehingga CLI dan wallet MOD-15 bisa memakai gerbang ini lewat
+  isian alamat node (`--rpc-url`, Pengaturan wallet).
 
 ### 4.10 Dua APK
 
@@ -283,7 +284,7 @@ yang memakainya. Pembagian task bisa berubah saat kartunya ditulis.
 | DEC-05 | Untuk demo regtest: unduh dari situs + SHA-256 | 🟡 demo saja |
 | DEC-07 | Untuk installer wallet desktop demo: SignPath Foundation (build GitHub Actions dari repo publik) | 🟡 permohonan belum |
 | DEC-10 bagian 13 | MOD-18 memakai axum, jsonrpsee (`client-core`), serde_json, thiserror, tokio, tracing; tanpa paket baru | 🟢 12 November 2026 |
-| DEC-10 bagian 14 | HTTPS klien RPC lewat fitur `tls` jsonrpsee-http-client (pilihan pencipta) | ⏳ dicatat di TSK-M60 |
+| DEC-10 bagian 14 | HTTPS klien RPC lewat fitur `tls` jsonrpsee-http-client, 11 paket (pilihan pencipta) | 🟢 13 November 2026 |
 
 ## 9. Rincian yang diputuskan di task
 Peserta memilih kategori sendiri atau diberi kategori yang masih kosong (usul: memilih sendiri, TSK-M55); stok awal wallet

@@ -1,0 +1,38 @@
+# Paket baru di Cargo.lock karena fitur `tls` jsonrpsee-http-client 0.26.1 di MOD-08 (TSK-M60, DEC-10 bagian 14)
+# Daftar dari resolusi dependensi Quick atas manifest .crate resmi static.crates.io (13 November 2026), dicek skrip
+# gerbang Q128 dengan cargo fetch. cargo fetch di WSL pencipta (Q128 percobaan 1) mengunci webpki-root-certs 1.0.11 (rilis
+# 23 Oktober 2026), bukan 1.0.12 (10 November 2026) seperti resolusi Quick; isi 1.0.11 diperiksa ulang dari .crate resmi. Kolom: nama versi | lisensi | build script | baris unsafe di luar komentar (src/) |
+# forbid(unsafe_code) | sha256 file .crate (= checksum Cargo.lock).
+# jumlah: 11, hilang: 0, lisensi ditolak: 0
+hyper-rustls 0.27.10 | Apache-2.0 OR ISC OR MIT | tidak | 0 | tidak | dfa8e654703247911e29c23fbeaa261834bd9bb74efba2f9acddc37bfb127f53
+openssl-probe 0.2.2 | MIT OR Apache-2.0 | tidak | 5 | tidak | 7e036b411754132fd6b74e94b74e9a13c5cf606fa93d1885c35860d3060820b1
+rustls-native-certs 0.8.5 | Apache-2.0 OR ISC OR MIT | tidak | 0 | tidak | 4a073f5dc7469f984c52ad2752b63b0807745133b6de880b7b64c1ac4c48aec4
+rustls-platform-verifier 0.5.3 | MIT OR Apache-2.0 | tidak | 26 | tidak | 19787cda76408ec5404443dc8b31795c87cd8fec49762dc75fa727740d34acc1
+rustls-platform-verifier-android 0.1.1 | MIT OR Apache-2.0 | tidak | 0 | tidak | f87165f0995f63a9fbeea62b64d10b4d9d8e78ec6d7d51fb2125fda7bb36788f
+schannel 0.1.30 | MIT | tidak | 94 | tidak | 9cb23c424d8ee841bb4d813677ca237e2a610067d594fec130f87d6093495ab5
+security-framework 3.7.0 | MIT OR Apache-2.0 | tidak | 400 | tidak | b7f4bc775c73d9a02cde8bf7b2ec4c9d12743edf609006c7facc23998404cd1d
+security-framework-sys 2.17.0 | MIT OR Apache-2.0 | tidak | 4 | tidak | 6ce2691df843ecc5d231c0b14ece2acc3efb62c0a398c7e1d875f3983ce020e3
+tokio-rustls 0.26.6 | MIT OR Apache-2.0 | tidak | 0 | tidak | c9cc2678c2cdd569ef8215e2afd7954ada2ae20b4fdd2c5fe6139a3b02d105db
+webpki-root-certs 0.26.11 | CDLA-Permissive-2.0 | tidak | 0 | tidak | 75c7f0ef91146ebfb530314f5f1d24528d7f0767efbfd31dce919275413e393e
+webpki-root-certs 1.0.11 | CDLA-Permissive-2.0 | tidak | 0 | tidak | e49d0e65abc00c142e8f9428da991da9f1a250c39be97459901eb12b9b49f62a
+#
+# Platform tempat paket dikompilasi (Cargo.lock memuat semua platform, tetapi kode hanya dikompilasi untuk targetnya):
+# - semua: hyper-rustls, tokio-rustls, rustls-platform-verifier.
+# - Linux (bukan Android): rustls-native-certs, openssl-probe (mencari lokasi berkas sertifikat sistem; tanpa OpenSSL).
+# - Windows (wallet desktop): rustls-native-certs, schannel (membaca penyimpanan sertifikat Windows).
+# - Android (APK nanti): rustls-platform-verifier-android. Berisi satu file biner
+#   maven/rustls/rustls-platform-verifier/0.1.1/rustls-platform-verifier-0.1.1.aar (9.287 byte, sha256
+#   667292cadd8fa589229dd0f716541236a761f29b774930868d218175633830fd), komponen Kotlin yang wajib dibundel ke APK dan
+#   diinisialisasi lewat JNI sebelum koneksi https pertama (dikerjakan di TSK-M58).
+# - macOS dan iOS: security-framework, security-framework-sys (belum ada target Apple).
+# - wasm32: webpki-root-certs 0.26.11 (pembungkus) dan 1.0.11 (daftar akar Mozilla sebagai data, CDLA-Permissive-2.0
+#   seperti webpki-roots yang disetujui 11 November 2026). Belum ada target wasm32.
+#
+# Catatan:
+# - Penyedia kripto rustls tetap `ring` (DEC-24). Tidak ada paket yang mengaktifkan aws-lc-rs: rustls dirujuk dengan fitur
+#   `logging`, `std`, `tls12`, `ring` dan tanpa fitur bawaan; jsonrpsee memasang penyedia `ring` sebelum membuat konfigurasi
+#   TLS.
+# - Paket lama yang berubah di Cargo.lock: jsonrpsee-http-client 0.26.1 (rujukan baru hyper-rustls, rustls,
+#   rustls-platform-verifier) dan rustls 0.23.46 (rujukan baru log, karena fitur `logging`). windows-sys memakai versi
+#   0.52.0 dan 0.61.2 yang sudah ada.
+# - TLS hanya dipakai untuk URL `https://`. Node, explorer, miner, dan CLI di container tetap memakai `http://127.0.0.1`.

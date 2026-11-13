@@ -66,6 +66,9 @@ redb = { version = "4.4.0", default-features = false, features = ["std"] }
 tokio = { version = "1.54.1", default-features = false }
 jsonrpsee = { version = "0.26.1", default-features = false }
 jsonrpsee-http-client = { version = "0.26.1", default-features = false }
+# DEC-10 bagian 14 (TSK-M60): fitur `tls` jsonrpsee-http-client di MOD-08 menambah 11 paket (hyper-rustls, tokio-rustls,
+# rustls-platform-verifier + -android, rustls-native-certs, openssl-probe, schannel, security-framework + -sys,
+# webpki-root-certs 0.26 dan 1.0); docs/reference/paket-mod08-tls-v0.1.txt.
 serde = { version = "1.0.229", default-features = false, features = ["std", "derive"] }
 serde_json = { version = "1.0.154", default-features = false, features = ["std"] }
 tracing = { version = "0.1.44", default-features = false, features = ["std"] }

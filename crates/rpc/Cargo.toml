@@ -9,7 +9,9 @@ license.workspace = true
 [dependencies]
 zevrigo-primitives.workspace = true
 jsonrpsee = { workspace = true, features = ["server", "client-core"] }
-jsonrpsee-http-client.workspace = true
+# DEC-10 bagian 14 (TSK-M60): fitur `tls` untuk URL `https://` (gerbang RPC demo lewat Cloudflare). Penyedia kripto rustls
+# `ring` (sudah ada), verifikasi sertifikat lewat sistem operasi (rustls-platform-verifier); tanpa aws-lc-rs.
+jsonrpsee-http-client = { workspace = true, features = ["tls"] }
 serde.workspace = true
 serde_json = { workspace = true, features = ["raw_value"] }
 thiserror.workspace = true

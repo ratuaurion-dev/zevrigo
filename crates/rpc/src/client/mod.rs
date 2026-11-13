@@ -1,5 +1,6 @@
-//! Klien JSON-RPC lewat HTTP untuk CLI dan miner (Spesifikasi RPC v0.1), di atas `jsonrpsee-http-client` 0.26
-//! tanpa TLS, karena server RPC hanya mendengarkan alamat lokal.
+//! Klien JSON-RPC lewat HTTP untuk CLI, miner, explorer, dan wallet (Spesifikasi RPC v0.1 Bagian 1), di atas
+//! `jsonrpsee-http-client` 0.26. URL `http://` untuk node lokal; URL `https://` (fitur `tls`, TSK-M60) untuk gerbang RPC
+//! publik di belakang Cloudflare (MOD-18), dengan rustls (penyedia `ring`) dan verifikasi sertifikat lewat sistem operasi.
 
 use jsonrpsee::core::ClientError;
 use jsonrpsee::core::client::ClientT;
@@ -36,11 +37,13 @@ fn object<T: Serialize>(params: &T) -> Result<Map<String, Value>, ClientError> {
 }
 
 impl RpcClient {
-    /// Membuat klien ke `url`, misalnya `http://127.0.0.1:28801`. Ukuran request dibatasi [`MAX_REQUEST_BYTES`].
+    /// Membuat klien ke `url`, misalnya `http://127.0.0.1:28801` atau `https://zevrigo-rpc.ratuaurion.store`. Ukuran
+    /// request dibatasi [`MAX_REQUEST_BYTES`]. Untuk `https://`, sertifikat server diperiksa terhadap daftar akar sistem
+    /// operasi saat koneksi pertama.
     ///
     /// # Errors
     ///
-    /// [`ClientError::Transport`] jika `url` tidak sah.
+    /// [`ClientError::Transport`] jika `url` tidak sah atau skemanya bukan `http` atau `https`.
     pub fn new(url: &str) -> Result<Self, ClientError> {
         let inner = HttpClientBuilder::default()
             .max_request_size(MAX_REQUEST_BYTES)
@@ -202,3 +205,6 @@ pub fn reject_reason(err: &ClientError) -> Option<String> {
         .ok()
         .map(|d| d.reason)
 }
+
+#[cfg(test)]
+mod tests;

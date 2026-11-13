@@ -1,6 +1,6 @@
 # Spesifikasi RPC Zevrigo Coin (ZVRG) v0.1: 9 metode JSON-RPC untuk node regtest (FTR-01 sampai FTR-03)
 
-> Diperbarui: 2 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S04 · Status: 🟢 v0.1
+> Diperbarui: 13 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-S04, TSK-M60 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-rpc-v0.1.md`
 
 | Status | Ringkasan |
@@ -18,7 +18,8 @@ RPC **bukan konsensus**. Perubahannya tidak memecah chain, cukup lewat versi bar
 | Hal | Nilai |
 |---|---|
 | Protokol | JSON-RPC 2.0 lewat HTTP `POST /`, `Content-Type: application/json` |
-| Pustaka | `jsonrpsee` 0.26.1 (DEC-10 bagian 2), server di node, klien di CLI dan miner |
+| Pustaka | `jsonrpsee` 0.26.1 (DEC-10 bagian 2), server di node, klien di CLI, miner, explorer, dan wallet |
+| Klien `https://` | Sejak TSK-M60 (DEC-10 bagian 14): klien MOD-08 menerima `http://` dan `https://` (rustls dengan penyedia `ring`, verifikasi sertifikat lewat sistem operasi), untuk gerbang RPC demo di belakang Cloudflare (MOD-18). Server node tetap HTTP tanpa TLS di `127.0.0.1` |
 | Alamat bawaan | `127.0.0.1`, hanya lokal |
 | Port bawaan | regtest 28_801 · testnet 18_801 · mainnet 8_801 |
 | Ukuran request maksimum | 1 MiB (blok 100_000 byte = 200_000 karakter hex) |
