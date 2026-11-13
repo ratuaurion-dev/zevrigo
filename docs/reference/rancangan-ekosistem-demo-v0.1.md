@@ -112,6 +112,10 @@ seed terbuka saat chain baru mencapai blok 100, orang lain bisa memindah `G` leb
    dulu), tambang 1 blok lagi.
 4. Periksa 8 kantong di indeks, lalu buka kembali seed dan explorer.
 
+Dilaksanakan 13 November 2026 (Q133, TSK-F11 bagian 1): image dibangun ulang lebih dulu, kelima volume dicadangkan, 99 blok
+ke alamat penambang, upacara ke 8 alamat kantong wallet treasury (`ai_advisory_hub/treasury_kantong.txt`, kantong Faucet
+terakhir menanggung biaya), lalu jaringan dibuka bersama layanan faucet (Bagian 4.7).
+
 Batas yang diumumkan: siapa pun yang tersambung kemudian tetap bisa menimpa chain dengan chain yang kerjanya lebih banyak
 (PoW dev murah), dan di chain itu `G` kembali ke kunci publik. Chain uji yang sekarang berjalan (tinggi di atas 100 sejak
 `miner-berkala`) tidak dipakai untuk upacara.

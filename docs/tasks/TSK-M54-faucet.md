@@ -1,4 +1,4 @@
-# TSK-M54 · Faucet demo (`zevrigo-demo faucet`) · 🟡 bagian A selesai · Prioritas: Tinggi
+# TSK-M54 · Faucet demo (`zevrigo-demo faucet`) · 🟡 bagian A dan compose selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-18 (`apps/demo`), nanti MOD-14 (halaman explorer) · **Untuk:** FTR-11 tahap 1 (DEC-34)
 - **Bergantung pada:** TSK-M53, TSK-M62 · **Memblokir:** TSK-F11 bagian 1 (isi faucet sesudah upacara), TSK-M58
 - **Estimasi:** M · **Ditulis:** Quick, 13 November 2026
@@ -29,9 +29,10 @@ Docker atau chain publik): faucet kosong menjawab `empty`; upacara mengisi kanto
 sama, `busy` sampai blok berikutnya; kiriman keempat; restart lagi: sisa hari ini 0; CORS hanya untuk explorer; setiap
 penerima tepat 100 ZVRG, faucet satu UTXO = 500.000 ZVRG − biaya upacara − biaya 4 kiriman; log dan file batas tanpa alamat IP.
 
-## Bagian B (berikutnya)
-- Layanan `faucet` di `compose.publik.yaml` di namespace node faucet (`--node-url http://127.0.0.1:28801`, `--http-bind
-  0.0.0.0`, volume sendiri untuk frasa dan batas), route `zevrigo-faucet.ratuaurion.store` → `http://node-faucet:28805`,
-  `--trust-proxy-host` = nama layanan namespace `cloudflared`. Isi ulang dari kantong Faucet sesudah upacara (TSK-F11 bagian 1).
-- Halaman faucet di explorer (MOD-14) dan anti-bot (Cloudflare Turnstile, butuh persetujuan pencipta untuk layanan pihak
+## Bagian B
+- Selesai bersama peluncuran (Q133): layanan `faucet` di `compose.publik.yaml` di namespace `node-faucet` (`--datadir /data`,
+  `--http-bind 0.0.0.0`, `--trust-proxy-host node`, volume `zvrg-faucet-dompet`). Route `zevrigo-faucet.ratuaurion.store` →
+  `http://node-faucet:28805` dibuat pencipta di dasbor Cloudflare. Pengisian (keputusan pencipta 13 November 2026): upacara
+  ke kantong Faucet di wallet treasury; faucet diisi ulang bertahap dengan `zevrigo-cli send --dari` (TSK-M63).
+- Berikutnya: halaman faucet di explorer (MOD-14) dan anti-bot (Cloudflare Turnstile, butuh persetujuan pencipta untuk layanan pihak
   ketiga). Tombol faucet di APK Wallet: TSK-M58.

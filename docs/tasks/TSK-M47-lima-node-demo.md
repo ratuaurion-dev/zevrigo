@@ -48,3 +48,8 @@ Lihat Spesifikasi Docker v0.1 Bagian 7, "Gerbang lima node".
 - [x] Gerbang Q126 lolos (bagian A)
 - [ ] Bagian B: wallet penambang dan treasury dibuat pencipta, miner membayar ke alamat penambang
 - [x] Spesifikasi Docker v0.1 Bagian 7, README, docs/tasks
+
+## Bagian B (pencipta, 13 November 2026)
+Wallet penambang dan wallet treasury dibuat pencipta dengan `wallet-create` di container masing-masing (24 kata di kertas).
+`/data/payout-penambang` = payload alamat penerimaan pertama wallet penambang; 8 alamat kantong treasury di
+`ai_advisory_hub/treasury_kantong.txt` (indeks penerimaan 8 sampai 15). Dipakai peluncuran tertutup (TSK-F11 bagian 1, Q133).

@@ -10,6 +10,7 @@
 #   zevrigo.ratuaurion.store       -> localhost:28802   explorer
 #   zevrigo-seed.ratuaurion.store  -> localhost:28803   seed P2P WebSocket (TLS diputus Cloudflare)
 #   zevrigo-rpc.ratuaurion.store   -> localhost:28804   gerbang RPC wallet peserta (gerbang-rpc, TSK-M53)
+#   zevrigo-faucet.ratuaurion.store -> node-faucet:28805 faucet demo (faucet, TSK-M54), lewat jaringan Docker
 # Node lain bergabung dengan:
 #   --connect /dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/<PeerId seed>
 # PeerId seed tercetak di log node sebagai baris p2p-ws: (kunci tetap di volume data).
@@ -25,6 +26,11 @@
 # seed. Tanpa port host; batas 256 MiB dan 0,5 CPU per node (terukur Q125: node sekitar 10 MiB, node baru sinkron 8 detik).
 #   node-penambang  tempat miner-berkala      node-treasury  wallet treasury (operator)
 #   node-faucet     layanan faucet (TSK-M54)   node-pengamat  hanya menerima siaran
+#
+# faucet (TSK-M54 bagian B): zevrigo-demo mode faucet di namespace node-faucet, wallet panas regtest di volume sendiri
+# (zvrg-faucet-dompet: faucet-frasa.txt dan faucet-batas.json). Diisi ulang bertahap dari kantong Faucet treasury:
+#   docker compose -f compose.yaml -f compose.publik.yaml exec node-treasury zevrigo-cli --datadir /data send \
+#     --dari <alamat kantong Faucet> --to <alamat faucet dari log: alamat faucet:> --amount 10000
 # Alamat seed bisa diganti dengan variabel ZVRG_SEED (misalnya volume seed baru dengan PeerId lain).
 #
 # miner-berkala (TSK-M46, TSK-M47): satu blok regtest setiap ZVRG_JEDA detik (bawaan 120 = waktu blok target), di namespace
@@ -137,6 +143,24 @@ services:
     stop_grace_period: 30s
     restart: unless-stopped
 
+  faucet:
+    # TSK-M54 bagian B (DEC-36): zevrigo-demo mode faucet, RPC node-faucet lewat 127.0.0.1:28801 di namespace yang sama.
+    # Mendengar 0.0.0.0:28805 di jaringan Docker (tanpa port host); cloudflared (namespace node) menjangkaunya lewat
+    # http://node-faucet:28805. CF-Connecting-IP hanya dipercaya dari alamat layanan node (namespace cloudflared).
+    image: zevrigo:regtest
+    pull_policy: never
+    entrypoint: ["zevrigo-demo"]
+    command: ["faucet", "--datadir", "/data", "--http-bind", "0.0.0.0", "--trust-proxy-host", "node"]
+    network_mode: "service:node-faucet"
+    volumes:
+      - zvrg-faucet-dompet:/data
+    depends_on:
+      - node-faucet
+    mem_limit: 256m
+    cpus: 0.5
+    stop_grace_period: 10s
+    restart: unless-stopped
+
   node-pengamat:
     image: zevrigo:regtest
     pull_policy: never
@@ -152,4 +176,5 @@ volumes:
   zvrg-penambang:
   zvrg-treasury:
   zvrg-faucet:
+  zvrg-faucet-dompet:
   zvrg-pengamat:

@@ -82,14 +82,14 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M44 | repo (Docker) | Explorer publik lewat Cloudflare Tunnel: `compose.publik.yaml` (cloudflared dikunci digest, token di luar repo, port host dicabut), uji regtest di `zevrigo.ratuaurion.store` (Spesifikasi Docker v0.1 Bagian 7) | TSK-M33, TSK-M43 | 🟢 selesai ([kartu](TSK-M44-explorer-publik-tunnel.md)) |
 | TSK-M45 | MOD-06 (`transport`, `service`), MOD-11 (`daemon`, `p2p`), repo (Docker) | Seed P2P regtest lewat Cloudflare Tunnel: transport WebSocket libp2p, alamat `/dns*` lewat resolver sistem, keepalive `status` 60 detik, `--p2p-ws-port`, public hostname `zevrigo-seed.ratuaurion.store` (DEC-33, DEC-10 bagian 12, Spesifikasi P2P v0.1 Bagian 1, 4, 8) | TSK-M14, TSK-M28, TSK-M44 | 🟢 selesai ([kartu](TSK-M45-seed-websocket.md)) |
 | TSK-M46 | repo (Docker) | Miner berkala untuk demo explorer publik regtest: layanan `miner-berkala` di `compose.publik.yaml`, satu blok setiap 120 detik ke kunci NUMS (Spesifikasi Docker v0.1 Bagian 7) | TSK-M44, TSK-M45 | 🟢 selesai ([kartu](TSK-M46-miner-berkala-publik.md)) |
-| TSK-M47 | repo (Docker) | Demo D1: 5 node di `compose.publik.yaml` (seed, penambang, treasury, faucet, pengamat) lewat seed publik, batas RAM dari hasil ukur, daftar PeerId operator, `miner-berkala` ke node penambang dengan alamat wallet tetap (DEC-34) | TSK-M46, TSK-S08 | 🟡 bagian A: 5 node berjalan ([kartu](TSK-M47-lima-node-demo.md)); bagian B: wallet penambang dan treasury oleh pencipta |
+| TSK-M47 | repo (Docker) | Demo D1: 5 node di `compose.publik.yaml` (seed, penambang, treasury, faucet, pengamat) lewat seed publik, batas RAM dari hasil ukur, daftar PeerId operator, `miner-berkala` ke node penambang dengan alamat wallet tetap (DEC-34) | TSK-M46, TSK-S08 | 🟢 selesai: 5 node berjalan ([kartu](TSK-M47-lima-node-demo.md)); wallet penambang dan treasury dibuat pencipta (13 November 2026) |
 | TSK-M48 | MOD-06, MOD-08, MOD-11 | Demo D2: metode RPC `get_peer_info` (PeerId, arah, waktu tersambung, `status` terakhir, tinggi dan ujung rekan) | TSK-M47 | ⚪ |
 | TSK-M49 | MOD-14 | Demo D2: `/api/v1/network` dan tampilan statistik jaringan (node terhubung, aktif, operator/peserta, alamat penambang 720 blok) | TSK-M48 | ⚪ |
 | TSK-M50 | MOD-09 | Demo D3: output jenis 1 (kunci waktu, m = 1, n = 1): membuat, memindai, saldo terkunci, membelanjakan; pesan pendaftaran bertanda tangan | TSK-S08 | ⚪ |
 | TSK-M51 | MOD-12 | Demo D3: CLI output jenis 1 dan alat distribusi (daftar penerima menjadi transaksi dari kantong `G`, tokenomik v0.1 Bagian 7) | TSK-M50 | ⚪ |
 | TSK-M52 | MOD-14 | Demo D4: halaman treasury dan konfigurasi kantong (DEC-35) | TSK-M51 | ⚪ |
 | TSK-M53 | MOD-18 | Demo tahap 1 langkah 1: inisialisasi `apps/demo` (DEC-36) dan mode `rpc` (gerbang RPC aman untuk wallet peserta), layanan `gerbang-rpc` dan hostname `zevrigo-rpc.ratuaurion.store` | TSK-S08 | 🟢 selesai ([kartu](TSK-M53-gerbang-rpc.md)) |
-| TSK-M54 | MOD-18, MOD-14 | Demo tahap 1: mode `faucet` di node faucet (jaringan Docker), halaman faucet di explorer, Turnstile; stok dari kantong Faucet | TSK-M53, TSK-F11 bagian 1 | 🟡 bagian A: mode `faucet` ([kartu](TSK-M54-faucet.md)); bagian B: compose, halaman explorer, anti-bot |
+| TSK-M54 | MOD-18, MOD-14 | Demo tahap 1: mode `faucet` di node faucet (jaringan Docker), halaman faucet di explorer, Turnstile; stok dari kantong Faucet | TSK-M53, TSK-F11 bagian 1 | 🟡 mode `faucet` dan layanan compose ([kartu](TSK-M54-faucet.md)); berikutnya: halaman explorer, anti-bot |
 | TSK-M55 | MOD-18 | Demo D7: mode `daftar` (pesan bertanda tangan, antrean siapa cepat dia dapat, alat operator) | TSK-M50, TSK-M53 | ⚪ |
 | TSK-M56 | repo (alat) | Demo D8: toolchain Android di WSL (SDK, NDK, JDK, target Rust) lewat skrip langkah | — | ⚪ |
 | TSK-M57 | MOD-14 (`apps/explorer/android`) | Demo D9: APK Explorer Tauri 2 (antarmuka dibundel, alamat API bisa diatur) dan CORS API explorer (DEC-36) | TSK-M49, TSK-M52, TSK-M56 | ⚪ |
@@ -116,7 +116,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-F08 | FTR-08 Wallet mobile | TSK-F07, DEC-04, DEC-05 | ⚪ dipecah nanti (demo regtest lebih dulu: APK Wallet di TSK-M58, DEC-34) |
 | TSK-F09 | FTR-09 Aplikasi pelaku usaha | TSK-M17, TSK-F07, DEC-06 | ⚪ dipecah nanti |
 | TSK-F10 | FTR-10 Reproducible build dan rilis | TSK-F06, DEC-07 | ⚪ dipecah nanti |
-| TSK-F11 | FTR-11 Demo publik regtest untuk pemula: bagian 1 peluncuran tertutup (reset, upacara genesis, tahap 1); bagian 2 pendaftaran, distribusi vesting, pengumuman (tahap 2) | TSK-M47 sampai TSK-M62, DEC-34 | ⚪ |
+| TSK-F11 | FTR-11 Demo publik regtest untuk pemula: bagian 1 peluncuran tertutup (reset, upacara genesis, tahap 1); bagian 2 pendaftaran, distribusi vesting, pengumuman (tahap 2) | TSK-M47 sampai TSK-M62, DEC-34 | 🟡 bagian 1 selesai: peluncuran tertutup ([kartu](TSK-F11-peluncuran-demo.md)) |
 
 ## Jalur kritis menuju testnet
 
