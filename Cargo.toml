@@ -93,6 +93,8 @@ randomx-rs = { version = "1.6.0", default-features = false }
 # jendela); di Linux butuh WebKitGTK 4.1 (libwebkit2gtk-4.1-dev, librsvg2-dev, libxdo-dev, libayatana-appindicator3-dev).
 # Versi dikunci persis (=) sesuai yang disetujui; tanpa itu Cargo memilih rilis patch terbaru.
 tauri = { version = "=2.12.3" }
+# TSK-M58: dipakai langsung oleh MOD-15 di Android (inisialisasi JNI); versi sama dengan yang dibawa MOD-08 (DEC-10 bagian 14).
+rustls-platform-verifier = { version = "=0.5.3", default-features = false }
 tauri-build = { version = "=2.7.2" }
 
 # DEC-01 (Konsep Bagian 5.10 dan L5): randomx-rs dibangun dari salinan di repo, satu-satunya perubahan algoritma adalah

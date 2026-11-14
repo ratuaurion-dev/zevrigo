@@ -54,3 +54,19 @@ RPC `https://zevrigo-rpc.ratuaurion.store` (MOD-18), dengan pita "REGTEST" dan c
 testnet, wallet butuh node di komputer sendiri, misalnya `zevrigo-node --testnet` (RPC bawaan `http://127.0.0.1:18801`).
 Alamat node bisa diubah di Pengaturan, misalnya `http://127.0.0.1:28801` untuk `zevrigo-node --regtest`. Node di WSL2 bisa
 dihubungi dari wallet Windows lewat `127.0.0.1`.
+
+## Android (TSK-M58)
+
+Isi aplikasi ada di pustaka `zevrigo_wallet_lib` (`src-tauri/src/lib.rs`), dipakai program desktop dan aplikasi Android.
+Di Android, wallet disimpan di folder data aplikasi (ikut terhapus bila aplikasi dihapus: simpan 24 kata pemulihan), dan
+sertifikat HTTPS gerbang RPC diperiksa terhadap daftar akar sistem Android (rustls-platform-verifier). Alat build Android di
+WSL ada di `~/android` (`source ~/.zevrigo-android.env`, TSK-M56). Pemeriksaan kode Android tanpa membangun APK:
+
+```bash
+source ~/.zevrigo-android.env
+B="$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+CC_aarch64_linux_android="$B/aarch64-linux-android24-clang" AR_aarch64_linux_android="$B/llvm-ar" \
+CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$B/aarch64-linux-android24-clang" \
+  cargo clippy --target aarch64-linux-android -p zevrigo-wallet --lib -- -D warnings
+```
+

@@ -5,7 +5,14 @@ edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 license.workspace = true
-description = "Wallet desktop Zevrigo Coin (MOD-15): Tauri 2 di atas pustaka zevrigo-cli"
+description = "Wallet Zevrigo Coin (MOD-15) untuk desktop dan Android: Tauri 2 di atas pustaka zevrigo-cli"
+
+# TSK-M58: pustaka untuk Android (Tauri mobile memuat cdylib lewat JNI; staticlib untuk iOS nanti), program desktop memanggil
+# pustaka yang sama. Nama berbeda dari program agar berkas hasil build tidak bentrok di Windows.
+[lib]
+name = "zevrigo_wallet_lib"
+path = "src/lib.rs"
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 [[bin]]
 name = "zevrigo-wallet"
@@ -24,6 +31,12 @@ zevrigo-wallet-core.workspace = true
 tauri.workspace = true
 serde.workspace = true
 zeroize = { workspace = true, features = ["alloc"] }
+
+# TSK-M58 (pilihan pencipta 14 November 2026): di Android, sertifikat HTTPS gerbang RPC diperiksa terhadap daftar akar sistem
+# lewat rustls-platform-verifier (sudah dipakai MOD-08 sejak TSK-M60, DEC-10 bagian 14), yang harus disiapkan dengan konteks
+# Android saat aplikasi mulai. Paket yang sama dengan Cargo.lock, tanpa paket baru.
+[target.'cfg(target_os = "android")'.dependencies]
+rustls-platform-verifier.workspace = true
 
 [dev-dependencies]
 zevrigo-rpc.workspace = true

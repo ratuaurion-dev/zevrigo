@@ -35,23 +35,31 @@ pub fn wallet_default_rpc_url(network: Network) -> String {
     }
 }
 
-/// Folder data wallet desktop. File wallet per jaringan ada di `<datadir>/<jaringan>/wallet.json`.
+/// Folder data wallet. File wallet per jaringan ada di `<datadir>/<jaringan>/wallet.json`.
 pub struct AppState {
     datadir: PathBuf,
 }
 
 impl AppState {
     /// Folder dari [`DATADIR_ENV`], atau bawaan: `%APPDATA%\Zevrigo` di Windows, `$HOME/.zevrigo` di sistem lain.
-    /// `None` jika variabel lingkungan yang dibutuhkan tidak ada.
+    /// `None` jika variabel lingkungan yang dibutuhkan tidak ada. Hanya desktop; Android memakai [`AppState::new`].
+    #[cfg_attr(target_os = "android", allow(dead_code))]
     pub fn from_env() -> Option<Self> {
         let datadir = match std::env::var_os(DATADIR_ENV).filter(|dir| !dir.is_empty()) {
             Some(dir) => PathBuf::from(dir),
             None => default_datadir()?,
         };
-        Some(Self { datadir })
+        Some(Self::new(datadir))
+    }
+
+    /// Folder data tertentu, misalnya folder data aplikasi Android (TSK-M58).
+    #[must_use]
+    pub const fn new(datadir: PathBuf) -> Self {
+        Self { datadir }
     }
 }
 
+#[cfg_attr(target_os = "android", allow(dead_code))]
 fn default_datadir() -> Option<PathBuf> {
     let (variable, folder) = if cfg!(windows) {
         ("APPDATA", "Zevrigo")

@@ -2,8 +2,8 @@
 
 - **ID:** `MOD-15`
 - **Path:** `apps/wallet` (antarmuka), `apps/wallet/src-tauri` (crate Rust)
-- **Paket:** `zevrigo-wallet` (bin), antarmuka npm `zevrigo-wallet`
-- **Status:** 🟢 v0.1: aplikasi desktop Tauri 2 untuk testnet dan regtest (TSK-M42), installer Windows NSIS (TSK-F07); 🟢 0.2.0 versi demo (TSK-M61)
+- **Paket:** `zevrigo-wallet` (pustaka `zevrigo_wallet_lib` + bin), antarmuka npm `zevrigo-wallet`
+- **Status:** 🟢 v0.1: aplikasi desktop Tauri 2 untuk testnet dan regtest (TSK-M42), installer Windows NSIS (TSK-F07); 🟢 0.2.0 versi demo (TSK-M61); 🟡 Android (TSK-M58 bagian 1: kode)
 - **Bergantung pada:** `MOD-01` (`Amount`, `Network`), `MOD-09` (frasa baru, alamat), `MOD-12` (pustaka CLI, DEC-31)
 - **Dipakai oleh:** —
 
@@ -24,6 +24,12 @@ dan mengirim ZVRG, dengan kunci hanya di komputer pengguna.
 - Galat dikirim dengan kode tetap (`wrong_password`, `node_unreachable`, `insufficient_funds`, ...) dan diterjemahkan.
 - Folder data: `%APPDATA%\Zevrigo` (Windows) atau `~/.zevrigo`, atau `ZEVRIGO_WALLET_DATADIR`.
 - CSP ketat di `tauri.conf.json`: hanya sumber aplikasi sendiri dan IPC.
+- Android (TSK-M58 bagian 1): isi aplikasi di pustaka `zevrigo_wallet_lib` (`src-tauri/src/lib.rs`, crate-type
+  `staticlib`, `cdylib`, `rlib`); `run` adalah `tauri::mobile_entry_point`, program desktop memanggil `try_run`. Folder data
+  Android = folder data aplikasi (`app_data_dir`, ikut terhapus saat aplikasi dihapus; frasa 24 kata tetap satu-satunya
+  cadangan). HTTPS ke gerbang RPC diperiksa terhadap daftar akar sistem Android (rustls-platform-verifier, pilihan pencipta
+  14 November 2026), disiapkan saat mulai dengan `init_with_env` dan konteks Activity dari `WebviewWindow::with_webview` +
+  `jni_handle().exec` (tanpa kode `unsafe` di repo). Layar sempit memakai menu bawah lima tombol (`md:hidden`).
 - Versi demo 0.2.0 (TSK-M61, DEC-34): jaringan bawaan regtest dengan node bawaan gerbang demo publik
   `https://zevrigo-rpc.ratuaurion.store` (`wallet_default_rpc_url`; testnet tetap node lokal), pita "REGTEST" berisi
   peringatan koin demo, catatan privasi di Pengaturan, pesan offline khusus gerbang demo. Installer menampilkan
@@ -33,7 +39,7 @@ dan mengirim ZVRG, dengan kunci hanya di komputer pengguna.
 ## Bukan Tanggung Jawab
 
 - Kriptografi, pemilihan koin, dan format file wallet (MOD-09, MOD-12). Mainnet (belum ada). Passphrase BIP39 tambahan
-  (pakai CLI). Wallet mobile (TSK-F08). Layanan kasir (MOD-16).
+  (pakai CLI). iOS. Layanan kasir (MOD-16).
 
 ## Uji
 
@@ -46,4 +52,5 @@ dan mengirim ZVRG, dengan kunci hanya di komputer pengguna.
 - [TSK-M42](../tasks/TSK-M42-wallet-desktop.md) — 🟢 aplikasi wallet desktop
 - [TSK-F07](../tasks/README.md) — 🟢 wallet desktop v0.1 (installer Windows, uji dengan node regtest 8 November 2026)
 - [TSK-M61](../tasks/TSK-M61-wallet-demo.md) — 🟢 versi demo 0.2.0 dan workflow rilis
+- [TSK-M58](../tasks/TSK-M58-apk-wallet.md) — 🟡 APK Wallet Android (bagian 1 kode, bagian 2 APK)
 - [TSK-F08](../tasks/README.md)

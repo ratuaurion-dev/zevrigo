@@ -69,10 +69,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-      <header className="flex items-center justify-between gap-8 px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+      <header className="flex items-center justify-between gap-8 px-4 md:px-6 py-3 md:py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
         <div className="text-lg font-bold tracking-tight whitespace-nowrap">{t.appName}</div>
         {info?.exists && (
-          <nav aria-label="Navigasi" className="flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400 overflow-x-auto">
+          <nav aria-label="Navigasi" className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400 overflow-x-auto">
             {nav.map((item) => (
               <button
                 key={item.key}
@@ -91,7 +91,7 @@ export default function App() {
         )}
       </header>
 
-      <div className="bg-slate-100/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800/80 px-6 py-2.5">
+      <div className="bg-slate-100/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800/80 px-4 md:px-6 py-2.5">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs">
           <div className="flex flex-wrap items-center gap-4">
             {info?.exists && (
@@ -115,7 +115,7 @@ export default function App() {
                   </>
                 )}
                 <span className="text-slate-400">·</span>
-                <span className="font-mono text-slate-500 dark:text-slate-400">{state.rpcUrl()}</span>
+                <span className="font-mono text-slate-500 dark:text-slate-400 break-all">{state.rpcUrl()}</span>
               </span>
             )}
             {chain && (
@@ -168,17 +168,48 @@ export default function App() {
         <div
           data-testid="demo-banner"
           role="note"
-          className="bg-amber-500/15 border-b border-amber-500/40 px-6 py-2 text-xs font-semibold text-amber-800 dark:text-amber-300"
+          className="bg-amber-500/15 border-b border-amber-500/40 px-4 md:px-6 py-2 text-xs font-semibold text-amber-800 dark:text-amber-300"
         >
           <div className="max-w-6xl mx-auto">{t.demoBanner}</div>
         </div>
       )}
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8">{body}</main>
+      <main className={`flex-1 w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 ${info?.exists ? 'pb-24 md:pb-8' : ''}`}>
+        {body}
+      </main>
 
-      <footer className="border-t border-slate-200 dark:border-slate-800/80 px-6 py-4 text-xs text-slate-500 dark:text-slate-400">
+      <footer
+        className={`border-t border-slate-200 dark:border-slate-800/80 px-4 md:px-6 py-4 text-xs text-slate-500 dark:text-slate-400 ${
+          info?.exists ? 'mb-16 md:mb-0' : ''
+        }`}
+      >
         <div className="max-w-6xl mx-auto">{t.footer}</div>
       </footer>
+
+      {info?.exists && (
+        // TSK-M58: layar sempit (HP Android) memakai menu bawah dengan tombol besar; layar lebar tetap menu atas.
+        <nav
+          aria-label="Navigasi"
+          data-testid="bottom-nav"
+          className="md:hidden fixed bottom-0 inset-x-0 z-40 grid grid-cols-5 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]"
+        >
+          {nav.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setTab(item.key)}
+              aria-current={tab === item.key ? 'page' : undefined}
+              className={`min-h-14 px-1 text-[11px] leading-tight font-medium border-t-2 transition-colors ${
+                tab === item.key
+                  ? 'border-emerald-500 text-slate-900 dark:text-slate-100 font-semibold'
+                  : 'border-transparent text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

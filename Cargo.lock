@@ -6721,6 +6721,7 @@ dependencies = [
 name = "zevrigo-wallet"
 version = "0.1.0"
 dependencies = [
+ "rustls-platform-verifier",
  "serde",
  "serde_json",
  "tauri",
