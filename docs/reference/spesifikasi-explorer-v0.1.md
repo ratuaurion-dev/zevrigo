@@ -116,7 +116,7 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
 
 ## 6. Program dan privasi
 
-`zevrigo-explorer --regtest|--testnet --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>] [--trust-proxy]`
+`zevrigo-explorer --regtest|--testnet --datadir <folder> [--rpc-url <url>] [--http-port <port>] [--web-dir <folder>] [--trust-proxy] [--faucet-origin <origin>]`
 
 - `--web-dir`: folder hasil build antarmuka web; aturan penyajian di Spesifikasi Explorer Web v0.1 Bagian 7 (TSK-M31).
 
@@ -139,6 +139,10 @@ Galat: `400 {"error": "bad_request"}` (kunci, hex, atau angka query tidak sah), 
   bisa memalsukan alamatnya. Aturan penyimpanan sama: alamat hanya menjadi kunci hash ember di memori, tidak disimpan dan
   tidak dicatat. Syarat aman: di mesin atau container itu, hanya `cloudflared` yang tersambung ke explorer lewat loopback
   (proses lokal lain bisa mengisi kepala itu sendiri).
+- **Faucet demo (TSK-M54):** `--faucet-origin <origin>` (bawaan tidak ada). Origin `http(s)://nama[:port]` (tanpa jalur;
+  hanya huruf, angka, `.`, `-`) ditambahkan ke `connect-src` kebijakan keamanan konten halaman HTML, sehingga halaman
+  `/faucet/` boleh memanggil layanan faucet `zevrigo-demo faucet` di origin itu. File lain, API, dan galat tetap
+  `connect-src 'self'`.
 - Berhenti bersih dengan SIGINT atau SIGTERM. Akses SQLite lewat satu koneksi yang dijaga mutex di thread blocking.
 - **Privasi pengunjung:** tanpa cookie, tanpa analitik, tanpa log alamat IP, jalur, atau kata pencarian. Log hanya untuk
   start, kemajuan indeks, reorg, dan galat.

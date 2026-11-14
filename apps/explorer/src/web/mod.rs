@@ -33,6 +33,9 @@ pub const CONTENT_SECURITY_POLICY: &str = concat!(
     "form-action 'none'; frame-ancestors 'none'",
 );
 
+/// Bagian `connect-src` dasar di [`CONTENT_SECURITY_POLICY`].
+const CONNECT_SELF: &str = "connect-src 'self'";
+
 /// Bagian `script-src` dasar di [`CONTENT_SECURITY_POLICY`].
 const SCRIPT_SELF: &str = "script-src 'self'";
 
@@ -221,6 +224,13 @@ pub fn page_policy(html: &[u8]) -> String {
     }
     let scripts = format!("{SCRIPT_SELF} {}", sources.join(" "));
     CONTENT_SECURITY_POLICY.replacen(SCRIPT_SELF, &scripts, 1)
+}
+
+/// `policy` dengan `origin` ditambahkan ke `connect-src` (opsi `--faucet-origin`, TSK-M54): halaman web boleh memanggil
+/// layanan faucet di origin itu. `origin` sudah diperiksa [`crate::cli::parse_args`] (hanya skema, nama host, port).
+#[must_use]
+pub fn with_connect_origin(policy: &str, origin: &str) -> String {
+    policy.replacen(CONNECT_SELF, &format!("{CONNECT_SELF} {origin}"), 1)
 }
 
 /// Posisi pertama `needle` (tidak kosong) di `haystack`.

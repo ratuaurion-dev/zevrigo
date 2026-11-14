@@ -12,7 +12,7 @@ use zevrigo_crypto::txid;
 use zevrigo_primitives::Network;
 use zevrigo_rpc::{RpcClient, RpcServer};
 
-use super::{CLIENT_IP_HEADER, Shared, client_ip, router, router_with_proxy};
+use super::{CLIENT_IP_HEADER, Shared, client_ip, router, router_with_options, router_with_proxy};
 use crate::index::Indexer;
 use crate::limit::{Limits, Rate};
 use crate::rpc_source::RpcSource;
@@ -358,5 +358,60 @@ fn http_server_limits_each_visitor_behind_trusted_proxy() {
     assert_eq!(get_as_visitor(addr, "/api/v1/status", "198.51.100.2"), 200);
     assert_eq!(get_as_visitor(addr, "/api/v1/status", "2001:db8::5"), 200);
     assert_eq!(get_as_visitor(addr, "/api/v1/status", "198.51.100.1"), 429);
+    server.abort();
+}
+
+#[test]
+fn http_server_allows_faucet_origin_only_for_web_pages() {
+    let rt = Runtime::new().unwrap();
+    let site =
+        Site(std::env::temp_dir().join(format!("zevrigo-q134-faucet-{}", std::process::id())));
+    let _ = std::fs::remove_dir_all(&site.0);
+    std::fs::create_dir_all(site.0.join("faucet")).unwrap();
+    std::fs::write(site.0.join("index.html"), "<!doctype html>").unwrap();
+    std::fs::write(
+        site.0.join("faucet").join("index.html"),
+        "<!DOCTYPE html><script>self.__next_f=[]</script>",
+    )
+    .unwrap();
+    let origin = "https://zevrigo-faucet.ratuaurion.store";
+    let index = Indexer::open_in_memory(regtest_network_id().unwrap()).unwrap();
+    let shared = Arc::new(Shared::new(index, Network::Regtest));
+    let listener = rt
+        .block_on(TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0))))
+        .unwrap();
+    let addr = listener.local_addr().unwrap();
+    let app = router_with_options(
+        shared,
+        Some(site.0.clone()),
+        None,
+        false,
+        Some(origin.to_owned()),
+    );
+    let server = rt.spawn(async move { axum::serve(listener, app).await });
+
+    let allowed = format!("connect-src 'self' {origin}; base-uri");
+    for path in ["/", "/faucet/"] {
+        let (status, head, _) = raw(addr, "GET", path);
+        assert_eq!(status, 200, "{path}");
+        assert!(head.contains(&allowed), "{head}");
+        assert_eq!(head.matches("connect-src").count(), 1, "{head}");
+        assert_security_headers(&head);
+    }
+    let (_, head, _) = raw(addr, "GET", "/faucet/");
+    assert!(
+        head.contains("script-src 'self' 'sha256-mtnathcl7ffo76nj83kzxkslrqm9by73db09ryhwalo='"),
+        "{head}"
+    );
+    // API, file yang tidak ada, dan metode lain tetap hanya origin sendiri.
+    for (method, path) in [
+        ("GET", "/api/v1/status"),
+        ("GET", "/tidak-ada.js"),
+        ("POST", "/"),
+    ] {
+        let (_, head, _) = raw(addr, method, path);
+        assert!(!head.contains(origin), "{method} {path}: {head}");
+        assert_security_headers(&head);
+    }
     server.abort();
 }

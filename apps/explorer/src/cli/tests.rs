@@ -22,6 +22,7 @@ fn run_config(datadir: &str, rpc_url: &str, http_port: u16) -> Command {
         api_rate: 10,
         web_dir: None,
         trust_proxy: false,
+        faucet_origin: None,
     })
 }
 
@@ -64,6 +65,7 @@ fn parses_help_version_and_run() {
             api_rate: DEFAULT_API_RATE,
             web_dir: Some(PathBuf::from("apps/explorer/web/out")),
             trust_proxy: false,
+            faucet_origin: None,
         }))
     );
     for (text, address) in [
@@ -241,6 +243,7 @@ fn parses_testnet() {
             api_rate: DEFAULT_API_RATE,
             web_dir: None,
             trust_proxy: false,
+            faucet_origin: None,
         }
     );
     assert_eq!(default_rpc_url(Network::Testnet), "http://127.0.0.1:18801");
@@ -285,4 +288,59 @@ fn parses_trust_proxy() {
     );
     assert!(USAGE.contains("--trust-proxy"));
     assert!(USAGE.contains("CF-Connecting-IP"));
+}
+
+#[test]
+fn parses_faucet_origin() {
+    let parse = |origin: &str| {
+        parse_args(args(&[
+            "--regtest",
+            "--datadir",
+            "d",
+            "--faucet-origin",
+            origin,
+        ]))
+    };
+    for origin in [
+        "https://zevrigo-faucet.ratuaurion.store",
+        "http://127.0.0.1:28805",
+        "http://node-faucet:28805",
+    ] {
+        let Ok(Command::Run(config)) = parse(origin) else {
+            unreachable!("origin sah: {origin}");
+        };
+        assert_eq!(config.faucet_origin.as_deref(), Some(origin));
+    }
+    for origin in [
+        "zevrigo-faucet.ratuaurion.store",
+        "https://",
+        "https://a.example/",
+        "https://a.example/api",
+        "https://a.example:",
+        "https://a.example:123456",
+        "https://a.example:80x",
+        "https://a b.example",
+        "https://a.example;script-src",
+        "https://a.example'",
+        "ftp://a.example",
+    ] {
+        assert_eq!(
+            parse(origin),
+            Err(ArgError::InvalidOrigin(origin.to_owned())),
+            "{origin}"
+        );
+    }
+    assert_eq!(
+        parse_args(args(&[
+            "--regtest",
+            "--datadir",
+            "d",
+            "--faucet-origin",
+            "https://a.example",
+            "--faucet-origin",
+            "https://b.example"
+        ])),
+        Err(ArgError::Duplicate("--faucet-origin"))
+    );
+    assert!(USAGE.contains("--faucet-origin <origin>"));
 }

@@ -10,3 +10,11 @@ export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === '1';
 
 export const API_BASE_PATH = '/api/v1';
 export const POLL_INTERVAL_MS = 10_000;
+
+/**
+ * Layanan faucet jaringan demo regtest (TSK-M54) yang dipanggil halaman `/faucet/`. Bawaan: faucet publik demo. Build lain
+ * boleh menggantinya lewat `NEXT_PUBLIC_FAUCET_URL`; nilai kosong berarti halaman faucet menyatakan faucet tidak tersedia.
+ * Program explorer harus dijalankan dengan `--faucet-origin` origin yang sama agar peramban mengizinkan panggilan ini.
+ */
+export const FAUCET_URL =
+  process.env.NEXT_PUBLIC_FAUCET_URL ?? 'https://zevrigo-faucet.ratuaurion.store/api/v1/faucet';

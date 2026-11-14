@@ -39,9 +39,14 @@ pub use query::{
     SupplyInfo, TxDetail, TxRow, confirmations,
 };
 pub use rpc_source::RpcSource;
-pub use server::{ExplorerError, SYNC_INTERVAL, Shared, init_logging, router, run};
+pub use server::{
+    ExplorerError, SYNC_INTERVAL, Shared, init_logging, router, router_with_options, run,
+};
 pub use source::{ChainSource, SourceBlock, SourceError};
-pub use web::{CONTENT_SECURITY_POLICY, INDEX_FILE, NOT_FOUND_FILE, WebResponse, page_policy};
+pub use web::{
+    CONTENT_SECURITY_POLICY, INDEX_FILE, NOT_FOUND_FILE, WebResponse, page_policy,
+    with_connect_origin,
+};
 
 /// Identitas modul sesuai peta arsitektur di `AGENTS.md`.
 pub const MODULE_ID: &str = "MOD-14";

@@ -16,7 +16,7 @@ pub const USAGE: &str = concat!(
     "\n",
     "Pemakaian:\n",
     "  zevrigo-explorer --regtest --datadir <folder> [--rpc-url <url>] [--http-bind <ip>] [--http-port <port>]\n",
-    "                       [--api-rate <n>] [--web-dir <folder>] [--trust-proxy]\n",
+    "                       [--api-rate <n>] [--web-dir <folder>] [--trust-proxy] [--faucet-origin <origin>]\n",
     "  zevrigo-explorer --testnet --datadir <folder> [opsi yang sama]\n",
     "  zevrigo-explorer --help | --version\n",
     "\n",
@@ -34,6 +34,8 @@ pub const USAGE: &str = concat!(
     "  --trust-proxy       di belakang Cloudflare Tunnel: untuk koneksi dari 127.0.0.1 atau ::1 (cloudflared di mesin\n",
     "                      atau container yang sama), batas laju memakai alamat pengunjung dari kepala\n",
     "                      CF-Connecting-IP; koneksi dari alamat lain tidak terpengaruh\n",
+    "  --faucet-origin <o> origin layanan faucet demo (https://nama[:port], TSK-M54) yang boleh dipanggil halaman web\n",
+    "                      (ditambahkan ke connect-src); tanpa opsi ini halaman hanya memanggil origin sendiri\n",
     "\n",
     "Setelah siap, alamat API dicetak ke stdout sebagai `http: http://<alamat>`; jalur API di /api/v1/.\n",
     "Log ditulis ke stderr. Explorer berhenti bersih dengan Ctrl-C (SIGINT) atau SIGTERM.",
@@ -73,6 +75,8 @@ pub struct Config {
     /// Batas laju memakai alamat pengunjung dari kepala `CF-Connecting-IP` untuk koneksi dari loopback
     /// (`--trust-proxy`, Cloudflare Tunnel).
     pub trust_proxy: bool,
+    /// Origin layanan faucet demo yang boleh dipanggil halaman web (`--faucet-origin`, TSK-M54).
+    pub faucet_origin: Option<String>,
 }
 
 /// Argumen tidak sah. Biner keluar dengan kode 2.
@@ -96,6 +100,9 @@ pub enum ArgError {
     /// Batas laju bukan bilangan 0 sampai 4294967295.
     #[error("batas laju API tidak sah: {0}")]
     InvalidRate(String),
+    /// `--faucet-origin` bukan origin `http(s)://nama[:port]`.
+    #[error("origin faucet tidak sah (contoh: https://zevrigo-faucet.ratuaurion.store): {0}")]
+    InvalidOrigin(String),
     /// Jaringan belum tersedia.
     #[error("jaringan {0} belum tersedia (mainnet diluncurkan sesudah testnet)")]
     NetworkUnavailable(&'static str),
@@ -196,6 +203,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
     let mut api_rate: Option<u32> = None;
     let mut web_dir: Option<PathBuf> = None;
     let mut trust_proxy = false;
+    let mut faucet_origin: Option<String> = None;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -256,6 +264,16 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
                 }
                 trust_proxy = true;
             }
+            "--faucet-origin" => {
+                if faucet_origin.is_some() {
+                    return Err(ArgError::Duplicate("--faucet-origin"));
+                }
+                let value = value_of(&mut iter, "--faucet-origin")?;
+                if !is_origin(&value) {
+                    return Err(ArgError::InvalidOrigin(value));
+                }
+                faucet_origin = Some(value);
+            }
             "--help" | "-h" | "--version" => return Err(ArgError::Exclusive),
             _ => return Err(ArgError::Unknown(arg)),
         }
@@ -271,7 +289,33 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         api_rate: api_rate.unwrap_or(DEFAULT_API_RATE),
         web_dir,
         trust_proxy,
+        faucet_origin,
     }))
+}
+
+/// `true` untuk origin `http://nama` atau `https://nama`, boleh dengan `:port` (1 sampai 5 angka): nama hanya huruf ASCII,
+/// angka, `.`, dan `-`, tidak kosong. Tanpa jalur, garis miring akhir, spasi, atau tanda kutip, sehingga aman disisipkan ke
+/// kepala kebijakan keamanan konten.
+fn is_origin(text: &str) -> bool {
+    let Some(rest) = text
+        .strip_prefix("https://")
+        .or_else(|| text.strip_prefix("http://"))
+    else {
+        return false;
+    };
+    let (host, port) = match rest.split_once(':') {
+        Some((host, port)) => (host, Some(port)),
+        None => (rest, None),
+    };
+    let host_ok = !host.is_empty()
+        && host.len() <= 253
+        && host
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'.' || byte == b'-');
+    let port_ok = port.is_none_or(|port| {
+        !port.is_empty() && port.len() <= 5 && port.bytes().all(|byte| byte.is_ascii_digit())
+    });
+    host_ok && port_ok
 }
 
 #[cfg(test)]

@@ -154,8 +154,9 @@ describe('validators and href builders', () => {
     expect(routes.tx('abc')).toBe('/tx/?id=abc');
     expect(routes.supply()).toBe('/supply/');
     expect(routes.mempool()).toBe('/mempool/');
+    expect(routes.faucet()).toBe('/faucet/');
     expect(Object.keys(routes).sort()).toEqual(
-      ['block', 'blocks', 'home', 'mempool', 'search', 'supply', 'tx'].sort()
+      ['block', 'blocks', 'faucet', 'home', 'mempool', 'search', 'supply', 'tx'].sort()
     );
   });
 });

@@ -151,6 +151,7 @@ struct App {
     web_dir: Option<Arc<PathBuf>>,
     limiter: Option<Mutex<RateLimiter>>,
     trust_proxy: bool,
+    faucet_origin: Option<String>,
     started: Instant,
 }
 
@@ -209,11 +210,25 @@ pub fn router_with_proxy(
     limits: Option<Limits>,
     trust_proxy: bool,
 ) -> Router {
+    router_with_options(shared, web_dir, limits, trust_proxy, None)
+}
+
+/// Seperti [`router_with_proxy`], dengan `faucet_origin` (opsi `--faucet-origin`, TSK-M54): halaman web mendapat
+/// `connect-src 'self' <origin>` ([`web::with_connect_origin`]) sehingga halaman faucet boleh memanggil layanan faucet.
+/// File lain, jawaban API, dan galat tetap [`CONTENT_SECURITY_POLICY`].
+pub fn router_with_options(
+    shared: Arc<Shared>,
+    web_dir: Option<PathBuf>,
+    limits: Option<Limits>,
+    trust_proxy: bool,
+    faucet_origin: Option<String>,
+) -> Router {
     let app = App {
         shared,
         web_dir: web_dir.map(Arc::new),
         limiter: limits.map(|limits| Mutex::new(RateLimiter::new(limits))),
         trust_proxy,
+        faucet_origin,
         started: Instant::now(),
     };
     Router::new().fallback(handle).with_state(Arc::new(app))
@@ -290,11 +305,18 @@ async fn handle(
         let answer = tokio::task::spawn_blocking(move || web::serve(&dir, &path))
             .await
             .unwrap_or_else(|_| WebResponse::internal());
+        // Kebijakan keamanan konten hanya berlaku untuk dokumen, jadi origin faucet hanya ditambahkan ke halaman HTML.
+        let policy = match &app.faucet_origin {
+            Some(origin) if answer.content_type.starts_with("text/html") => {
+                web::with_connect_origin(&answer.content_security_policy, origin)
+            }
+            _ => answer.content_security_policy,
+        };
         return reply(
             answer.status,
             answer.content_type,
             answer.cache_control,
-            &answer.content_security_policy,
+            &policy,
             answer.body,
         );
     }
@@ -380,15 +402,17 @@ async fn serve(indexer: Indexer, config: &Config) -> Result<(), ExplorerError> {
         rpc = %config.rpc_url,
         api_rate = config.api_rate,
         trust_proxy = config.trust_proxy,
+        faucet_origin = config.faucet_origin.as_deref().unwrap_or("-"),
         "explorer berjalan"
     );
     println!("http: http://{local}");
     let sync = tokio::spawn(sync_loop(Arc::clone(&shared), source));
-    let app = router_with_proxy(
+    let app = router_with_options(
         shared,
         config.web_dir.clone(),
         Limits::from_rate(config.api_rate),
         config.trust_proxy,
+        config.faucet_origin.clone(),
     );
     let served = axum::serve(
         listener,

@@ -44,6 +44,7 @@ export const routes = {
   tx: (txid: string) => `/tx/?id=${encodeURIComponent(txid)}`,
   supply: () => '/supply/',
   mempool: () => '/mempool/',
+  faucet: () => '/faucet/',
   search: (query: string) => `/search/?q=${encodeURIComponent(query.trim())}`,
 };
 

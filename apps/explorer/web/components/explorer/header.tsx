@@ -89,6 +89,11 @@ export function ExplorerShell({ children }: { children: React.ReactNode }) {
       label: t('navMempool'),
       match: (p: string) => p.startsWith('/mempool'),
     },
+    {
+      href: '/faucet/',
+      label: t('navFaucet'),
+      match: (p: string) => p.startsWith('/faucet'),
+    },
   ];
 
   const networkName = (status?.network ?? 'regtest').toUpperCase();

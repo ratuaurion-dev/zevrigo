@@ -1,4 +1,4 @@
-# TSK-M54 · Faucet demo (`zevrigo-demo faucet`) · 🟡 bagian A dan compose selesai · Prioritas: Tinggi
+# TSK-M54 · Faucet demo (`zevrigo-demo faucet`) · 🟡 layanan, compose, dan halaman explorer · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-18 (`apps/demo`), nanti MOD-14 (halaman explorer) · **Untuk:** FTR-11 tahap 1 (DEC-34)
 - **Bergantung pada:** TSK-M53, TSK-M62 · **Memblokir:** TSK-F11 bagian 1 (isi faucet sesudah upacara), TSK-M58
 - **Estimasi:** M · **Ditulis:** Quick, 13 November 2026
@@ -34,5 +34,9 @@ penerima tepat 100 ZVRG, faucet satu UTXO = 500.000 ZVRG − biaya upacara − b
   `--http-bind 0.0.0.0`, `--trust-proxy-host node`, volume `zvrg-faucet-dompet`). Route `zevrigo-faucet.ratuaurion.store` →
   `http://node-faucet:28805` dibuat pencipta di dasbor Cloudflare. Pengisian (keputusan pencipta 13 November 2026): upacara
   ke kantong Faucet di wallet treasury; faucet diisi ulang bertahap dengan `zevrigo-cli send --dari` (TSK-M63).
-- Berikutnya: halaman faucet di explorer (MOD-14) dan anti-bot (Cloudflare Turnstile, butuh persetujuan pencipta untuk layanan pihak
-  ketiga). Tombol faucet di APK Wallet: TSK-M58.
+- Halaman faucet di explorer (Q134, keputusan pencipta 14 November 2026: tanpa anti-bot dulu, cukup batas harian):
+  `/faucet/` di antarmuka web MOD-14, memanggil `https://zevrigo-faucet.ratuaurion.store/api/v1/faucet` (CORS sudah
+  mengizinkan origin explorer); program explorer `--faucet-origin` menambahkan origin itu ke `connect-src` halaman HTML.
+  Alamat diperiksa bech32m di peramban; galat faucet ditampilkan dengan teks Indonesia dan Inggris.
+- Berikutnya: anti-bot (misalnya Cloudflare Turnstile, layanan pihak ketiga yang butuh persetujuan pencipta) bila jatah
+  harian sering habis oleh bot. Tombol faucet di APK Wallet: TSK-M58.

@@ -52,6 +52,9 @@ services:
       - --web-dir
       - /usr/share/zevrigo/web
       - --trust-proxy
+      # TSK-M54: halaman /faucet/ boleh memanggil layanan faucet (connect-src).
+      - --faucet-origin
+      - https://zevrigo-faucet.ratuaurion.store
 
   gerbang-rpc:
     # TSK-M53 (DEC-36): zevrigo-demo mode rpc, di namespace node seed (RPC node lewat 127.0.0.1:28801). Hanya metode aman

@@ -26,6 +26,8 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
   proses, hanya di memori).
 - Di belakang Cloudflare Tunnel (`--trust-proxy`, TSK-M43): untuk koneksi dari loopback, pengunjung dikenali dari kepala
   `CF-Connecting-IP`; koneksi dari alamat lain tidak bisa memalsukan alamatnya.
+- Halaman faucet demo `/faucet/` (TSK-M54): memanggil layanan faucet MOD-18 di origin lain; `--faucet-origin <origin>`
+  menambahkan origin itu ke `connect-src` halaman HTML saja.
 - Antarmuka web Next.js + Tailwind CSS + shadcn/ui di `web/` (DEC-26,
   [spesifikasi-explorer-web-v0.2.md](../reference/spesifikasi-explorer-web-v0.2.md)), dua bahasa, static export yang
   disajikan program explorer lewat `--web-dir` dengan kebijakan keamanan konten berisi hash skrip inline setiap halaman.
@@ -50,3 +52,4 @@ transaksi, alamat, pasokan, dan alokasi genesis dari node miliknya sendiri.
 - [TSK-M40](../tasks/TSK-M40-batas-laju-api.md) — 🟢 selesai (batas laju API per klien dan bersama, `429 rate_limited`)
 - [TSK-M43](../tasks/TSK-M43-explorer-trust-proxy.md) — 🟢 selesai (batas laju per pengunjung di belakang Cloudflare Tunnel, `--trust-proxy`)
 - [TSK-M44](../tasks/TSK-M44-explorer-publik-tunnel.md) — 🟢 selesai (explorer publik lewat Cloudflare Tunnel, `compose.publik.yaml`)
+- [TSK-M54](../tasks/TSK-M54-faucet.md) — 🟡 halaman faucet `/faucet/` dan `--faucet-origin` (layanan faucet di MOD-18)

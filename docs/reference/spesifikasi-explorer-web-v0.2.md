@@ -42,6 +42,7 @@ Static export membuat satu `index.html` per halaman; parameter lewat query, sehi
 | `/tx/?id=<txid>` | Blok, posisi, ukuran, biaya, laju biaya, konfirmasi, jumlah input dan jumlah output. Tanpa alamat, jumlah per penerima, dan jejak koin (DEC-28) | `/tx/` |
 | `/supply/` | Pasokan hasil tambang dibanding jadwal rumus, biaya, subsidy berikutnya, rata-rata waktu blok, aturan emisi. Tanpa angka alokasi genesis dan total beredar (DEC-28) | `/supply` |
 | `/mempool/` | Jumlah transaksi di mempool (tanpa daftar txid) | `/mempool` |
+| `/faucet/` | Faucet demo regtest (TSK-M54): jumlah per permintaan, sisa jatah hari ini, saldo faucet, formulir alamat (bech32m regtest jenis 0 diperiksa di peramban), txid dengan tautan ke `/tx/`, catatan koin demo dan privasi | layanan faucet di origin lain (`NEXT_PUBLIC_FAUCET_URL`, bawaan `https://zevrigo-faucet.ratuaurion.store/api/v1/faucet`), `GET` dan `POST` tanpa kuki dan tanpa referrer; butuh `--faucet-origin` di program explorer |
 | `/search/?q=<kata>` | Pencarian tinggi, block_id, atau txid (juga dari kotak pencarian dan Ctrl+K / ⌘K di setiap halaman) → pindah ke halaman yang sesuai. Alamat tidak dicari | `/search/` |
 
 - Transaksi yang belum ada di blok tetapi ada di mempool (`404` dengan `in_mempool: true`) ditampilkan sebagai
