@@ -381,3 +381,60 @@ fn rejects_bad_faucet_arguments() {
         assert_eq!(parse_args(list.clone()), Err(error), "{list:?}");
     }
 }
+
+#[test]
+fn parses_web_mode() {
+    use std::path::PathBuf;
+
+    use super::{DEFAULT_WEB_PORT, WebConfig};
+
+    assert_eq!(
+        parse_args(args(&["web", "--web-dir", "/usr/share/zevrigo/blog"])),
+        Ok(Command::Web(WebConfig {
+            web_dir: PathBuf::from("/usr/share/zevrigo/blog"),
+            http_bind: IpAddr::V4(Ipv4Addr::LOCALHOST),
+            http_port: DEFAULT_WEB_PORT,
+        }))
+    );
+    assert_eq!(DEFAULT_WEB_PORT, 28_807);
+    assert_eq!(
+        parse_args(args(&[
+            "web",
+            "--http-port",
+            "0",
+            "--web-dir",
+            "out",
+            "--http-bind",
+            "0.0.0.0"
+        ])),
+        Ok(Command::Web(WebConfig {
+            web_dir: PathBuf::from("out"),
+            http_bind: IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+            http_port: 0,
+        }))
+    );
+    let cases: Vec<(Vec<String>, ArgError)> = vec![
+        (args(&["web"]), ArgError::MissingOption("--web-dir")),
+        (
+            args(&["web", "--web-dir", "a", "--web-dir", "b"]),
+            ArgError::Duplicate("--web-dir"),
+        ),
+        (
+            args(&["web", "--web-dir"]),
+            ArgError::MissingValue("--web-dir"),
+        ),
+        (
+            args(&["web", "--web-dir", "a", "--rate", "1"]),
+            ArgError::Unknown("--rate".to_owned()),
+        ),
+        (
+            args(&["web", "--web-dir", "a", "--http-port", "99999"]),
+            ArgError::InvalidPort("99999".to_owned()),
+        ),
+        (args(&["web", "--help"]), ArgError::Exclusive),
+    ];
+    for (list, error) in cases {
+        assert_eq!(parse_args(list.clone()), Err(error), "{list:?}");
+    }
+    assert!(USAGE.contains("zevrigo-demo web --web-dir <dir>"));
+}

@@ -20,6 +20,7 @@ pub const USAGE: &str = concat!(
     "  zevrigo-demo faucet --datadir <dir> [--node-url <url>] [--http-bind <ip>] [--http-port <port>] [--rate <n>]\n",
     "                      [--jumlah <ZVRG>] [--batas-harian <n>] [--fee-rate <n>] [--trust-proxy-host <nama>]\n",
     "                      [--allow-origin <origin>]...\n",
+    "  zevrigo-demo web --web-dir <dir> [--http-bind <ip>] [--http-port <port>]\n",
     "  zevrigo-demo --help | --version\n",
     "\n",
     "Mode:\n",
@@ -32,6 +33,8 @@ pub const USAGE: &str = concat!(
     "  faucet              faucet demo: mengirim --jumlah ZVRG dari wallet faucet ke alamat regtest pengunjung, sekali\n",
     "                      per pengunjung dan sekali per alamat per hari UTC, paling banyak --batas-harian kiriman per\n",
     "                      hari; GET/POST /api/v1/faucet dengan badan {\"address\": \"rzvrg1...\"}\n",
+    "  web                 situs statis (blog, TSK-M64): hasil next build static export di --web-dir, hanya GET dan\n",
+    "                      HEAD, kebijakan keamanan konten dengan hash skrip inline, tanpa kuki dan tanpa log pengunjung\n",
     "  daftar              belum tersedia (TSK-M55)\n",
     "\n",
     "Opsi mode rpc:\n",
@@ -48,6 +51,11 @@ pub const USAGE: &str = concat!(
     "  --kantong <a>=<z>   alamat regtest jenis 0 (rzvrg1q...) dan jumlah ZVRG; 1 sampai 16 kali, urut seperti ditulis\n",
     "  --fee-rate <n>      tarif biaya quanta per byte (bawaan 1)\n",
     "  --kirim             kirim transaksi ke node (tanpa opsi ini: rencana saja)\n",
+    "\n",
+    "Opsi mode web:\n",
+    "  --web-dir <dir>     folder hasil build (wajib), harus berisi index.html\n",
+    "  --http-bind <ip>    alamat dengar (bawaan 127.0.0.1)\n",
+    "  --http-port <port>  port dengar (bawaan 28807; 0 = port bebas)\n",
     "\n",
     "Opsi mode faucet:\n",
     "  --datadir <dir>     folder wallet faucet (wajib): faucet-frasa.txt (frasa 24 kata, dibuat sekali, izin 0600) dan\n",
@@ -95,6 +103,9 @@ pub const DEFAULT_DAILY_LIMIT: u32 = 100;
 /// Origin bawaan yang boleh memanggil faucet dari peramban: explorer publik.
 pub const DEFAULT_ORIGIN: &str = "https://zevrigo.ratuaurion.store";
 
+/// Port situs statis bawaan (blog, TSK-M64).
+pub const DEFAULT_WEB_PORT: u16 = 28_807;
+
 /// Perintah hasil membaca argumen.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Command {
@@ -108,6 +119,19 @@ pub enum Command {
     Upacara(UpacaraConfig),
     /// Menjalankan faucet (mode `faucet`).
     Faucet(FaucetConfig),
+    /// Menyajikan situs statis (mode `web`).
+    Web(WebConfig),
+}
+
+/// Konfigurasi mode `web`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct WebConfig {
+    /// Folder hasil build static export (berisi `index.html`).
+    pub web_dir: PathBuf,
+    /// Alamat dengar.
+    pub http_bind: IpAddr,
+    /// Port dengar. `0` memilih port bebas.
+    pub http_port: u16,
 }
 
 /// Konfigurasi mode `faucet`.
@@ -255,6 +279,7 @@ pub fn parse_args<I: IntoIterator<Item = String>>(args: I) -> Result<Command, Ar
         "rpc" => parse_rpc(iter).map(Command::Rpc),
         "upacara" => parse_upacara(iter).map(Command::Upacara),
         "faucet" => parse_faucet(iter).map(Command::Faucet),
+        "web" => parse_web(iter).map(Command::Web),
         "daftar" => Err(ArgError::NotYet("daftar")),
         "--help" | "-h" | "--version" => Err(ArgError::Exclusive),
         option if option.starts_with("--") => Err(ArgError::MissingMode),
@@ -513,6 +538,43 @@ fn parse_faucet(mut iter: impl Iterator<Item = String>) -> Result<FaucetConfig, 
         fee_rate: fee_rate.unwrap_or(DEFAULT_FEE_RATE),
         trust_proxy_host,
         origins,
+    })
+}
+
+/// Membaca opsi mode `web`.
+fn parse_web(mut iter: impl Iterator<Item = String>) -> Result<WebConfig, ArgError> {
+    let mut web_dir: Option<PathBuf> = None;
+    let mut http_bind: Option<IpAddr> = None;
+    let mut http_port: Option<u16> = None;
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--web-dir" => once(
+                &mut web_dir,
+                PathBuf::from(value_of(&mut iter, "--web-dir")?),
+                "--web-dir",
+            )?,
+            "--http-bind" => {
+                let value = value_of(&mut iter, "--http-bind")?;
+                let address = value
+                    .parse::<IpAddr>()
+                    .map_err(|_| ArgError::InvalidBind(value.clone()))?;
+                once(&mut http_bind, address, "--http-bind")?;
+            }
+            "--http-port" => {
+                let value = value_of(&mut iter, "--http-port")?;
+                let port = value
+                    .parse::<u16>()
+                    .map_err(|_| ArgError::InvalidPort(value.clone()))?;
+                once(&mut http_port, port, "--http-port")?;
+            }
+            "--help" | "-h" | "--version" => return Err(ArgError::Exclusive),
+            _ => return Err(ArgError::Unknown(arg)),
+        }
+    }
+    Ok(WebConfig {
+        web_dir: web_dir.ok_or(ArgError::MissingOption("--web-dir"))?,
+        http_bind: http_bind.unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST)),
+        http_port: http_port.unwrap_or(DEFAULT_WEB_PORT),
     })
 }
 

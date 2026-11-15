@@ -14,5 +14,9 @@ apps/explorer/web/.next
 apps/explorer/web/out
 apps/explorer/web/next-env.d.ts
 apps/explorer/web/*.tsbuildinfo
+apps/blog/.next
+apps/blog/out
+apps/blog/next-env.d.ts
+apps/blog/*.tsbuildinfo
 apps/wallet/dist
 apps/wallet/src-tauri/gen

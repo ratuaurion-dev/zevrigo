@@ -1,4 +1,4 @@
-.PHONY: fmt fmt-check lint check-forbidden test test-slow deps check-all web-check wallet-check docker-build
+.PHONY: fmt fmt-check lint check-forbidden test test-slow deps check-all web-check blog-check wallet-check docker-build
 
 fmt:
 	cargo fmt --all
@@ -27,6 +27,11 @@ check-all: fmt-check lint check-forbidden test
 # next build (static export ke apps/explorer/web/out).
 web-check:
 	cd apps/explorer/web && npm ci --ignore-scripts --no-audit --no-fund && npm run check
+
+# Blog statis (DEC-37, TSK-M64): paket sama dengan antarmuka explorer, lalu typecheck, uji artikel, dan next build
+# (apps/blog/out, disajikan zevrigo-demo web).
+blog-check:
+	cd apps/blog && npm ci --ignore-scripts --no-audit --no-fund && npm run check
 
 # Antarmuka wallet desktop (MOD-15, DEC-31): paket dari package-lock.json tanpa skrip pasang, lalu typecheck, test, dan
 # vite build (apps/wallet/dist, dipakai Tauri untuk aplikasi rilis). Crate Rust wallet ikut check-all.

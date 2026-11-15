@@ -23,6 +23,9 @@ axum = { workspace = true, features = ["http1", "tokio"] }
 # DEC-10 bagian 13: tipe galat klien JSON-RPC (kode, pesan, `data`) untuk diteruskan apa adanya. Fitur sama dengan MOD-08.
 jsonrpsee = { workspace = true, features = ["client-core"] }
 serde_json.workspace = true
+# DEC-10 bagian 4 (TSK-M64): SHA-256 untuk hash skrip inline halaman Next.js di kebijakan keamanan konten mode `web`,
+# paket yang sama dengan MOD-14 dan MOD-09 (tanpa paket baru).
+sha2.workspace = true
 thiserror.workspace = true
 # Fitur `sync` (TSK-M54): `tokio::sync::Mutex` untuk wallet faucet; bagian dari paket tokio yang sama, tanpa paket baru.
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time"] }

@@ -43,6 +43,12 @@ yang dijalankan sebagai tiga proses di belakang Cloudflare Tunnel, masing-masing
   dan laju (bawaan 2 per detik), `503` kosong, sibuk, atau node, tanpa rincian node. CORS hanya untuk `--allow-origin`
   (bawaan explorer publik). `CF-Connecting-IP` dipercaya hanya dari alamat `--trust-proxy-host` (di-resolve ulang tiap 60
   detik). Log tanpa alamat IP dan tanpa alamat penerima.
+- `zevrigo-demo web --web-dir <dir> [--http-bind <ip>] [--http-port <port>]` (TSK-M64, DEC-37): situs statis, dipakai
+  untuk blog `apps/blog/out` di `127.0.0.1:28807` (bawaan). Modul `site` adalah salinan penyajian web MOD-14: jalur aman
+  (paling banyak 8 segmen, tanpa `..` atau berkas tersembunyi, ekstensi dikenal ditambah `jpg` dan `webp`), `index.html` per
+  folder, `404.html`, cache `immutable` untuk `_next/static`, kebijakan keamanan konten dengan hash SHA-256 skrip inline
+  (`sha2`, paket yang sama dengan MOD-14), `nosniff`, tanpa referrer. Hanya `GET` dan `HEAD` (`405` untuk lainnya), tanpa
+  kuki dan tanpa log pengunjung. Tidak mau start bila folder tanpa `index.html`.
 - `daftar` (TSK-M55): belum tersedia (`mode daftar belum tersedia`).
 
 ## Bukan Tanggung Jawab
@@ -55,4 +61,5 @@ yang dijalankan sebagai tiga proses di belakang Cloudflare Tunnel, masing-masing
 - [TSK-M53](../tasks/TSK-M53-gerbang-rpc.md) — 🟢 inisialisasi dan mode `rpc`
 - [TSK-M62](../tasks/TSK-M62-alat-upacara-genesis.md) — 🟢 alat `upacara`
 - [TSK-M54](../tasks/TSK-M54-faucet.md) — 🟡 bagian A: mode `faucet`; bagian B: compose, halaman explorer, anti-bot
+- [TSK-M64](../tasks/TSK-M64-blog.md) — 🟢 mode `web` untuk blog
 - [TSK-M55](../tasks/README.md) — ⚪ mode `daftar`

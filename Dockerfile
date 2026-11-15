@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Paket Docker Zevrigo Coin, hanya regtest (TSK-M33, Spesifikasi Docker v0.1, DEC-10 bagian 9).
 # Satu image: zevrigo-node, zevrigo-explorer, zevrigo-miner, zevrigo-cli, zevrigo-demo (layanan jaringan demo, DEC-36),
-# dan antarmuka web explorer.
+# antarmuka web explorer, dan blog statis (apps/blog, DEC-37).
 # Image dasar dikunci digest indeks (registry resmi Docker Hub), sehingga build ulang memakai dasar yang sama.
 #
 #   docker build -t zevrigo:regtest .      (atau: make docker-build)
@@ -39,7 +39,15 @@ RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY apps/explorer/web ./
 RUN npm run build
 
-# 3. Runtime: Debian slim, pengguna biasa (uid 10001), data di volume /data.
+# 3. Blog statis (DEC-37, TSK-M64): paket sama persis dengan antarmuka explorer, artikel Markdown dibaca saat build.
+FROM ${NODE_IMAGE} AS blog-build
+WORKDIR /blog
+COPY apps/blog/package.json apps/blog/package-lock.json ./
+RUN npm ci --ignore-scripts --no-audit --no-fund
+COPY apps/blog ./
+RUN npm run build
+
+# 4. Runtime: Debian slim, pengguna biasa (uid 10001), data di volume /data.
 FROM ${RUNTIME_IMAGE}
 RUN groupadd --system --gid 10001 zevrigo \
  && useradd --system --uid 10001 --gid zevrigo --home-dir /data --no-create-home --shell /usr/sbin/nologin zevrigo \
@@ -47,6 +55,7 @@ RUN groupadd --system --gid 10001 zevrigo \
  && chown zevrigo:zevrigo /data
 COPY --from=rust-build /out/ /usr/local/bin/
 COPY --from=web-build /web/out /usr/share/zevrigo/web
+COPY --from=blog-build /blog/out /usr/share/zevrigo/blog
 USER zevrigo
 WORKDIR /data
 VOLUME ["/data"]

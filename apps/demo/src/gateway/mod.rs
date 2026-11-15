@@ -80,6 +80,9 @@ pub enum DemoError {
     /// File kunci atau file batas faucet gagal dibuka (mode `faucet`).
     #[error("faucet: {0}")]
     Faucet(String),
+    /// Folder situs tidak berisi `index.html` (mode `web`).
+    #[error("folder web tidak berisi index.html: {0}")]
+    WebDir(String),
 }
 
 /// Satu permintaan JSON-RPC yang lolos pemeriksaan gerbang dan boleh diteruskan ke node.

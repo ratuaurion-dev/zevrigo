@@ -1,0 +1,38 @@
+{
+  "name": "zevrigo-blog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Blog resmi Zevrigo (ZVRG): Next.js static export dari artikel Markdown, disajikan zevrigo-demo web (TSK-M64). Paket sama persis dengan antarmuka explorer (apps/explorer/web).",
+  "license": "MIT OR Apache-2.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev --hostname 127.0.0.1",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.66.0",
+    "next": "16.4.4",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sonner": "2.0.8",
+    "tailwind-merge": "3.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "postcss": "8.5.32",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  }
+}
