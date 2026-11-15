@@ -3,6 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { isSafeHref, parseInline, parseMarkdown, plainText, slugify } from './markdown';
 import { CATEGORIES, formatDate, loadPosts, parseFrontMatter, parsePost, splitFeatured } from './posts';
+import { RELEASES_URL, UNDUHAN } from './unduhan';
 
 const POST = `---
 judul: Contoh: judul dengan titik dua
@@ -157,6 +158,8 @@ describe('posts', () => {
             if (item.kind === 'link' && item.href.startsWith('/artikel/')) {
               const target = item.href.replace(/^\/artikel\//, '').replace(/\/$/, '');
               expect(posts.map((other) => other.slug)).toContain(target);
+            } else if (item.kind === 'link' && item.href.startsWith('/')) {
+              expect(['/', '/unduh/']).toContain(item.href);
             }
           }
         }
@@ -186,3 +189,36 @@ describe('posts', () => {
     }
   });
 });
+
+describe('unduhan', () => {
+  it('points every file to the project GitHub releases', () => {
+    expect(UNDUHAN.map((item) => item.id)).toEqual(['windows', 'android']);
+    for (const item of UNDUHAN) {
+      expect(item.versi).toMatch(/^\d+\.\d+\.\d+$/);
+      expect(item.catatan.length).toBeGreaterThan(0);
+      if (item.status === 'segera') {
+        expect(item.berkas).toBeUndefined();
+        continue;
+      }
+      const file = item.berkas;
+      expect(file).toBeDefined();
+      if (!file) continue;
+      const tag = `${RELEASES_URL}/download/wallet-v${item.versi}/`;
+      expect(file.url).toBe(`${tag}${file.nama}`);
+      expect(file.sha256Sums).toBe(`${tag}SHA256SUMS.txt`);
+      expect(file.halamanRilis).toBe(`${RELEASES_URL}/tag/wallet-v${item.versi}`);
+      expect(file.nama).toContain(item.versi);
+      if (file.sha256 !== null) {
+        expect(file.sha256).toMatch(/^[0-9a-f]{64}$/);
+      }
+    }
+  });
+
+  it('matches the wallet version in the repo', () => {
+    const conf = path.join(process.cwd(), '..', 'wallet', 'src-tauri', 'tauri.conf.json');
+    if (!fs.existsSync(conf)) return;
+    const version = JSON.parse(fs.readFileSync(conf, 'utf8')).version;
+    expect(UNDUHAN.find((item) => item.id === 'windows')?.versi).toBe(version);
+  });
+});
+

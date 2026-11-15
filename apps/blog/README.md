@@ -21,6 +21,8 @@ Isi artikel. Didukung: ## dan ### judul, paragraf, daftar - dan 1., blok kode be
 `kode`, **tebal**, dan [tautan](https://...).
 ```
 
+Halaman `/unduh/` membaca `lib/unduhan.ts`: tautan ke GitHub Releases dan sidik SHA-256 (isi `sha256` dari `SHA256SUMS.txt` rilis yang sudah terbit).
+
 `kategori`: Pengumuman, Panduan, Protokol, atau Tokenomik. `sampul` opsional (berkas di `public/sampul/`). `unggulan: ya`
 menaruh artikel di atas halaman depan. Tulis hanya fakta yang bisa diperiksa; uji menolak frasa klaim investasi.
 

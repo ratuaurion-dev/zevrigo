@@ -1,4 +1,4 @@
-# TSK-M58 · APK Wallet Android (Tauri 2) · 🟡 bagian 1 · Prioritas: Tinggi
+# TSK-M58 · APK Wallet Android (Tauri 2) · 🟡 bagian 1 dan 2 selesai · Prioritas: Tinggi
 - **Jenis:** task modul · **Modul:** MOD-15 (`apps/wallet`) · **Untuk:** FTR-11 (DEC-34)
 - **Bergantung pada:** TSK-M56 (alat build Android), TSK-M60 (HTTPS di MOD-08), TSK-M61 (wallet demo)
 - **Ditulis:** Quick, 14 November 2026 (pencipta: "build wallet untuk versi android saja dulu"; HP uji Android arm64; HTTPS
@@ -18,3 +18,12 @@
 rustls-platform-verifier-android 0.1.1 dan dependensinya di Gradle, `tauri android build --apk --debug --target aarch64`,
 SHA-256 APK, lalu dipasang pencipta di HP. Dilanjutkan: kunci tanda tangan rilis (DEC-04 demo), tombol faucet, daftar
 investor demo, output jenis 1.
+
+## Hasil bagian 2 (Q137, Q137b)
+APK uji `zevrigo-wallet-0.2.0-android-arm64-debug.apk` (201.907.294 byte, SHA-256
+`85832eb1c550027cdc90977fb7c2ec5169a8b1746320f5089a6722fbf7e28a80`, minSdk 24, targetSdk 37, kunci debug). Lolos uji pencipta di
+HP Android pada 15 November 2026. Tidak dibagikan.
+
+## Bagian 3 (berikutnya): APK rilis
+Build rilis (`tauri android build --apk --target aarch64`), keystore rilis dibuat pencipta di luar repo (password diketik
+pencipta), SHA-256 diumumkan di blog `/unduh/` (`apps/blog/lib/unduhan.ts`) dan rilis GitHub.

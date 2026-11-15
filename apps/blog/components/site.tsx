@@ -36,6 +36,9 @@ export function SiteHeader() {
           <Link href="/" className="hover:text-[#0F766E] dark:hover:text-[#2DD4BF] transition-colors">
             Artikel
           </Link>
+          <Link href="/unduh/" className="hover:text-[#0F766E] dark:hover:text-[#2DD4BF] transition-colors">
+            Unduh
+          </Link>
           <ExternalLink href={EXPLORER_URL}>Explorer</ExternalLink>
           <ExternalLink href={FAUCET_URL}>Faucet</ExternalLink>
           <ExternalLink href={REPO_URL}>GitHub</ExternalLink>
@@ -71,6 +74,9 @@ export function SiteFooter() {
         <div className="space-y-2 md:text-right">
           <p>Tanpa kuki, tanpa analitik, tanpa font atau skrip dari pihak lain.</p>
           <p className="space-x-4">
+            <Link href="/unduh/" className="hover:text-[#0F766E] dark:hover:text-[#2DD4BF] transition-colors">
+              Unduh wallet
+            </Link>
             <ExternalLink href={EXPLORER_URL}>Explorer</ExternalLink>
             <ExternalLink href={FAUCET_URL}>Faucet demo</ExternalLink>
             <ExternalLink href={REPO_URL}>Kode sumber</ExternalLink>

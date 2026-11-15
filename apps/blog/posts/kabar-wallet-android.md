@@ -1,6 +1,6 @@
 ---
-judul: Kabar wallet Android, APK uji pertama
-ringkasan: Wallet Zevrigo kini bisa dibangun untuk Android dengan inti yang sama dengan versi desktop. APK uji pertama sedang dicoba di HP pengembang dan belum dibagikan.
+judul: Kabar wallet Android, APK uji pertama lolos uji
+ringkasan: Wallet Zevrigo kini bisa dibangun untuk Android dengan inti yang sama dengan versi desktop. APK uji pertama lolos uji di HP pengembang; APK rilis bertanda tangan sedang disiapkan.
 tanggal: 2026-11-15
 kategori: Pengumuman
 penulis: Badak Besi
@@ -22,7 +22,9 @@ Wallet desktop Zevrigo dibuat dengan Tauri 2, dan inti wallet-nya ditulis dalam 
 
 ## Status
 
-APK uji ini dibangun dalam mode debug dan masih sedang dicoba di HP pengembang. APK ini **belum dibagikan** ke publik. Jangan memasang APK Zevrigo dari sumber lain.
+APK uji ini dibangun dalam mode debug. Pada 15 November 2026 APK itu lolos uji pertama di HP pengembang: membuat wallet, tersambung ke gerbang RPC lewat HTTPS, menerima koin dari faucet, dan mengirim transaksi.
+
+APK uji ini **tidak dibagikan**. Yang akan dibagikan adalah APK rilis yang ditandatangani kunci rilis. APK itu akan muncul di [halaman Unduh](/unduh/) beserta sidik SHA-256-nya. Jangan memasang APK Zevrigo dari sumber lain.
 
 Yang akan dikerjakan sebelum APK dibagikan:
 

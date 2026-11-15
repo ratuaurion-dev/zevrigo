@@ -9,13 +9,13 @@ Panduan ini untuk siapa saja yang ingin mencoba Zevrigo tanpa menjalankan node s
 
 ## 1. Pasang wallet desktop
 
-Unduh installer `zevrigo-wallet-0.2.0-x64-setup.exe` dan berkas `SHA256SUMS.txt` dari [halaman rilis GitHub](https://github.com/ratuaurion-dev/zevrigo/releases). Sebelum memasang, cocokkan sidik berkasnya di PowerShell:
+Buka [halaman Unduh](/unduh/), lalu unduh installer `zevrigo-wallet-0.2.0-x64-setup.exe`. Berkasnya disimpan di halaman rilis GitHub proyek, bersama berkas `SHA256SUMS.txt`. Sebelum memasang, cocokkan sidik berkasnya di PowerShell:
 
 ```powershell
 Get-FileHash .\zevrigo-wallet-0.2.0-x64-setup.exe -Algorithm SHA256
 ```
 
-Angka yang keluar harus sama persis dengan angka di `SHA256SUMS.txt`. Kalau berbeda, jangan dipasang.
+Angka yang keluar harus sama persis dengan sidik SHA-256 di halaman Unduh dan di `SHA256SUMS.txt`. Kalau berbeda, jangan dipasang.
 
 Installer belum ditandatangani, jadi Windows SmartScreen akan menampilkan peringatan. Pilih **Info selengkapnya**, lalu **Tetap jalankan**. Sebelum memasang, installer menampilkan kebijakan privasi dan lisensi.
 
