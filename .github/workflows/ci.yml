@@ -15,13 +15,22 @@ permissions:
 jobs:
   check:
     name: Check (fmt, lint, forbidden, test)
-    runs-on: ubuntu-latest
+    # Image runner dikunci (ubuntu-latest pindah ke Ubuntu 26 sejak 19 Okt 2026); paket WebKitGTK 4.1 di bawah untuk 24.04.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install pinned Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+      # Toolchain dari rust-toolchain.toml (1.99.0 + rustfmt + clippy) lewat rustup bawaan runner, sama dengan
+      # rilis-wallet.yml. Sebelumnya dtolnay/rust-toolchain@master tanpa input `toolchain` selalu gagal (exit 1).
+      - name: Install pinned Rust toolchain (rust-toolchain.toml)
+        run: |
+          rustup --version
+          rustup toolchain install
+          rustc --version
+          cargo --version
+          cargo clippy --version
+          cargo fmt --version
 
       - name: Cache Cargo registry and build artifacts
         uses: Swatinem/rust-cache@v2
