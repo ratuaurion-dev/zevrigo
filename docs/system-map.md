@@ -4,26 +4,45 @@
 
 Legenda: 🟢 selesai · 🟡 berjalan · 🔴 terblokir · ⚪ belum dimulai · ❓ perlu keputusan
 
+> Diperbarui: 16 November 2026. Status mengikuti baris **Status** di `docs/modules/MOD-xx-*.md` dan
+> [tasks/README.md](tasks/README.md); dependensi dicocokkan dengan `Cargo.toml` setiap anggota workspace.
+
 | ID | Path | Paket | Fungsi | Bergantung pada | Status |
 |---|---|---|---|---|---|
-| MOD-01 | `crates/primitives` | `zevrigo-primitives` | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — | ⚪ |
-| MOD-02 | `crates/crypto` | `zevrigo-crypto` | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 | ⚪ |
-| MOD-03 | `crates/pow` | `zevrigo-pow` | Proof of Work: antarmuka, PoW dev regtest (DEC-09), RandomX testnet/mainnet (DEC-01, TSK-M06) | MOD-01, 02 (DEC-14) | ⚪ |
-| MOD-04 | `crates/consensus` | `zevrigo-consensus` | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 | ⚪ |
-| MOD-05 | `crates/storage` | `zevrigo-storage` | Penyimpanan blok, set UTXO, pruning | MOD-01 | ⚪ |
-| MOD-06 | `crates/network` | `zevrigo-network` | P2P (rust-libp2p) | MOD-01 | ⚪ |
-| MOD-07 | `crates/mempool` | `zevrigo-mempool` | Antrean transaksi | MOD-01, 04 | ⚪ |
-| MOD-08 | `crates/rpc` | `zevrigo-rpc` | Tipe dan klien/server JSON-RPC | MOD-01 | ⚪ |
+| MOD-01 | `crates/primitives` | `zevrigo-primitives` | Tipe dasar: jumlah (u128 quanta), tinggi blok, hash, parameter chain, struktur blok dan transaksi | — | 🟢 |
+| MOD-02 | `crates/crypto` | `zevrigo-crypto` | BLAKE3, Schnorr BIP340, MuSig2 | MOD-01 | 🟡 |
+| MOD-03 | `crates/pow` | `zevrigo-pow` | Proof of Work: antarmuka, PoW dev regtest (DEC-09), RandomX testnet/mainnet (DEC-01, TSK-M06) | MOD-01, 02 (DEC-14) | 🟢 |
+| MOD-04 | `crates/consensus` | `zevrigo-consensus` | Satu-satunya tempat aturan konsensus: pasokan, validasi, ASERT, cap waktu | MOD-01, 02, 03 | 🟢 |
+| MOD-05 | `crates/storage` | `zevrigo-storage` | Penyimpanan blok, set UTXO, pruning | MOD-01 | 🟡 |
+| MOD-06 | `crates/network` | `zevrigo-network` | P2P (rust-libp2p) | MOD-01 | 🟢 |
+| MOD-07 | `crates/mempool` | `zevrigo-mempool` | Antrean transaksi | MOD-01, 04 | 🟢 |
+| MOD-08 | `crates/rpc` | `zevrigo-rpc` | Tipe dan klien/server JSON-RPC | MOD-01 | 🟢 |
 | MOD-09 | `crates/wallet-core` | `zevrigo-wallet-core` | Kunci, penyusunan dan penandatanganan transaksi | MOD-01, 02 | 🟡 |
 | MOD-10 | `crates/merchant-core` | `zevrigo-merchant-core` | Tagihan watch-only, status pembayaran | MOD-01, 09 | ⚪ |
 | MOD-11 | `apps/node` | `zevrigo-node` (bin) | Daemon node | MOD-01, 02, 04, 05, 06, 07, 08 (DEC-19) | 🟢 |
 | MOD-12 | `apps/cli` | `zevrigo-cli` (bin) | Alat baris perintah ke node | MOD-01, 08, 09 (DEC-21) | 🟢 |
 | MOD-13 | `apps/miner` | `zevrigo-miner` (bin) | Penambang CPU | MOD-01, 03, 08 | 🟢 |
 | MOD-14 | `apps/explorer` | `zevrigo-explorer` (bin) | Indexer, API, dan antarmuka web Next.js (DEC-26), hanya data sistem (DEC-28) | MOD-01, 02, 04, 08 (DEC-25, DEC-28) | 🟡 |
-| MOD-15 | `apps/wallet` | zevrigo-wallet | Wallet desktop Tauri 2 (testnet, regtest) | MOD-01, 09, 12 | 🟡 |
+| MOD-15 | `apps/wallet` | `zevrigo-wallet` (bin, `apps/wallet/src-tauri`) | Wallet Tauri 2, desktop Windows dan Android (testnet, regtest; DEC-31) | MOD-01, 09, 12 | 🟡 |
 | MOD-16 | `apps/merchant` | (belum dibuat) | Aplikasi pelaku usaha, Tauri | MOD-08, 10 | ⚪ |
 | MOD-17 | `tests/integration` | `zevrigo-integration-tests` | Uji integrasi lintas crate | semua crate inti; dev: MOD-11, 13 (DEC-20), 12 (DEC-23), 14 (DEC-25) | 🟡 |
 | MOD-18 | `apps/demo` | `zevrigo-demo` (bin) | Layanan demo regtest: gerbang RPC (TSK-M53), upacara genesis (TSK-M62), faucet, situs statis blog (TSK-M64, DEC-37), pendaftaran (DEC-34, DEC-36) | MOD-01, 02, 08, 09 | 🟡 |
+
+### Sisa pekerjaan modul 🟡 dan ⚪
+
+| Modul | Sisa |
+|---|---|
+| MOD-02 crypto | MuSig2 |
+| MOD-05 storage | Pruning badan blok lama (TSK-M23) |
+| MOD-09 wallet-core | Output jenis 1 kunci waktu (TSK-M50), MuSig2 |
+| MOD-10 merchant-core | Tagihan watch-only dan status pembayaran (TSK-M17); baru kerangka R0 |
+| MOD-14 explorer | Faucet (TSK-M54 sisa), statistik jaringan (TSK-M49), treasury (TSK-M52), APK Explorer (TSK-M57), panduan dan unduh APK (TSK-M59) |
+| MOD-15 wallet | APK Android rilis bertanda tangan (TSK-M58) |
+| MOD-16 merchant | Belum dibuat (DEC-04, DEC-05, DEC-06) |
+| MOD-17 integration-tests | Bertambah mengikuti fitur; FTR-02 sampai FTR-05 sudah diuji ujung ke ujung |
+| MOD-18 demo | Mode `daftar` (TSK-M55); blog dan halaman unduh menunggu rilis terbit (TSK-M64) |
+
+Modul 🟢 masih bisa disentuh task demo (misalnya TSK-M48 `get_peer_info` di MOD-06, MOD-08, MOD-11).
 
 ## Diagram Dependensi Modul
 
@@ -86,10 +105,10 @@ graph LR
     MOD14 --> MOD02
     MOD14 --> MOD04
     MOD14 --> MOD08
-    MOD14 --> MOD09
 
-    MOD15 --> MOD08
+    MOD15 --> MOD01
     MOD15 --> MOD09
+    MOD15 -->|DEC-31| MOD12
 
     MOD16 --> MOD08
     MOD16 --> MOD10
@@ -127,8 +146,8 @@ Keterangan: ● = memakai atau mengubah modul · ○ = hanya membaca
 | FTR-04 Multi-node | ○ | | | ● | ● | ● | ○ | | | | ● | | | | | | ● | |
 | FTR-05 Explorer | ○ | ○ | | ○ | | | | ● | ○ | | ○ | | ○ | ● | | | ● | |
 | FTR-06 Testnet publik | ● | ● | ● | ● | ● | ● | ● | ● | ● | | ● | ● | ● | ● | | | ● | |
-| FTR-07 Wallet desktop | ○ | | | | | | | ● | ● | | | | | | ● | | | |
-| FTR-08 Wallet mobile | ○ | | | | | | | ● | ● | | | | | | ● | | | |
+| FTR-07 Wallet desktop | ○ | | | | | | | ● | ● | | | ● | | | ● | | | |
+| FTR-08 Wallet mobile | ○ | | | | | | | ● | ● | | | ● | | | ● | | | |
 | FTR-09 Pelaku usaha | ○ | | | | | | | ● | ● | ● | | | | | | ● | | |
 | FTR-10 Rilis | | | | | | | | | | | ● | ● | ● | ● | ● | ● | | |
 | FTR-11 Demo publik regtest | ○ | | | | | ● | | ● | ● | | ● | ● | ● | ● | ● | | | ● |
