@@ -24,9 +24,16 @@ Installer dibangun dari repo publik secara terverifikasi, dengan kebijakan priva
 build Windows menjawab `info` lewat `https://zevrigo-rpc.ratuaurion.store` (TLS di Windows); commit tanpa push. Uji
 pencipta sesudahnya: pasang installer, halaman privasi tampil, wallet regtest tersambung ke gerbang.
 
+## Rilis pertama
+- Tag `wallet-v0.2.0` (commit `76a6124`) di-push 13 November 2026; workflow `Rilis wallet` lolos (run 43412010866, ±6 menit)
+  dan membuat rilis draf pre-release. Diterbitkan pencipta 16 November 2026.
+- `zevrigo-wallet-0.2.0-x64-setup.exe` 3.306.472 byte, SHA-256 `bc22c6b96fbbcaeb73a19200191653e430dabe94237e32386df18ab1e4826d70`; sama di
+  `SHA256SUMS.txt`, digest aset GitHub, dan hitungan Quick dari berkas yang diunduh.
+- Berbeda dari build Windows lokal Q129 (`bcde8e66…`): installer belum reproducible antar mesin (FTR-10, TSK-F10). Yang
+  resmi adalah build GitHub Actions.
+
 ## Batas
-- Workflow GitHub Actions baru teruji saat pencipta mem-push tag pertama (`wallet-v0.2.0`); build Windows lokal Q129 memakai
-  perintah yang sama.
+- Workflow GitHub Actions teruji sejak tag pertama (`wallet-v0.2.0`, lihat Rilis pertama).
 - Belum ditandatangani: SmartScreen tetap memperingatkan sampai SignPath disetujui dan reputasi terbentuk.
 - Action GitHub dirujuk dengan tag versi (`@v4`), seperti `ci.yml`; penguncian per commit dikerjakan bersama integrasi
   SignPath.

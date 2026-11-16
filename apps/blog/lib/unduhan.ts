@@ -37,7 +37,8 @@ export const UNDUHAN: Unduhan[] = [
       url: `${RELEASES_URL}/download/wallet-v0.2.0/zevrigo-wallet-0.2.0-x64-setup.exe`,
       halamanRilis: `${RELEASES_URL}/tag/wallet-v0.2.0`,
       sha256Sums: `${RELEASES_URL}/download/wallet-v0.2.0/SHA256SUMS.txt`,
-      sha256: null,
+      // SHA256SUMS.txt rilis wallet-v0.2.0 (terbit 16 November 2026, build GitHub Actions dari 76a6124).
+      sha256: 'bc22c6b96fbbcaeb73a19200191653e430dabe94237e32386df18ab1e4826d70',
     },
     catatan: [
       'Dibangun GitHub Actions dari kode sumber pada tag wallet-v0.2.0.',

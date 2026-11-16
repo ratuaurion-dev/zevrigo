@@ -214,6 +214,12 @@ describe('unduhan', () => {
     }
   });
 
+  it('shows the published SHA-256 for the Windows installer', () => {
+    const windows = UNDUHAN.find((item) => item.id === 'windows');
+    expect(windows?.status).toBe('tersedia');
+    expect(windows?.berkas?.sha256).toBe('bc22c6b96fbbcaeb73a19200191653e430dabe94237e32386df18ab1e4826d70');
+  });
+
   it('matches the wallet version in the repo', () => {
     const conf = path.join(process.cwd(), '..', 'wallet', 'src-tauri', 'tauri.conf.json');
     if (!fs.existsSync(conf)) return;
