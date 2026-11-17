@@ -1,8 +1,16 @@
 # Explorer dan seed P2P publik lewat Cloudflare Tunnel (TSK-M44, TSK-M45, TSK-M46, TSK-M47, Spesifikasi Docker v0.1 Bagian 7).
-# Dipakai bersama compose.yaml:
+# Dipakai bersama compose.yaml, di DUA mesin (TSK-M65, DEC-38). Setiap layanan punya profile mesinnya; tanpa
+# COMPOSE_PROFILES tidak ada layanan publik yang dinyalakan, jadi seed dan tunnel tidak pernah hidup di dua tempat:
 #
-#   docker compose -f compose.yaml -f compose.publik.yaml up -d
-#   docker compose -f compose.yaml -f compose.publik.yaml down
+#   VPS: COMPOSE_PROFILES=vps docker compose -f compose.yaml -f compose.publik.yaml up -d --no-build
+#        seed (node), explorer, gerbang-rpc, blog, cloudflared, node-faucet + faucet, node-pengamat
+#   PC:  COMPOSE_PROFILES=pc docker compose -f compose.yaml -f compose.publik.yaml up -d
+#        node-penambang + miner-berkala, node-treasury (kunci kantong treasury tidak di VPS)
+#   berhenti: COMPOSE_PROFILES=<vps|pc> docker compose -f compose.yaml -f compose.publik.yaml stop
+#
+# Image zevrigo:regtest dibangun di PC (VPS 1 vCPU) lalu dikirim dengan docker save/load. Node di PC tersambung ke seed
+# VPS lewat alamat publik di bawah, sama seperti peserta. PC mati: tidak ada blok baru (miner-berkala di PC), layanan
+# publik tetap menjawab.
 #
 # Token tunnel TIDAK disimpan di repo. File ${HOME}/.zevrigo-tunnel.env (izin 600) berisi satu baris: TUNNEL_TOKEN= lalu
 # token dari dasbor Cloudflare Zero Trust (Networks, Tunnels). Public hostname (route "Published application") tunnel,
@@ -30,22 +38,24 @@
 #
 # faucet (TSK-M54 bagian B): zevrigo-demo mode faucet di namespace node-faucet, wallet panas regtest di volume sendiri
 # (zvrg-faucet-dompet: faucet-frasa.txt dan faucet-batas.json). Diisi ulang bertahap dari kantong Faucet treasury:
-#   docker compose -f compose.yaml -f compose.publik.yaml exec node-treasury zevrigo-cli --datadir /data send \
+#   COMPOSE_PROFILES=pc docker compose -f compose.yaml -f compose.publik.yaml exec node-treasury zevrigo-cli --datadir /data send \
 #     --dari <alamat kantong Faucet> --to <alamat faucet dari log: alamat faucet:> --amount 10000
 # Alamat seed bisa diganti dengan variabel ZVRG_SEED (misalnya volume seed baru dengan PeerId lain).
 #
 # miner-berkala (TSK-M46, TSK-M47): satu blok regtest setiap ZVRG_JEDA detik (bawaan 120 = waktu blok target), di namespace
 # node-penambang. Hadiah ke payload di /data/payout-penambang (volume node-penambang, dipasang baca saja); selama file itu
 # belum ada atau tidak sah, hadiah ke kunci NUMS yang tidak bisa dibelanjakan (sama dengan gerbang Q121). Ganti jeda:
-#   ZVRG_JEDA=60 docker compose -f compose.yaml -f compose.publik.yaml up -d --no-deps miner-berkala
+#   ZVRG_JEDA=60 COMPOSE_PROFILES=pc docker compose -f compose.yaml -f compose.publik.yaml up -d --no-deps miner-berkala
 name: zevrigo-publik
 
 services:
   node:
+    profiles: ["vps"]
     command: ["--regtest", "--datadir", "/data", "--p2p-ws-port", "28803"]
     ports: !reset []
 
   explorer:
+    profiles: ["vps"]
     command:
       - --regtest
       - --datadir
@@ -58,6 +68,7 @@ services:
       - https://zevrigo-faucet.ratuaurion.store
 
   gerbang-rpc:
+    profiles: ["vps"]
     # TSK-M53 (DEC-36): zevrigo-demo mode rpc, di namespace node seed (RPC node lewat 127.0.0.1:28801). Hanya metode aman
     # yang diteruskan; get_block_template dan submit_block dijawab -32601. Mendengar di 127.0.0.1:28804, hanya dicapai lewat
     # cloudflared; --trust-proxy aman karena yang tersambung lewat loopback hanya proses di namespace ini.
@@ -74,6 +85,7 @@ services:
     restart: unless-stopped
 
   blog:
+    profiles: ["vps"]
     # TSK-M64 (DEC-37): blog statis apps/blog (dibangun di image, /usr/share/zevrigo/blog) lewat zevrigo-demo mode web, di
     # namespace node seed, mendengar 127.0.0.1:28807, hanya dicapai lewat cloudflared. Tanpa kuki dan tanpa log pengunjung.
     image: zevrigo:regtest
@@ -89,6 +101,7 @@ services:
     restart: unless-stopped
 
   cloudflared:
+    profiles: ["vps"]
     # cloudflared 2026.10.7 (Q120, 11 November 2026), image resmi Cloudflare dikunci digest (DEC-10 bagian 9).
     image: cloudflare/cloudflared@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba
     command: ["tunnel", "--no-autoupdate", "run"]
@@ -101,6 +114,7 @@ services:
     restart: unless-stopped
 
   miner-berkala:
+    profiles: ["pc"]
     image: zevrigo:regtest
     pull_policy: never
     entrypoint: ["/bin/sh", "-c"]
@@ -130,6 +144,7 @@ services:
     restart: unless-stopped
 
   node-penambang:
+    profiles: ["pc"]
     image: zevrigo:regtest
     pull_policy: never
     command: &node-operator ["--regtest", "--datadir", "/data", "--connect", "${ZVRG_SEED:-/dns4/zevrigo-seed.ratuaurion.store/tcp/443/tls/sni/zevrigo-seed.ratuaurion.store/ws/p2p/12D3KooWAGJ2ax5LCU89ZeSg32yxndQSzkpTjv3fD3izZohY5rBa}"]
@@ -141,6 +156,7 @@ services:
     restart: unless-stopped
 
   node-treasury:
+    profiles: ["pc"]
     image: zevrigo:regtest
     pull_policy: never
     command: *node-operator
@@ -152,6 +168,7 @@ services:
     restart: unless-stopped
 
   node-faucet:
+    profiles: ["vps"]
     image: zevrigo:regtest
     pull_policy: never
     command: *node-operator
@@ -163,6 +180,7 @@ services:
     restart: unless-stopped
 
   faucet:
+    profiles: ["vps"]
     # TSK-M54 bagian B (DEC-36): zevrigo-demo mode faucet, RPC node-faucet lewat 127.0.0.1:28801 di namespace yang sama.
     # Mendengar 0.0.0.0:28805 di jaringan Docker (tanpa port host); cloudflared (namespace node) menjangkaunya lewat
     # http://node-faucet:28805. CF-Connecting-IP hanya dipercaya dari alamat layanan node (namespace cloudflared).
@@ -181,6 +199,7 @@ services:
     restart: unless-stopped
 
   node-pengamat:
+    profiles: ["vps"]
     image: zevrigo:regtest
     pull_policy: never
     command: *node-operator

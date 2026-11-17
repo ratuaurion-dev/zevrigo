@@ -1,6 +1,6 @@
 # Task kerja: FTR-01 sampai FTR-03 selesai, cabang chain dan reorg (TSK-M27) menuju FTR-04
 
-> Diperbarui: 13 November 2026 · Status keseluruhan: 🟡
+> Diperbarui: 17 November 2026 · Status keseluruhan: 🟡
 
 | Status | Ringkasan |
 |---|---|
@@ -100,6 +100,7 @@ Kartu task yang siap dikerjakan disimpan sebagai file `TSK-xxx-*.md` di folder i
 | TSK-M62 | MOD-18 | Demo tahap 1: alat upacara genesis regtest `zevrigo-demo upacara`, membelanjakan `G` (kunci rahasia `1`) ke kantong treasury dalam satu transaksi (Rancangan Ekosistem Demo v0.1 Bagian 4.2, 4.3) | TSK-M47, TSK-M53 | 🟢 selesai ([kartu](TSK-M62-alat-upacara-genesis.md)) |
 | TSK-M63 | MOD-12 | Demo tahap 1: `zevrigo-cli send --dari <alamat>`, kirim hanya dari satu kantong treasury dengan kembalian ke kantong itu (isi ulang faucet bertahap, keputusan pencipta 13 November 2026) | TSK-M54, TSK-M62 | 🟢 selesai ([kartu](TSK-M63-kirim-dari-alamat.md)) |
 | TSK-M64 | MOD-18, `apps/blog` | Blog resmi Zevrigo: situs statis dari artikel Markdown (desain portal AI Studio, isi dari fakta repo), mode `zevrigo-demo web`, container `blog`, hostname `zevrigo-blog.ratuaurion.store` (DEC-37) | TSK-F11 | 🟡 kode dan layanan ([kartu](TSK-M64-blog.md)); route Cloudflare oleh pencipta |
+| TSK-M65 | repo (Docker) | Jaringan demo regtest di dua mesin: VPS (seed, explorer, gerbang RPC, blog, tunnel, faucet, pengamat) dan PC (penambang, treasury) lewat `profiles` compose, pemindahan volume dan image (DEC-38, Spesifikasi Docker Bagian 7.1) | TSK-M47, TSK-M54, TSK-M64 | 🟡 VPS siap (Q145); compose dan pemindahan Q146 ([kartu](TSK-M65-vps-demo.md)) |
 | TSK-M36 | MOD-08, MOD-11, MOD-12 | Metode RPC `scan_mempool`; saldo CLI dan pemilihan koin dengan transaksi tertunda (Spesifikasi RPC 3.9, Wallet Bagian 6) | TSK-M19 | 🟢 selesai ([kartu](TSK-M36-saldo-tertunda.md)) |
 | TSK-M25 | MOD-01 | `enum Network { Mainnet, Testnet, Regtest }` di `params` (Spesifikasi Validasi Bagian 11) | TSK-S02 | 🟢 selesai ([kartu](TSK-M25-primitives-network.md)) |
 

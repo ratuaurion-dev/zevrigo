@@ -139,10 +139,15 @@ Cloudflare Zero Trust). Public hostname tunnel, semuanya tipe HTTP: `zevrigo.rat
 (explorer), `zevrigo-seed.ratuaurion.store` ke `localhost:28803` (seed P2P WebSocket), dan `zevrigo-rpc.ratuaurion.store` ke
 `localhost:28804` (gerbang RPC untuk wallet peserta: hanya metode aman, tanpa menambang).
 
+Jaringan demo berjalan di dua mesin (TSK-M65, DEC-38), dipilih dengan profile compose. Tanpa `COMPOSE_PROFILES` tidak ada
+layanan publik yang dinyalakan, sehingga seed dan tunnel tidak pernah hidup di dua tempat sekaligus:
+
 ```bash
+# PC (WSL): membangun image, lalu node penambang + miner-berkala dan node treasury
 docker compose -f compose.yaml -f compose.publik.yaml build node
-docker compose -f compose.yaml -f compose.publik.yaml up -d
-docker compose -f compose.yaml -f compose.publik.yaml down
+COMPOSE_PROFILES=pc docker compose -f compose.yaml -f compose.publik.yaml up -d
+# VPS (image dari PC lewat docker save/load): seed, explorer, gerbang RPC, blog, tunnel, faucet, node pengamat
+COMPOSE_PROFILES=vps docker compose -f compose.yaml -f compose.publik.yaml up -d --no-build
 ```
 
 RPC dan P2P TCP node tidak terbuka, explorer dan seed hanya bisa dicapai lewat tunnel, dan batas laju explorer berlaku per
@@ -150,7 +155,7 @@ pengunjung (`--trust-proxy`). Selain seed, empat node operator jaringan demo (`n
 `node-faucet`, `node-pengamat`) berjalan di container sendiri dan tersambung ke seed lewat alamat publik, sama seperti
 peserta. Layanan `miner-berkala` di node penambang menambang satu blok regtest setiap 120 detik (waktu blok target),
 sehingga explorer publik terus menampilkan blok baru. Jeda bisa diganti dengan `ZVRG_JEDA=<detik>` saat `up`, dan layanan ini
-bisa dihentikan sendiri dengan `docker compose -f compose.yaml -f compose.publik.yaml stop miner-berkala`. Rancangan jaringan
+bisa dihentikan sendiri dengan `COMPOSE_PROFILES=pc docker compose -f compose.yaml -f compose.publik.yaml stop miner-berkala`. Rancangan jaringan
 demo: [docs/reference/rancangan-ekosistem-demo-v0.1.md](docs/reference/rancangan-ekosistem-demo-v0.1.md). Node lain bergabung
 ke seed dengan:
 

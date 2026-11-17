@@ -1,6 +1,6 @@
 # Spesifikasi Paket Docker Zevrigo Coin (ZVRG) v0.1: node, explorer, dan antarmuka web untuk regtest
 
-> Diperbarui: 12 November 2026 · Pemilik: pencipta · Ditulis: Quick · Task: TSK-M33, TSK-M44, TSK-M45, TSK-M46, TSK-M47, TSK-M53 · Status: 🟢 v0.1
+> Diperbarui: 17 November 2026 (Bagian 7.1, VPS) · Pemilik: pencipta · Ditulis: Quick · Task: TSK-M33, TSK-M44, TSK-M45, TSK-M46, TSK-M47, TSK-M53, TSK-M65 · Status: 🟢 v0.1
 > Lokasi di repo: `docs/reference/spesifikasi-docker-v0.1.md`
 
 | Status | Ringkasan |
@@ -84,8 +84,8 @@ bisa dijangkau dari host; `docker compose down -v` membersihkan container dan vo
 
 ## 7. Explorer dan seed P2P publik lewat Cloudflare Tunnel (`compose.publik.yaml`, TSK-M44, TSK-M45)
 
-Sementara (sebelum VPS), explorer dan seed P2P dibuka ke internet dari komputer pencipta lewat Cloudflare Tunnel dengan
-domain `ratuaurion.store`. `cloudflared` hanya membuat koneksi keluar ke Cloudflare; tidak ada port router yang dibuka, dan
+Explorer dan seed P2P dibuka ke internet lewat Cloudflare Tunnel dengan domain `ratuaurion.store`, dulu dari komputer
+pencipta, sejak 17 November 2026 dari VPS (Bagian 7.1). `cloudflared` hanya membuat koneksi keluar ke Cloudflare; tidak ada port router yang dibuka, dan
 alamat IP komputer pencipta tidak terlihat oleh pengunjung. HTTPS dan perlindungan DDoS di sisi Cloudflare.
 
 | Hal | Isi |
@@ -162,3 +162,15 @@ upacara dikirim dan masuk blok 100, `scan_utxos` di seed: 8 kantong tepat satu U
 lalu explorer, gerbang RPC, dan tunnel dibuka, 4 node operator sinkron ke chain baru, saldo wallet treasury = 10.000.000 ZVRG
 − biaya dengan 8 UTXO, faucet menjawab dari namespace seed (`http://node-faucet:28805`, saldo 0 sebelum isi ulang),
 `miner-berkala` melanjutkan dari blok 101, dan dari internet gerbang RPC menunjukkan 8 kantong yang sama.
+
+### 7.1 Dua mesin: VPS dan komputer pencipta (TSK-M65, DEC-38)
+
+| Hal | Isi |
+|---|---|
+| Profile | Setiap layanan `compose.publik.yaml` punya `profiles`: `vps` atau `pc`. Tanpa `COMPOSE_PROFILES` tidak ada layanan publik yang dinyalakan (node dan explorer dari `compose.yaml` juga ber-profile `vps`), jadi seed dengan `p2p_key` yang sama dan konektor `cloudflared` kedua tidak pernah hidup di dua tempat (Cloudflare membagi permintaan ke semua konektor, DEC-36) |
+| `vps` | `node` (seed), `explorer`, `gerbang-rpc`, `blog`, `cloudflared`, `node-faucet` + `faucet`, `node-pengamat`. Satu tunnel; semua public hostname tetap. Token di `~/.zevrigo-tunnel.env` user VPS (izin 600), disalin pencipta |
+| `pc` | `node-penambang` + `miner-berkala`, `node-treasury`. Tersambung ke seed lewat alamat publik, sama seperti peserta. Kunci kantong treasury tidak pernah di VPS |
+| VPS | Ubuntu 26.04 x86_64 KVM, 1 vCPU, 3,8 GiB RAM + swap 2 GiB, NAT (hanya SSH yang diteruskan). User `zvrg` (sudo, docker), login SSH hanya dengan kunci (`/etc/ssh/sshd_config.d/0-zevrigo.conf`), `ufw` masuk hanya 22, pembaruan keamanan otomatis, NTP. Docker Engine dari repository resmi Docker, log `json-file` 10 MB × 3 |
+| Image | Dibangun di PC (`docker compose … build node`), dikirim `docker save` + `scp` + `docker load`, ID image sama di kedua mesin. VPS tidak membangun (`--no-build`); `cloudflared` ditarik VPS dengan digest yang dikunci |
+| Pemindahan | Semua layanan `vps` di PC dihentikan dulu (juga `miner-berkala`, agar chain tidak bergerak selama pemindahan), volume `zvrg-data` (chain, `p2p_key` seed, indeks explorer), `zvrg-pengamat`, `zvrg-faucet`, `zvrg-faucet-dompet` (kunci faucet, isinya tidak ditampilkan) disalin sebagai tar, dipulihkan di VPS, lalu VPS dinyalakan. PeerId seed tetap, jadi alamat `--connect` peserta tidak berubah. Volume lama di PC disimpan sebagai cadangan, container layanan `vps` di PC dihapus |
+| Akibat | PC mati: explorer, blog, faucet, dan gerbang RPC tetap menjawab, tetapi tidak ada blok baru; transaksi (termasuk faucet) menunggu di mempool sampai `miner-berkala` jalan lagi |

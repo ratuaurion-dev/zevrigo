@@ -33,7 +33,7 @@ Prinsip:
 | Hal | Keputusan |
 |---|---|
 | Jaringan | Regtest. ASERT berlaku di regtest (Spesifikasi Validasi Bagian 2), jadi kesulitan naik bila ada yang menambang terus |
-| Tempat | Komputer pencipta dulu (sebelum VPS), lewat Cloudflare Tunnel |
+| Tempat | Komputer pencipta dulu, lewat Cloudflare Tunnel. Sejak 17 November 2026 (DEC-38, TSK-M65): VPS untuk seed, explorer, gerbang RPC, blog, tunnel, faucet, dan node pengamat; komputer pencipta untuk node penambang + miner-berkala dan node treasury |
 | Node | 5 node di Docker, ringan: seed, penambang, treasury, faucet, pengamat. Semua tersambung lewat seed publik |
 | Statistik | Node terhubung, node aktif, node operator dan peserta (PeerId resmi), alamat penambang berbeda dalam 720 blok |
 | Chain | Chain publik di-reset sekali saat peluncuran; PeerId seed tetap |
